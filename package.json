@@ -17,6 +17,8 @@
     "node": ">=22.14.0"
   },
   "scripts": {
+    "pub:dry": "pnpm publish --dry-run --access public --tag alpha --publish-branch main",
+    "pub": "pnpm publish --access public --tag alpha --publish-branch main",
     "up": "pnpm update --interactive --latest --recursive",
     "build": "bun ./scripts/build.ts",
     "prepublishOnly": "npm run build",
