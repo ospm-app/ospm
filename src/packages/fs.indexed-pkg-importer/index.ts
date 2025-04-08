@@ -11,6 +11,7 @@ import type {
   ImportIndexedPackage,
 } from '../store-controller-types/index.ts';
 import { importIndexedDir, type ImportFile } from './importIndexedDir.ts';
+import { reflinkFileSync } from '@reflink/reflink';
 
 export type { FilesMap, ImportOptions, ImportIndexedPackage };
 
@@ -157,8 +158,6 @@ function createCloneFunction(): CloneFunction {
   // Node.js currently does not natively support reflinks on Windows and macOS.
   // Hence, we use a third party solution.
   if (process.platform === 'darwin' || process.platform === 'win32') {
-    // eslint-disable-next-line
-    const { reflinkFileSync } = require('@reflink/reflink');
     return (fr, to) => {
       try {
         reflinkFileSync(fr, to);

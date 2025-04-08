@@ -1,6 +1,6 @@
 {
   "name": "ospm",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A modern package manager for JavaScript/TypeScript projects",
   "bin": {
     "ospm": "./bin/ospm.js"
@@ -40,6 +40,7 @@
     "@pnpm/patch-package": "0.0.1",
     "@pnpm/semver-diff": "1.1.0",
     "@pnpm/tabtab": "0.5.4",
+    "@reflink/reflink": "0.1.19",
     "@rushstack/worker-pool": "0.5.12",
     "@yarnpkg/core": "4.2.1",
     "@yarnpkg/extensions": "2.0.5",
