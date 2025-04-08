@@ -1,0 +1,14 @@
+{
+  "env": {
+    "browser": true
+  },
+  "globals": {
+    "foo": "readonly"
+  },
+  "settings": {},
+  "plugins": ["import", "promise", "node", "security"],
+  "rules": {
+    "eqeqeq": "off",
+    "import/no-cycle": "error"
+  }
+}

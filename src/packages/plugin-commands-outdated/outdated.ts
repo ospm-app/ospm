@@ -1,0 +1,524 @@
+import {
+  docsUrl,
+  readDepNameCompletions,
+  readProjectManifestOnly,
+  TABLE_OPTIONS,
+} from '../cli-utils/index.ts';
+import colorizeSemverDiff from '@pnpm/colorize-semver-diff';
+import type { CompletionFunc } from '../command/index.ts';
+import {
+  FILTERING,
+  OPTIONS,
+  UNIVERSAL_OPTIONS,
+} from '../common-cli-options-help/index.ts';
+import { type Config, types as allTypes } from '../config/index.ts';
+import { PnpmError } from '../error/index.ts';
+import {
+  outdatedDepsOfProjects,
+  type OutdatedPackage,
+} from '../outdated/index.ts';
+import semverDiff from '@pnpm/semver-diff';
+import type {
+  DependenciesField,
+  PackageManifest,
+  Project,
+  ProjectRootDir,
+} from '../types/index.ts';
+import { table } from '@zkochan/table';
+import chalk from 'chalk';
+import pick from 'ramda/src/pick';
+import sortWith from 'ramda/src/sortWith';
+import renderHelp from 'render-help';
+import { stripVTControlCharacters as stripAnsi } from 'node:util';
+import {
+  DEFAULT_COMPARATORS,
+  NAME_COMPARATOR,
+  type OutdatedWithVersionDiff,
+} from './utils.ts';
+import { outdatedRecursive } from './recursive.ts';
+
+export function rcOptionsTypes(): Record<string, unknown> {
+  return {
+    ...pick.default(
+      [
+        'depth',
+        'dev',
+        'global-dir',
+        'global',
+        'long',
+        'optional',
+        'production',
+      ],
+      allTypes
+    ),
+    compatible: Boolean,
+    format: ['table', 'list', 'json'],
+    'sort-by': 'name',
+  };
+}
+
+export const cliOptionsTypes = (): Record<string, unknown> => ({
+  ...rcOptionsTypes(),
+  recursive: Boolean,
+});
+
+export const shorthands: Record<string, string> = {
+  D: '--dev',
+  P: '--production',
+  table: '--format=table',
+  'no-table': '--format=list',
+  json: '--format=json',
+};
+
+export const commandNames = ['outdated'];
+
+export function help(): string {
+  return renderHelp({
+    description: `Check for outdated packages. The check can be limited to a subset of the installed packages by providing arguments (patterns are supported).
+
+Examples:
+pnpm outdated
+pnpm outdated --long
+pnpm outdated gulp-* @babel/core`,
+    descriptionLists: [
+      {
+        title: 'Options',
+
+        list: [
+          {
+            description:
+              'Print only versions that satisfy specs in package.json',
+            name: '--compatible',
+          },
+          {
+            description:
+              'By default, details about the outdated packages (such as a link to the repo) are not displayed. \
+To display the details, pass this option.',
+            name: '--long',
+          },
+          {
+            description:
+              'Check for outdated dependencies in every package found in subdirectories \
+or in every workspace package, when executed inside a workspace. \
+For options that may be used with `-r`, see "pnpm help recursive"',
+            name: '--recursive',
+            shortAlias: '-r',
+          },
+          {
+            description:
+              'Prints the outdated packages in a list. Good for small consoles',
+            name: '--no-table',
+          },
+          {
+            description: 'Check only "dependencies" and "optionalDependencies"',
+            name: '--prod',
+            shortAlias: '-P',
+          },
+          {
+            description: 'Check only "devDependencies"',
+            name: '--dev',
+            shortAlias: '-D',
+          },
+          {
+            description: 'Don\'t check "optionalDependencies"',
+            name: '--no-optional',
+          },
+          {
+            description:
+              'Prints the outdated dependencies in the given format. Default is "table". Supported options: "table, list, json"',
+            name: '--format <format>',
+          },
+          {
+            description:
+              'Specify the sorting method. Currently only `name` is supported.',
+            name: '--sort-by',
+          },
+          OPTIONS.globalDir,
+          ...UNIVERSAL_OPTIONS,
+        ],
+      },
+      FILTERING,
+    ],
+    url: docsUrl('outdated'),
+    usages: ['pnpm outdated [<pkg> ...]'],
+  });
+}
+
+export const completion: CompletionFunc = async (
+  cliOpts: Record<string, unknown>
+): Promise<
+  {
+    name: string;
+  }[]
+> => {
+  return readDepNameCompletions(cliOpts.dir as string);
+};
+
+export type OutdatedCommandOptions = {
+  compatible?: boolean | undefined;
+  long?: boolean | undefined;
+  recursive?: boolean | undefined;
+  format?: 'table' | 'list' | 'json' | undefined;
+  sortBy?: 'name' | undefined;
+} & Pick<
+  Config,
+  | 'allProjects'
+  | 'ca'
+  | 'cacheDir'
+  | 'catalogs'
+  | 'cert'
+  | 'dev'
+  | 'dir'
+  | 'engineStrict'
+  | 'fetchRetries'
+  | 'fetchRetryFactor'
+  | 'fetchRetryMaxtimeout'
+  | 'fetchRetryMintimeout'
+  | 'fetchTimeout'
+  | 'global'
+  | 'httpProxy'
+  | 'httpsProxy'
+  | 'key'
+  | 'localAddress'
+  | 'lockfileDir'
+  | 'networkConcurrency'
+  | 'noProxy'
+  | 'offline'
+  | 'optional'
+  | 'production'
+  | 'rawConfig'
+  | 'registries'
+  | 'selectedProjectsGraph'
+  | 'strictSsl'
+  | 'tag'
+  | 'userAgent'
+> &
+  Partial<Pick<Config, 'userConfig'>>;
+
+export async function handler(
+  opts: OutdatedCommandOptions,
+  params: string[] = []
+): Promise<{ output: string; exitCode: number }> {
+  const include = {
+    dependencies: opts.production !== false,
+    devDependencies: opts.dev !== false,
+    optionalDependencies: opts.optional !== false,
+  };
+
+  if (
+    opts.recursive === true &&
+    typeof opts.selectedProjectsGraph !== 'undefined'
+  ) {
+    const pkgs = Object.values(opts.selectedProjectsGraph).map(
+      (wsPkg: {
+        dependencies: ProjectRootDir[];
+        package: Project;
+      }): Project => {
+        return wsPkg.package;
+      }
+    );
+
+    return outdatedRecursive(pkgs, params, { ...opts, include });
+  }
+
+  const manifest = await readProjectManifestOnly(opts.dir, opts);
+
+  const packages = [
+    {
+      rootDir: opts.dir as ProjectRootDir,
+      manifest,
+    },
+  ];
+
+  const [outdatedPackages] = await outdatedDepsOfProjects(packages, params, {
+    ...opts,
+    fullMetadata: opts.long ?? false,
+    ignoreDependencies: manifest.pnpm?.updateConfig?.ignoreDependencies,
+    include,
+    retry: {
+      factor: opts.fetchRetryFactor ?? 3,
+      maxTimeout: opts.fetchRetryMaxtimeout ?? 60_000,
+      minTimeout: opts.fetchRetryMintimeout ?? 1_000,
+      retries: opts.fetchRetries ?? 3,
+    },
+    timeout: opts.fetchTimeout,
+  });
+
+  let output: string | undefined;
+
+  switch (opts.format ?? 'table') {
+    case 'table': {
+      if (typeof outdatedPackages !== 'undefined') {
+        output = renderOutdatedTable(outdatedPackages, opts);
+      }
+
+      break;
+    }
+
+    case 'list': {
+      if (typeof outdatedPackages !== 'undefined') {
+        output = renderOutdatedList(outdatedPackages, opts);
+      }
+
+      break;
+    }
+
+    case 'json': {
+      if (typeof outdatedPackages !== 'undefined') {
+        output = renderOutdatedJSON(outdatedPackages, opts);
+      }
+
+      break;
+    }
+
+    default: {
+      throw new PnpmError(
+        'BAD_OUTDATED_FORMAT',
+        `Unsupported format: ${opts.format?.toString() ?? 'undefined'}`
+      );
+    }
+  }
+
+  return {
+    output: output ?? '',
+    exitCode: (outdatedPackages?.length ?? 0) === 0 ? 0 : 1,
+  };
+}
+
+function renderOutdatedTable(
+  outdatedPackages: readonly OutdatedPackage[],
+  opts: { long?: boolean | undefined; sortBy?: 'name' | undefined }
+): string {
+  if (outdatedPackages.length === 0) return '';
+  const columnNames = ['Package', 'Current', 'Latest'];
+
+  const columnFns = [renderPackageName, renderCurrent, renderLatest];
+
+  if (opts.long === true) {
+    columnNames.push('Details');
+    columnFns.push(renderDetails);
+  }
+
+  // Avoid the overhead of allocating a new array caused by calling `array.map()`
+  for (let i = 0; i < columnNames.length; i++)
+    columnNames[i] = chalk.blueBright(columnNames[i]);
+
+  const data = [
+    columnNames,
+    ...sortOutdatedPackages(outdatedPackages, { sortBy: opts.sortBy }).map(
+      (outdatedPkg) => columnFns.map((fn) => fn(outdatedPkg))
+    ),
+  ];
+
+  let detailsColumnMaxWidth = 40;
+
+  if (opts.long === true) {
+    detailsColumnMaxWidth = outdatedPackages
+      .filter((pkg: OutdatedPackage): boolean => {
+        return (
+          typeof pkg.latestManifest !== 'undefined' &&
+          typeof pkg.latestManifest.deprecated === 'undefined'
+        );
+      })
+      .reduce((maxWidth: number, pkg: OutdatedPackage): number => {
+        const cellWidth = pkg.latestManifest?.homepage?.length ?? 0;
+
+        return Math.max(maxWidth, cellWidth);
+      }, 0);
+  }
+
+  return table(data, {
+    ...TABLE_OPTIONS,
+    columns: {
+      ...TABLE_OPTIONS.columns,
+      // Detail column:
+      3: {
+        width: detailsColumnMaxWidth,
+        wrapWord: true,
+      },
+    },
+  });
+}
+
+function renderOutdatedList(
+  outdatedPackages: readonly OutdatedPackage[],
+  opts: { long?: boolean | undefined; sortBy?: 'name' | undefined }
+): string {
+  if (outdatedPackages.length === 0) return '';
+  return (
+    // biome-ignore lint/style/useTemplate: <explanation>
+    sortOutdatedPackages(outdatedPackages, { sortBy: opts.sortBy })
+      .map((outdatedPkg: OutdatedPackage & OutdatedWithVersionDiff): string => {
+        let info = `${chalk.bold(renderPackageName(outdatedPkg))} ${renderCurrent(outdatedPkg)} ${chalk.grey('=>')} ${renderLatest(outdatedPkg)}`;
+
+        if (opts.long === true) {
+          const details = renderDetails(outdatedPkg);
+
+          if (details) {
+            info += `\n${details}`;
+          }
+        }
+
+        return info;
+      })
+      .join('\n\n') + '\n'
+  );
+}
+
+export type OutdatedPackageJSONOutput = {
+  current?: string | undefined;
+  latest?: string | undefined;
+  wanted: string;
+  isDeprecated: boolean;
+  dependencyType: DependenciesField;
+  latestManifest?: PackageManifest | undefined;
+};
+
+function renderOutdatedJSON(
+  outdatedPackages: readonly OutdatedPackage[],
+  opts: { long?: boolean | undefined; sortBy?: 'name' | undefined }
+): string {
+  const outdatedPackagesJSON: Record<string, OutdatedPackageJSONOutput> =
+    sortOutdatedPackages(outdatedPackages, { sortBy: opts.sortBy }).reduce(
+      (
+        acc: Record<string, OutdatedPackageJSONOutput>,
+        outdatedPkg: OutdatedPackage & OutdatedWithVersionDiff
+      ): Record<string, OutdatedPackageJSONOutput> => {
+        acc[outdatedPkg.packageName] = {
+          current: outdatedPkg.current,
+          latest: outdatedPkg.latestManifest?.version,
+          wanted: outdatedPkg.wanted,
+          isDeprecated: Boolean(outdatedPkg.latestManifest?.deprecated),
+          dependencyType: outdatedPkg.belongsTo,
+        };
+
+        const curr = acc[outdatedPkg.packageName];
+
+        if (
+          opts.long === true &&
+          typeof outdatedPkg.latestManifest !== 'undefined' &&
+          typeof curr !== 'undefined'
+        ) {
+          curr.latestManifest = outdatedPkg.latestManifest;
+        }
+        return acc;
+      },
+      {}
+    );
+
+  return JSON.stringify(outdatedPackagesJSON, null, 2);
+}
+
+function sortOutdatedPackages(
+  outdatedPackages: readonly OutdatedPackage[],
+  opts?: { sortBy?: 'name' | undefined } | undefined
+): (OutdatedPackage & OutdatedWithVersionDiff)[] {
+  const sortBy = opts?.sortBy;
+
+  const comparators =
+    sortBy === 'name' ? [NAME_COMPARATOR] : DEFAULT_COMPARATORS;
+
+  return sortWith.default(
+    comparators,
+    outdatedPackages.map(toOutdatedWithVersionDiff)
+  );
+}
+
+export function getCellWidth(
+  data: string[][],
+  columnNumber: number,
+  maxWidth: number
+): number {
+  const maxCellWidth = data.reduce(
+    (cellWidth: number, row: string[]): number => {
+      const cellLines = stripAnsi(row[columnNumber] ?? '').split('\n');
+
+      const currentCellWidth = cellLines.reduce(
+        (lineWidth: number, line: string): number => {
+          return Math.max(lineWidth, line.length);
+        },
+        0
+      );
+
+      return Math.max(cellWidth, currentCellWidth);
+    },
+    0
+  );
+
+  return Math.min(maxWidth, maxCellWidth);
+}
+
+export function toOutdatedWithVersionDiff<Pkg extends OutdatedPackage>(
+  outdated: Pkg
+): Pkg & OutdatedWithVersionDiff {
+  if (outdated.latestManifest != null) {
+    return {
+      ...outdated,
+      ...semverDiff.default(outdated.wanted, outdated.latestManifest.version),
+    };
+  }
+
+  return {
+    ...outdated,
+    change: 'unknown',
+  };
+}
+
+export function renderPackageName({
+  belongsTo,
+  packageName,
+}: OutdatedPackage): string {
+  switch (belongsTo) {
+    case 'devDependencies': {
+      return `${packageName} ${chalk.dim('(dev)')}`;
+    }
+    case 'optionalDependencies': {
+      return `${packageName} ${chalk.dim('(optional)')}`;
+    }
+    default: {
+      return packageName;
+    }
+  }
+}
+
+export function renderCurrent({ current, wanted }: OutdatedPackage): string {
+  const output = current ?? 'missing';
+
+  if (current === wanted) {
+    return output;
+  }
+
+  return `${output} (wanted ${wanted})`;
+}
+
+export function renderLatest(outdatedPkg: OutdatedWithVersionDiff): string {
+  const { latestManifest, change, diff } = outdatedPkg;
+
+  if (latestManifest == null) return '';
+
+  if (change === null || diff == null) {
+    return latestManifest.deprecated
+      ? chalk.redBright.bold('Deprecated')
+      : latestManifest.version;
+  }
+
+  return colorizeSemverDiff.default({ change, diff });
+}
+
+export function renderDetails({ latestManifest }: OutdatedPackage): string {
+  if (typeof latestManifest === 'undefined') {
+    return '';
+  }
+
+  const outputs = [];
+
+  if (typeof latestManifest.deprecated === 'string') {
+    outputs.push(chalk.redBright(latestManifest.deprecated));
+  }
+
+  if (typeof latestManifest.homepage === 'string') {
+    outputs.push(chalk.underline(latestManifest.homepage));
+  }
+
+  return outputs.join('\n');
+}

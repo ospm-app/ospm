@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "glob", "tar", "semver"],
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "Bundler"
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.test.ts",
+    "tests/**/*test.ts",
+    "*.config.ts",
+    "*.setup.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,907 @@
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import {
+  calcDepState,
+  type DepsStateCache,
+} from '../../calc-dep-state/index.ts';
+import {
+  progressLogger,
+  stageLogger,
+  statsLogger,
+} from '../../core-loggers/index.ts';
+import { filterLockfileByImporters } from '../../lockfile.filtering/index.ts';
+import { linkDirectDeps } from '../../pkg-manager.direct-dep-linker/index.ts';
+import type { InstallationResultStats } from '../../headless/index.ts';
+import { hoist, type HoistedWorkspaceProject } from '../../hoist/index.ts';
+import { logger } from '../../logger/index.ts';
+import { prune } from '../../modules-cleaner/index.ts';
+import type { IncludedDependencies } from '../../modules-yaml/index.ts';
+import type {
+  DependenciesGraph,
+  DependenciesGraphNode,
+  LinkedDependency,
+  ResolvedPackage,
+} from '../../resolve-dependencies/index.ts';
+import type {
+  PackageResponse,
+  StoreController,
+} from '../../store-controller-types/index.ts';
+import { symlinkDependency } from '../../symlink-dependency/index.ts';
+import type {
+  DepPath,
+  HoistedDependencies,
+  Registries,
+  ProjectId,
+  ProjectRootDir,
+  PkgResolutionId,
+  GlobalPkgDir,
+  ProjectRootDirRealPath,
+  ModulesDir,
+  LockFileDir,
+  WorkspaceDir,
+} from '../../types/index.ts';
+import { symlinkAllModules } from '../../worker/index.ts';
+import pLimit from 'p-limit';
+import { pathExists } from 'path-exists';
+import equals from 'ramda/src/equals';
+import isEmpty from 'ramda/src/isEmpty';
+import difference from 'ramda/src/difference';
+import omit from 'ramda/src/omit';
+import pick from 'ramda/src/pick';
+import pickBy from 'ramda/src/pickBy';
+import props from 'ramda/src/props';
+import type { ImporterToUpdate } from './index.ts';
+import type { GenericDependenciesGraphNodeWithResolvedChildren } from '../../resolve-dependencies/resolvePeers.ts';
+import type {
+  LockfileObject,
+  ProjectSnapshot,
+} from '../../lockfile.types/index.ts';
+
+const brokenModulesLogger = logger('_broken_node_modules');
+
+export interface LinkPackagesOptions {
+  allowBuild?: ((pkgName: string) => boolean) | undefined;
+  currentLockfile: LockfileObject;
+  dedupeDirectDeps: boolean;
+  dependenciesByProjectId: Record<string, Map<string, DepPath>>;
+  disableRelinkLocalDirDeps?: boolean | undefined;
+  force: boolean;
+  depsStateCache: DepsStateCache;
+  extraNodePaths: string[];
+  hoistedDependencies: HoistedDependencies;
+  hoistedModulesDir: ModulesDir;
+  hoistPattern?: string[] | undefined;
+  ignoreScripts: boolean;
+  publicHoistPattern?: string[] | undefined;
+  include: IncludedDependencies;
+  linkedDependenciesByProjectId: Record<string, LinkedDependency[]>;
+  lockfileDir: string;
+  makePartialCurrentLockfile: boolean;
+  outdatedDependencies: Record<string, string>;
+  pruneStore: boolean;
+  pruneVirtualStore: boolean;
+  registries: Registries;
+  rootModulesDir: ModulesDir;
+  sideEffectsCacheRead: boolean;
+  symlink: boolean;
+  skipped: Set<DepPath>;
+  storeController: StoreController<
+    PackageResponse,
+    PackageResponse,
+    {
+      importMethod?: string | undefined;
+      isBuilt: boolean;
+    }
+  >;
+  virtualStoreDir: string;
+  virtualStoreDirMaxLength: number;
+  wantedLockfile: LockfileObject;
+  wantedToBeSkippedPackageIds: Set<string>;
+  hoistWorkspacePackages?: boolean | undefined;
+}
+
+export type LinkPackagesResult = {
+  currentLockfile: LockfileObject;
+  newDepPaths: DepPath[];
+  newHoistedDependencies: HoistedDependencies;
+  removedDepPaths: Set<string>;
+  stats: InstallationResultStats;
+};
+
+export async function linkPackages<WantedExtraProps>(
+  projects: ImporterToUpdate<WantedExtraProps>[],
+  depGraph: DependenciesGraph,
+  opts: LinkPackagesOptions
+): Promise<LinkPackagesResult> {
+  let depNodes = Object.values(depGraph).filter(
+    ({
+      depPath,
+      id,
+    }: ResolvedPackage &
+      GenericDependenciesGraphNodeWithResolvedChildren): boolean => {
+      if (
+        opts.wantedLockfile.packages?.[depPath] != null &&
+        opts.wantedLockfile.packages[depPath].optional !== true
+      ) {
+        opts.skipped.delete(depPath);
+
+        return true;
+      }
+
+      if (opts.wantedToBeSkippedPackageIds.has(id)) {
+        opts.skipped.add(depPath);
+
+        return false;
+      }
+
+      opts.skipped.delete(depPath);
+
+      return true;
+    }
+  );
+
+  if (!opts.include.dependencies) {
+    depNodes = depNodes.filter(
+      ({
+        dev,
+        optional,
+      }: ResolvedPackage &
+        GenericDependenciesGraphNodeWithResolvedChildren): boolean => {
+        return dev ?? optional;
+      }
+    );
+  }
+
+  if (opts.include.devDependencies !== true) {
+    depNodes = depNodes.filter(
+      ({
+        optional,
+        prod,
+      }: ResolvedPackage &
+        GenericDependenciesGraphNodeWithResolvedChildren): boolean => {
+        return prod || optional;
+      }
+    );
+  }
+
+  if (opts.include.optionalDependencies !== true) {
+    depNodes = depNodes.filter(
+      ({
+        optional,
+      }: ResolvedPackage &
+        GenericDependenciesGraphNodeWithResolvedChildren): boolean => {
+        return optional !== true;
+      }
+    );
+  }
+
+  const newDepGraph = Object.fromEntries(
+    depNodes.map(
+      (
+        depNode: ResolvedPackage &
+          GenericDependenciesGraphNodeWithResolvedChildren
+      ): [
+        DepPath,
+        ResolvedPackage & GenericDependenciesGraphNodeWithResolvedChildren,
+      ] => [depNode.depPath, depNode]
+    )
+  );
+
+  const removedDepPaths = await prune(projects, {
+    currentLockfile: opts.currentLockfile,
+    dedupeDirectDeps: opts.dedupeDirectDeps,
+    hoistedDependencies: opts.hoistedDependencies,
+    hoistedModulesDir:
+      opts.hoistPattern != null ? opts.hoistedModulesDir : undefined,
+    include: opts.include,
+    lockfileDir: opts.lockfileDir,
+    pruneStore: opts.pruneStore,
+    pruneVirtualStore: opts.pruneVirtualStore,
+    publicHoistedModulesDir:
+      typeof opts.publicHoistPattern !== 'undefined'
+        ? opts.rootModulesDir
+        : undefined,
+    skipped: opts.skipped,
+    storeController: opts.storeController,
+    virtualStoreDir: opts.virtualStoreDir,
+    virtualStoreDirMaxLength: opts.virtualStoreDirMaxLength,
+    wantedLockfile: opts.wantedLockfile,
+  });
+
+  stageLogger.debug({
+    prefix: opts.lockfileDir,
+    stage: 'importing_started',
+  });
+
+  const projectIds = projects.map(({ id }) => id);
+
+  const filterOpts = {
+    include: opts.include,
+    registries: opts.registries,
+    skipped: opts.skipped,
+  };
+
+  const newCurrentLockfile = filterLockfileByImporters(
+    opts.wantedLockfile,
+    projectIds,
+    {
+      ...filterOpts,
+      failOnMissingDependencies: true,
+      skipped: new Set(),
+    }
+  );
+
+  const { newDepPaths, added } = await linkNewPackages(
+    filterLockfileByImporters(opts.currentLockfile, projectIds, {
+      ...filterOpts,
+      failOnMissingDependencies: false,
+    }),
+    newCurrentLockfile,
+    newDepGraph,
+    {
+      allowBuild: opts.allowBuild,
+      disableRelinkLocalDirDeps: opts.disableRelinkLocalDirDeps,
+      force: opts.force,
+      depsStateCache: opts.depsStateCache,
+      ignoreScripts: opts.ignoreScripts,
+      lockfileDir: opts.lockfileDir,
+      optional: opts.include.optionalDependencies,
+      sideEffectsCacheRead: opts.sideEffectsCacheRead,
+      symlink: opts.symlink,
+      skipped: opts.skipped,
+      storeController: opts.storeController,
+      virtualStoreDir: opts.virtualStoreDir,
+    }
+  );
+
+  stageLogger.debug({
+    prefix: opts.lockfileDir,
+    stage: 'importing_done',
+  });
+
+  let currentLockfile: LockfileObject;
+
+  const allImportersIncluded = equals.default(
+    projectIds.sort(),
+    Object.keys(opts.wantedLockfile.importers ?? {}).sort()
+  );
+
+  if (opts.makePartialCurrentLockfile || !allImportersIncluded) {
+    const packages = opts.currentLockfile.packages ?? {};
+
+    if (opts.wantedLockfile.packages != null) {
+      for (const depPath in opts.wantedLockfile.packages) {
+        if (newDepGraph[depPath as DepPath]) {
+          const newPackages = opts.wantedLockfile.packages[depPath as DepPath];
+
+          if (typeof newPackages !== 'undefined') {
+            packages[depPath as DepPath] = newPackages;
+          }
+        }
+      }
+    }
+
+    const projects = {
+      ...opts.currentLockfile.importers,
+      ...pick.default<
+        Record<ProjectId, ProjectSnapshot> | undefined,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore Type 'ProjectId[]' does not satisfy the constraint 'never'.ts(2344)
+        ProjectId[]
+      >(projectIds, opts.wantedLockfile.importers),
+    };
+
+    currentLockfile = filterLockfileByImporters(
+      {
+        ...opts.wantedLockfile,
+        importers: projects,
+        packages,
+      },
+      Object.keys(projects) as ProjectId[],
+      {
+        ...filterOpts,
+        failOnMissingDependencies: false,
+        skipped: new Set(),
+      }
+    );
+  } else if (
+    opts.include.dependencies &&
+    opts.include.devDependencies &&
+    opts.include.optionalDependencies &&
+    opts.skipped.size === 0
+  ) {
+    currentLockfile = opts.wantedLockfile;
+  } else {
+    currentLockfile = newCurrentLockfile;
+  }
+
+  let newHoistedDependencies: HoistedDependencies;
+
+  if (opts.hoistPattern == null && opts.publicHoistPattern == null) {
+    newHoistedDependencies = {};
+  } else if (newDepPaths.length > 0 || removedDepPaths.size > 0) {
+    // It is important to keep the skipped packages in the lockfile which will be saved as the "current lockfile".
+    // pnpm is comparing the current lockfile to the wanted one and they should match.
+    // But for hoisting, we need a version of the lockfile w/o the skipped packages, so we're making a copy.
+    const hoistLockfile = {
+      ...currentLockfile,
+      packages:
+        currentLockfile.packages != null
+          ? omit.default(Array.from(opts.skipped), currentLockfile.packages)
+          : {},
+    };
+
+    newHoistedDependencies = await hoist({
+      extraNodePath: opts.extraNodePaths,
+      lockfile: hoistLockfile,
+      importerIds: projectIds,
+      privateHoistedModulesDir: opts.hoistedModulesDir,
+      privateHoistPattern: opts.hoistPattern ?? [],
+      publicHoistedModulesDir: opts.rootModulesDir,
+      publicHoistPattern: opts.publicHoistPattern ?? [],
+      virtualStoreDir: opts.virtualStoreDir,
+      virtualStoreDirMaxLength: opts.virtualStoreDirMaxLength,
+      hoistedWorkspacePackages:
+        opts.hoistWorkspacePackages === true
+          ? projects.reduce(
+              (
+                hoistedWorkspacePackages: Record<
+                  string,
+                  HoistedWorkspaceProject
+                >,
+                project: ImporterToUpdate<WantedExtraProps>
+              ): Record<string, HoistedWorkspaceProject> => {
+                if (
+                  typeof project.manifest?.name === 'string' &&
+                  project.id !== '.'
+                ) {
+                  hoistedWorkspacePackages[project.id] = {
+                    dir: project.rootDir,
+                    name: project.manifest.name,
+                  };
+                }
+
+                return hoistedWorkspacePackages;
+              },
+              {}
+            )
+          : undefined,
+    });
+  } else {
+    newHoistedDependencies = opts.hoistedDependencies;
+  }
+
+  let linkedToRoot = 0;
+
+  if (opts.symlink) {
+    const projectsToLink = Object.fromEntries(
+      await Promise.all(
+        projects.map(
+          async ({
+            id,
+            manifest,
+            modulesDir,
+            rootDir,
+          }: ImporterToUpdate<WantedExtraProps>): Promise<
+            (
+              | ProjectId
+              | {
+                  dir:
+                    | ProjectRootDir
+                    | ProjectRootDirRealPath
+                    | GlobalPkgDir
+                    | WorkspaceDir
+                    | LockFileDir;
+                  modulesDir: ModulesDir;
+                  dependencies: (
+                    | {
+                        alias: string;
+                        name: string;
+                        version: string;
+                        dir: string;
+                        id: PkgResolutionId;
+                        dependencyType: 'dev' | 'optional' | 'prod';
+                        latest: string | undefined;
+                        isExternalLink: boolean;
+                      }
+                    | {
+                        alias: string;
+                        name: string;
+                        version: string;
+                        dir: string;
+                        id: string | undefined;
+                        dependencyType: 'dev' | 'optional' | 'prod';
+                        isExternalLink: boolean;
+                      }
+                  )[];
+                }
+            )[]
+          > => {
+            const deps = opts.dependenciesByProjectId[id];
+
+            const importerFromLockfile = newCurrentLockfile.importers?.[id];
+
+            return [
+              id,
+              {
+                dir: rootDir,
+                modulesDir,
+                dependencies: await Promise.all([
+                  ...Array.from(deps?.entries() ?? [])
+                    .filter(([rootAlias]: [string, DepPath]): boolean => {
+                      return (
+                        typeof importerFromLockfile?.specifiers[rootAlias] !==
+                        'undefined'
+                      );
+                    })
+                    .map(
+                      ([rootAlias, depPath]: [string, DepPath]): {
+                        rootAlias: string;
+                        depGraphNode:
+                          | (ResolvedPackage &
+                              GenericDependenciesGraphNodeWithResolvedChildren)
+                          | undefined;
+                      } => {
+                        return {
+                          rootAlias,
+                          depGraphNode: depGraph[depPath],
+                        };
+                      }
+                    )
+                    .filter(
+                      ({
+                        depGraphNode,
+                      }: {
+                        rootAlias: string;
+                        depGraphNode:
+                          | (ResolvedPackage &
+                              GenericDependenciesGraphNodeWithResolvedChildren)
+                          | undefined;
+                      }): boolean => {
+                        return typeof depGraphNode !== 'undefined';
+                      }
+                    )
+                    .map(
+                      async ({
+                        rootAlias,
+                        depGraphNode,
+                      }: {
+                        rootAlias: string;
+                        depGraphNode:
+                          | (ResolvedPackage &
+                              GenericDependenciesGraphNodeWithResolvedChildren)
+                          | undefined;
+                      }): Promise<{
+                        alias: string;
+                        name: string;
+                        version: string;
+                        dir: string;
+                        id: PkgResolutionId;
+                        dependencyType: 'dev' | 'optional' | 'prod';
+                        latest?: string | undefined;
+                        isExternalLink: boolean;
+                      }> => {
+                        const isDev = Boolean(
+                          manifest?.devDependencies?.[depGraphNode?.name ?? '']
+                        );
+
+                        const isOptional = Boolean(
+                          manifest?.optionalDependencies?.[
+                            depGraphNode?.name ?? ''
+                          ]
+                        );
+
+                        return {
+                          alias: rootAlias,
+                          name: depGraphNode?.name ?? '',
+                          version: depGraphNode?.version ?? '',
+                          dir: depGraphNode?.dir ?? '',
+                          id: depGraphNode?.id ?? ('' as PkgResolutionId),
+                          dependencyType: isDev
+                            ? 'dev'
+                            : isOptional
+                              ? 'optional'
+                              : 'prod',
+                          latest:
+                            opts.outdatedDependencies[depGraphNode?.id ?? ''],
+                          isExternalLink: false,
+                        };
+                      }
+                    ),
+                  ...(opts.linkedDependenciesByProjectId[id]?.map(
+                    async (
+                      linkedDependency: LinkedDependency
+                    ): Promise<{
+                      alias: string;
+                      name: string;
+                      version: string;
+                      dir: string;
+                      id: string;
+                      dependencyType: 'dev' | 'optional' | 'prod';
+                      isExternalLink: boolean;
+                    }> => {
+                      const dir = resolvePath(
+                        rootDir,
+                        linkedDependency.resolution.directory
+                      );
+
+                      return {
+                        alias: linkedDependency.alias,
+                        name: linkedDependency.name,
+                        version: linkedDependency.version,
+                        dir,
+                        id: linkedDependency.resolution.directory,
+                        dependencyType:
+                          linkedDependency.dev === true
+                            ? 'dev'
+                            : linkedDependency.optional === true
+                              ? 'optional'
+                              : 'prod',
+                        isExternalLink: true,
+                      };
+                    }
+                  ) ?? []),
+                ]),
+              },
+            ];
+          }
+        )
+      )
+    );
+    linkedToRoot = await linkDirectDeps(projectsToLink, {
+      dedupe: opts.dedupeDirectDeps,
+    });
+  }
+
+  return {
+    currentLockfile,
+    newDepPaths,
+    newHoistedDependencies,
+    removedDepPaths,
+    stats: {
+      added,
+      removed: removedDepPaths.size,
+      linkedToRoot,
+    },
+  };
+}
+
+const isAbsolutePath = /^\/|^[a-z]:/i;
+
+// This function is copied from @pnpm/local-resolver
+function resolvePath(where: string, spec: string): string {
+  if (isAbsolutePath.test(spec)) return spec;
+  return path.resolve(where, spec);
+}
+
+type LinkNewPackagesOptions = {
+  allowBuild?: ((pkgName: string) => boolean) | undefined;
+  depsStateCache: DepsStateCache;
+  disableRelinkLocalDirDeps?: boolean | undefined;
+  force: boolean;
+  optional: boolean;
+  ignoreScripts: boolean;
+  lockfileDir: string;
+  sideEffectsCacheRead: boolean;
+  symlink: boolean;
+  skipped: Set<DepPath>;
+  storeController: StoreController<
+    PackageResponse,
+    PackageResponse,
+    {
+      importMethod?: string | undefined;
+      isBuilt: boolean;
+    }
+  >;
+  virtualStoreDir: string;
+};
+
+type LinkNewPackagesResult = {
+  newDepPaths: DepPath[];
+  added: number;
+};
+
+async function linkNewPackages(
+  currentLockfile: LockfileObject,
+  wantedLockfile: LockfileObject,
+  depGraph: DependenciesGraph,
+  opts: LinkNewPackagesOptions
+): Promise<LinkNewPackagesResult> {
+  const wantedRelDepPaths = difference.default(
+    Object.keys(wantedLockfile.packages ?? {}) as DepPath[],
+    Array.from(opts.skipped)
+  );
+
+  let newDepPathsSet: Set<DepPath>;
+  if (opts.force) {
+    newDepPathsSet = new Set(
+      wantedRelDepPaths
+        // when installing a new package, not all the nodes are analyzed
+        // just skip the ones that are in the lockfile but were not analyzed
+        .filter((depPath) => depGraph[depPath])
+    );
+  } else {
+    newDepPathsSet = await selectNewFromWantedDeps(
+      wantedRelDepPaths,
+      currentLockfile,
+      depGraph
+    );
+  }
+
+  const added = newDepPathsSet.size;
+  statsLogger.debug({
+    added,
+    prefix: opts.lockfileDir,
+  });
+
+  const existingWithUpdatedDeps = [];
+  if (
+    !opts.force &&
+    currentLockfile.packages != null &&
+    wantedLockfile.packages != null
+  ) {
+    // add subdependencies that have been updated
+    // TODO: no need to relink everything. Can be relinked only what was changed
+    for (const depPath of wantedRelDepPaths) {
+      if (
+        currentLockfile.packages[depPath] &&
+        (!equals.default(
+          currentLockfile.packages[depPath].dependencies,
+          wantedLockfile.packages[depPath]?.dependencies
+        ) ||
+          !isEmpty.default(
+            currentLockfile.packages[depPath].optionalDependencies ?? {}
+          ) ||
+          !isEmpty.default(
+            wantedLockfile.packages[depPath]?.optionalDependencies ?? {}
+          ))
+      ) {
+        // TODO: come up with a test that triggers the usecase of depGraph[depPath] undefined
+        // see related issue: https://github.com/pnpm/pnpm/issues/870
+        if (depGraph[depPath] && !newDepPathsSet.has(depPath)) {
+          existingWithUpdatedDeps.push(depGraph[depPath]);
+        }
+      }
+    }
+  }
+
+  if (!newDepPathsSet.size && existingWithUpdatedDeps.length === 0)
+    return { newDepPaths: [], added };
+
+  const newDepPaths = Array.from(newDepPathsSet);
+
+  const newPkgs = props.default<DepPath, DependenciesGraphNode>(
+    newDepPaths,
+    depGraph
+  );
+
+  await Promise.all(
+    newPkgs.map(
+      async (depNode: DependenciesGraphNode): Promise<string | undefined> => {
+        return fs.mkdir(depNode.modules, { recursive: true });
+      }
+    )
+  );
+
+  await Promise.all([
+    opts.symlink
+      ? linkAllModules([...newPkgs, ...existingWithUpdatedDeps], depGraph, {
+          lockfileDir: opts.lockfileDir,
+          optional: opts.optional,
+        })
+      : Promise.resolve(),
+    linkAllPkgs(opts.storeController, newPkgs, {
+      allowBuild: opts.allowBuild,
+      depGraph,
+      depsStateCache: opts.depsStateCache,
+      disableRelinkLocalDirDeps: opts.disableRelinkLocalDirDeps,
+      force: opts.force,
+      ignoreScripts: opts.ignoreScripts,
+      lockfileDir: opts.lockfileDir,
+      sideEffectsCacheRead: opts.sideEffectsCacheRead,
+    }),
+  ]);
+
+  return { newDepPaths, added };
+}
+
+async function selectNewFromWantedDeps(
+  wantedRelDepPaths: DepPath[],
+  currentLockfile: LockfileObject,
+  depGraph: DependenciesGraph
+): Promise<Set<DepPath>> {
+  const newDeps = new Set<DepPath>();
+
+  const prevDeps = currentLockfile.packages ?? {};
+
+  await Promise.all(
+    wantedRelDepPaths.map(async (depPath: DepPath): Promise<void> => {
+      const depNode = depGraph[depPath];
+
+      if (!depNode) return;
+
+      const prevDep = prevDeps[depPath];
+
+      if (
+        typeof prevDep !== 'undefined' &&
+        typeof prevDep.resolution !== 'undefined' &&
+        'integrity' in prevDep.resolution &&
+        typeof prevDep.resolution.integrity === 'string' &&
+        typeof depNode.resolution !== 'undefined' &&
+        'type' in depNode.resolution &&
+        typeof depNode.resolution.integrity === 'string' &&
+        // Local file should always be treated as a new dependency
+        // https://github.com/pnpm/pnpm/issues/5381
+        depNode.resolution.type !== 'directory' &&
+        depNode.resolution.integrity === prevDep.resolution.integrity
+      ) {
+        if (await pathExists(depNode.dir)) {
+          return;
+        }
+
+        brokenModulesLogger.debug({
+          missing: depNode.dir,
+        });
+      }
+
+      newDeps.add(depPath);
+    })
+  );
+
+  return newDeps;
+}
+
+const limitLinking = pLimit(16);
+
+async function linkAllPkgs<RP, FP>(
+  storeController: StoreController<
+    RP,
+    FP,
+    {
+      importMethod?: string | undefined;
+      isBuilt: boolean;
+    }
+  >,
+  depNodes: DependenciesGraphNode[],
+  opts: {
+    allowBuild?: ((pkgName: string) => boolean) | undefined;
+    depGraph: DependenciesGraph;
+    depsStateCache: DepsStateCache;
+    disableRelinkLocalDirDeps?: boolean | undefined;
+    force: boolean;
+    ignoreScripts: boolean;
+    lockfileDir: string;
+    sideEffectsCacheRead: boolean;
+  }
+): Promise<void> {
+  await Promise.all(
+    depNodes.map(async (depNode): Promise<undefined> => {
+      if (!depNode.fetching) return;
+      const { files } = await depNode.fetching();
+
+      depNode.requiresBuild = files.requiresBuild;
+
+      let sideEffectsCacheKey: string | undefined;
+
+      if (
+        opts.sideEffectsCacheRead &&
+        files.sideEffects &&
+        !isEmpty.default(files.sideEffects)
+      ) {
+        if (opts.allowBuild?.(depNode.name) !== false) {
+          sideEffectsCacheKey = calcDepState(
+            opts.depGraph,
+            opts.depsStateCache,
+            depNode.depPath,
+            {
+              isBuilt: !opts.ignoreScripts && depNode.requiresBuild === true,
+              patchFileHash: depNode.patch?.file.hash,
+            }
+          );
+        }
+      }
+      const { importMethod, isBuilt } = await storeController.importPackage(
+        depNode.dir,
+        {
+          disableRelinkLocalDirDeps: opts.disableRelinkLocalDirDeps,
+          filesResponse: files,
+          force: opts.force,
+          sideEffectsCacheKey,
+          requiresBuild: depNode.patch != null || depNode.requiresBuild,
+        }
+      );
+
+      if (typeof importMethod === 'string') {
+        progressLogger.debug({
+          method: importMethod,
+          requester: opts.lockfileDir,
+          status: 'imported',
+          to: depNode.dir,
+        });
+      }
+
+      depNode.isBuilt = isBuilt;
+
+      const selfDep = depNode.children[depNode.name];
+
+      if (selfDep) {
+        const pkg = opts.depGraph[selfDep];
+
+        if (!pkg || (!pkg.installable && pkg.optional === true)) {
+          return;
+        }
+
+        const targetModulesDir = path.join(
+          depNode.modules,
+          depNode.name,
+          'node_modules'
+        );
+
+        await limitLinking(
+          async (): Promise<{
+            reused: boolean;
+            warn?: string | undefined;
+          }> => {
+            return symlinkDependency(pkg.dir, targetModulesDir, depNode.name);
+          }
+        );
+      }
+    })
+  );
+}
+
+async function linkAllModules(
+  depNodes: DependenciesGraphNode[],
+  depGraph: DependenciesGraph,
+  opts: {
+    lockfileDir: string;
+    optional: boolean;
+  }
+): Promise<void> {
+  await symlinkAllModules({
+    deps: depNodes.map(
+      (
+        depNode: DependenciesGraphNode
+      ): {
+        children: Record<string, string>;
+        modules: string;
+        name: string;
+      } => {
+        const children = opts.optional
+          ? depNode.children
+          : pickBy.default((_, childAlias: string): boolean => {
+              return !depNode.optionalDependencies.has(childAlias);
+            }, depNode.children);
+
+        const childrenPaths: Record<string, string> = {};
+
+        for (const [alias, childDepPath] of Object.entries(children ?? {})) {
+          if (childDepPath.startsWith('link:') === true) {
+            childrenPaths[alias] = path.resolve(
+              opts.lockfileDir,
+              childDepPath.slice(5)
+            );
+          } else {
+            const pkg = depGraph[childDepPath];
+
+            if (
+              !pkg ||
+              (!pkg.installable && pkg.optional === true) ||
+              alias === depNode.name
+            ) {
+              continue;
+            }
+
+            childrenPaths[alias] = pkg.dir;
+          }
+        }
+
+        return {
+          children: childrenPaths,
+          modules: depNode.modules,
+          name: depNode.name,
+        };
+      }
+    ),
+  });
+}
