@@ -2,7 +2,7 @@
 import path from 'node:path';
 import os from 'node:os';
 import { WorkerPool } from '@rushstack/worker-pool';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { execSync } from 'node:child_process';
 import isWindows from 'is-windows';
 // import type { PackageFilesIndex } from '../store.cafs/index.ts';
@@ -36,13 +36,14 @@ function createTarballWorkerPool(): WorkerPool {
       2,
       (os.availableParallelism() || os.cpus().length) -
         Math.abs(
-          typeof process.env.PNPM_WORKERS === 'string'
-            ? Number.parseInt(process.env.PNPM_WORKERS)
+          typeof process.env.OSPM_WORKERS === 'string'
+            ? Number.parseInt(process.env.OSPM_WORKERS)
             : 0
         )
     ) - 1;
+
   const workerPool = new WorkerPool({
-    id: 'pnpm',
+    id: 'ospm',
     maxWorkers,
     workerScriptPath: path.join(__dirname, 'worker.js'),
   });
@@ -106,7 +107,7 @@ export async function addFilesFromDir(
 
       if (status === 'error') {
         reject(
-          new PnpmError(
+          new OspmError(
             error.code ?? 'GIT_FETCH_FAILED',
             error.message as string
           )
@@ -131,7 +132,7 @@ export async function addFilesFromDir(
   });
 }
 
-export class TarballIntegrityError extends PnpmError {
+export class TarballIntegrityError extends OspmError {
   readonly found: string;
   readonly expected: string;
   readonly algorithm: string;
@@ -152,10 +153,10 @@ export class TarballIntegrityError extends PnpmError {
       {
         attempts: opts.attempts,
         hint: `This error may happen when a package is republished to the registry with the same version.
-In this case, the metadata in the local pnpm cache will contain the old integrity checksum.
+In this case, the metadata in the local ospm cache will contain the old integrity checksum.
 
-If you think that this is the case, then run "pnpm store prune" and rerun the command that failed.
-"pnpm store prune" will remove your local metadata cache.`,
+If you think that this is the case, then run "ospm store prune" and rerun the command that failed.
+"ospm store prune" will remove your local metadata cache.`,
       }
     );
     this.found = opts.found;
@@ -207,7 +208,7 @@ export async function addFilesFromTarball(
         }
 
         reject(
-          new PnpmError(
+          new OspmError(
             error.code ?? 'TARBALL_EXTRACT',
             `Failed to add tarball from "${opts.url}" to store: ${error.message as string}`
           )
@@ -249,7 +250,7 @@ export async function readPkgFromCafs<T>(
 
       if (status === 'error') {
         reject(
-          new PnpmError(
+          new OspmError(
             error.code ?? 'READ_FROM_STORE',
             error.message as string
           )
@@ -286,7 +287,7 @@ export async function importPackage<IP>(
 
       if (status === 'error') {
         reject(
-          new PnpmError(error.code ?? 'LINKING_FAILED', error.message as string)
+          new OspmError(error.code ?? 'LINKING_FAILED', error.message as string)
         );
 
         return;
@@ -323,7 +324,7 @@ export async function symlinkAllModules(
               : undefined;
 
           reject(
-            new PnpmError(
+            new OspmError(
               error.code ?? 'SYMLINK_FAILED',
               error.message as string,
               { hint }
@@ -388,7 +389,7 @@ export async function hardLinkDir(
 
       if (status === 'error') {
         reject(
-          new PnpmError(
+          new OspmError(
             error.code ?? 'HARDLINK_FAILED',
             error.message as string
           )
@@ -421,7 +422,7 @@ export async function initStoreDir(storeDir: string): Promise<void> {
 
       if (status === 'error') {
         reject(
-          new PnpmError(
+          new OspmError(
             error.code ?? 'INIT_CAFS_FAILED',
             error.message as string
           )

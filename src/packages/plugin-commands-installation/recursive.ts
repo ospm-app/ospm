@@ -4,12 +4,8 @@ import {
   type RecursiveSummary,
   throwOnCommandFail,
 } from '../cli-utils/index.ts';
-import {
-  type Config,
-  getOptionsFromRootManifest,
-  readLocalConfig,
-} from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import type { Config } from '../config/index.ts';
+import { OspmError } from '../error/index.ts';
 import {
   arrayOfWorkspacePackagesToMap,
   type HookOptions,
@@ -75,6 +71,8 @@ import type { Log } from '../core-loggers/index.ts';
 import type { CustomFetchers } from '../fetcher-base/index.ts';
 import type { LockfileObject } from '../lockfile.types/index.ts';
 import type { PreResolutionHookContext } from '../hooks.types/index.ts';
+import { getOptionsFromRootManifest } from '../config/getOptionsFromRootManifest.ts';
+import { readLocalConfig } from '../config/readLocalConfig.ts';
 
 export type RecursiveOptions = CreateStoreControllerOptions &
   Pick<
@@ -83,16 +81,16 @@ export type RecursiveOptions = CreateStoreControllerOptions &
     | 'configDependencies'
     | 'dedupePeerDependents'
     | 'depth'
-    | 'globalPnpmfile'
+    | 'globalOspmfile'
     | 'hoistPattern'
     | 'hooks'
-    | 'ignorePnpmfile'
+    | 'ignoreOspmfile'
     | 'ignoreScripts'
     | 'linkWorkspacePackages'
     | 'lockfileDir'
     | 'lockfileOnly'
     | 'modulesDir'
-    | 'pnpmfile'
+    | 'ospmfile'
     | 'rawLocalConfig'
     | 'registries'
     | 'rootProjectManifest'
@@ -175,7 +173,7 @@ export async function recursive(
 
   const throwOnFail = throwOnCommandFail.bind(
     null,
-    `pnpm recursive ${cmdFullName}`
+    `ospm recursive ${cmdFullName}`
   );
 
   const store =
@@ -238,7 +236,7 @@ export async function recursive(
   if (cmdFullName === 'update') {
     if (newParams.length === 0 && typeof opts.workspaceDir !== 'undefined') {
       const ignoreDeps =
-        manifestsByPath[opts.workspaceDir]?.manifest.pnpm?.updateConfig
+        manifestsByPath[opts.workspaceDir]?.manifest.ospm?.updateConfig
           ?.ignoreDependencies;
 
       if (typeof ignoreDeps?.length === 'number' && ignoreDeps.length > 0) {
@@ -472,7 +470,7 @@ export async function recursive(
       cmdFullName === 'update' &&
       opts.depth === 0
     ) {
-      throw new PnpmError(
+      throw new OspmError(
         'NO_PACKAGE_IN_DEPENDENCIES',
         'None of the specified packages were found in the dependencies of any of the projects.'
       );
@@ -503,7 +501,7 @@ export async function recursive(
           installOpts.resolveSymlinksInInjectedDirs ?? false,
         resolutionMode: installOpts.resolutionMode ?? 'highest',
         overrides: installOpts.overrides ?? {},
-        userAgent: installOpts.userAgent ?? 'pnpm',
+        userAgent: installOpts.userAgent ?? 'ospm',
         hooks: installOpts.hooks ?? {},
         allowedDeprecatedVersions: installOpts.allowedDeprecatedVersions ?? {},
         ignoredOptionalDependencies:
@@ -511,7 +509,7 @@ export async function recursive(
         packageExtensions: installOpts.packageExtensions ?? {},
         nodeVersion: installOpts.nodeVersion ?? '',
         depth: installOpts.depth ?? 0,
-        ignorePnpmfile: installOpts.ignorePnpmfile ?? false,
+        ignoreOspmfile: installOpts.ignoreOspmfile ?? false,
         force: installOpts.force ?? false,
         engineStrict: installOpts.engineStrict ?? false,
         lockfileDir: installOpts.lockfileDir,
@@ -568,7 +566,7 @@ export async function recursive(
     pkgPaths.map(async (rootDir: ProjectRootDir): Promise<void> => {
       return limitInstallation(async (): Promise<void> => {
         const hooks =
-          opts.ignorePnpmfile === true
+          opts.ignoreOspmfile === true
             ? {}
             : ((): {
                 afterAllResolved: ((
@@ -589,21 +587,21 @@ export async function recursive(
                 Array<(arg: Log, ...otherArgs: any[]) => boolean> | undefined;
                 importPackage?: ImportIndexedPackageAsync | undefined;
                 fetchers?: CustomFetchers | undefined;
-                calculatePnpmfileChecksum?:
+                calculateOspmfileChecksum?:
                   | (() => Promise<string | undefined>)
                   | undefined;
               } => {
-                const pnpmfileHooks = requireHooks(rootDir, opts);
+                const ospmfileHooks = requireHooks(rootDir, opts);
 
                 return {
                   ...opts.hooks,
-                  ...pnpmfileHooks,
+                  ...ospmfileHooks,
                   afterAllResolved: [
-                    ...(pnpmfileHooks.afterAllResolved ?? []),
+                    ...(ospmfileHooks.afterAllResolved ?? []),
                     ...(opts.hooks?.afterAllResolved ?? []),
                   ],
                   readPackage: [
-                    ...(pnpmfileHooks.readPackage ?? []),
+                    ...(ospmfileHooks.readPackage ?? []),
                     ...(opts.hooks?.readPackage ?? []),
                   ],
                 };
@@ -749,7 +747,7 @@ export async function recursive(
                     devDependencies: false,
                   },
                   ignoreScripts: true,
-                  ignorePnpmfile: installOpts.ignorePnpmfile ?? false,
+                  ignoreOspmfile: installOpts.ignoreOspmfile ?? false,
                   ignoredOptionalDependencies:
                     installOpts.ignoredOptionalDependencies ?? [],
                   packageExtensions: installOpts.packageExtensions ?? {},
@@ -828,7 +826,7 @@ export async function recursive(
                   forcePublicHoistPattern:
                     installOpts.forcePublicHoistPattern ?? false,
                   engineStrict: installOpts.engineStrict ?? false,
-                  ignorePnpmfile: installOpts.ignorePnpmfile ?? false,
+                  ignoreOspmfile: installOpts.ignoreOspmfile ?? false,
                   unsafePerm: installOpts.unsafePerm ?? false,
                   resolveSymlinksInInjectedDirs:
                     installOpts.resolveSymlinksInInjectedDirs ?? false,
@@ -985,7 +983,7 @@ export async function recursive(
     cmdFullName === 'update' &&
     opts.depth === 0
   ) {
-    throw new PnpmError(
+    throw new OspmError(
       'NO_PACKAGE_IN_DEPENDENCIES',
       'None of the specified packages were found in the dependencies of any of the projects.'
     );

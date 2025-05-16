@@ -11,7 +11,7 @@ import {
   progressLogger,
 } from '../core-loggers/index.ts';
 import { pickFetcher } from '../pick-fetcher/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type { FetchOptions, GitFetcherResult } from '../fetcher-base/index.ts';
 import type {
   Cafs,
@@ -88,7 +88,7 @@ export function createPackageRequester(opts: {
   engineStrict?: boolean | undefined;
   force?: boolean | undefined;
   nodeVersion?: string | undefined;
-  pnpmVersion?: string | undefined;
+  ospmVersion?: string | undefined;
   resolve: ResolveFunction;
   fetchers: TarballFetchers;
   cafs: Cafs;
@@ -190,7 +190,7 @@ export function createPackageRequester(opts: {
   const requestPackage = resolveAndFetch.bind(null, {
     engineStrict: opts.engineStrict,
     nodeVersion: opts.nodeVersion,
-    pnpmVersion: opts.pnpmVersion,
+    ospmVersion: opts.ospmVersion,
     force: opts.force,
     fetchPackageToStore,
     requestsQueue,
@@ -247,7 +247,7 @@ export function createServerPackageRequester(opts: {
   engineStrict?: boolean | undefined;
   force?: boolean | undefined;
   nodeVersion?: string | undefined;
-  pnpmVersion?: string | undefined;
+  ospmVersion?: string | undefined;
   resolve: ResolveFunction;
   fetchers: TarballFetchers;
   cafs: Cafs;
@@ -322,7 +322,7 @@ export function createServerPackageRequester(opts: {
   const requestPackage = resolveAndFetch.bind(null, {
     engineStrict: opts.engineStrict,
     nodeVersion: opts.nodeVersion,
-    pnpmVersion: opts.pnpmVersion,
+    ospmVersion: opts.ospmVersion,
     force: opts.force,
     fetchPackageToStore,
     requestsQueue,
@@ -347,7 +347,7 @@ export function createNewStorePackageRequester(opts: {
   engineStrict?: boolean | undefined;
   force?: boolean | undefined;
   nodeVersion?: string | undefined;
-  pnpmVersion?: string | undefined;
+  ospmVersion?: string | undefined;
   resolve: ResolveFunction;
   fetchers: TarballFetchers;
   cafs: Cafs;
@@ -422,7 +422,7 @@ export function createNewStorePackageRequester(opts: {
   const requestPackage = resolveAndFetch.bind(null, {
     engineStrict: opts.engineStrict,
     nodeVersion: opts.nodeVersion,
-    pnpmVersion: opts.pnpmVersion,
+    ospmVersion: opts.ospmVersion,
     force: opts.force,
     fetchPackageToStore,
     requestsQueue,
@@ -446,7 +446,7 @@ async function resolveAndFetch(
     engineStrict?: boolean | undefined;
     force?: boolean | undefined;
     nodeVersion?: string | undefined;
-    pnpmVersion?: string | undefined;
+    ospmVersion?: string | undefined;
     requestsQueue: {
       add: <T>(fn: () => Promise<T>, opts: { priority: number }) => Promise<T>;
     };
@@ -743,7 +743,7 @@ function getFilesIndexFilePath(
 //     // When files resolves, the cached result has to set fromStore to true, without
 //     // affecting previous invocations: so we need to replace the cache.
 //     //
-//     // Changing the value of fromStore is needed for correct reporting of `pnpm server`.
+//     // Changing the value of fromStore is needed for correct reporting of `ospm server`.
 //     // Otherwise, if a package was not in store when the server started, it will always be
 //     // reported as "downloaded" instead of "reused".
 //     fetching.promise
@@ -898,7 +898,7 @@ function getFilesIndexFilePath(
 // Expected package: ${opts.expectedPkg.name}@${opts.expectedPkg.version}. \
 // Actual package in the store with the given integrity: ${pkgFilesIndex.name}@${pkgFilesIndex.version}.`;
 //             if (ctx.strictStorePkgContentCheck ?? true) {
-//               throw new PnpmError('UNEXPECTED_PKG_CONTENT_IN_STORE', msg, {
+//               throw new OspmError('UNEXPECTED_PKG_CONTENT_IN_STORE', msg, {
 //                 hint: `${hint}\n\nIf you want to ignore this issue, set the strict-store-pkg-content-check to false.`,
 //               });
 //             }
@@ -1085,7 +1085,7 @@ async function _fetchPackageToStore(
     // When files resolves, the cached result has to set fromStore to true, without
     // affecting previous invocations: so we need to replace the cache.
     //
-    // Changing the value of fromStore is needed for correct reporting of `pnpm server`.
+    // Changing the value of fromStore is needed for correct reporting of `ospm server`.
     // Otherwise, if a package was not in store when the server started, it will always be
     // reported as "downloaded" instead of "reused".
     fetching.promise
@@ -1254,7 +1254,7 @@ async function _fetchPackageToStore(
 Expected package: ${opts.expectedPkg.name}@${opts.expectedPkg.version}. \
 Actual package in the store with the given integrity: ${pkgFilesIndex.name}@${pkgFilesIndex.version}.`;
             if (ctx.strictStorePkgContentCheck ?? true) {
-              throw new PnpmError('UNEXPECTED_PKG_CONTENT_IN_STORE', msg, {
+              throw new OspmError('UNEXPECTED_PKG_CONTENT_IN_STORE', msg, {
                 hint: `${hint}\n\nIf you want to ignore this issue, set the strict-store-pkg-content-check to false.`,
               });
             }

@@ -1,5 +1,5 @@
 import { docsUrl } from '../cli-utils/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import renderHelp from 'render-help';
 
 export const rcOptionsTypes = (): Record<string, unknown> => ({});
@@ -16,12 +16,12 @@ export function help(): string {
     description: 'Clean install a project',
     descriptionLists: [],
     url: docsUrl('ci'),
-    usages: ['pnpm ci'],
+    usages: ['ospm ci'],
   });
 }
 
 export async function handler(_opts: unknown): Promise<never> {
-  throw new PnpmError(
+  throw new OspmError(
     'CI_NOT_IMPLEMENTED',
     'The ci command is not implemented yet'
   );

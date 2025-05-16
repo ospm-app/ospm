@@ -1,30 +1,30 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { getCurrentPackageName } from '../cli-meta/index.ts';
-import { runPnpmCli } from '../exec.pnpm-cli-runner/index.ts';
+import { runOspmCli } from '../exec.pnpm-cli-runner/index.ts';
 import { getToolDirPath } from '../tools.path/index.ts';
 import { sync as rimraf } from '@zkochan/rimraf';
 import { fastPathTemp as pathTemp } from 'path-temp';
 import renameOverwrite from 'rename-overwrite';
 import type { SelfUpdateCommandOptions } from './selfUpdate.ts';
 
-export interface InstallPnpmToToolsResult {
+export interface installOspmToToolsResult {
   binDir: string;
   baseDir: string;
   alreadyExisted: boolean;
 }
 
-export async function installPnpmToTools(
-  pnpmVersion: string,
+export async function installOspmToTools(
+  ospmVersion: string,
   opts: SelfUpdateCommandOptions
-): Promise<InstallPnpmToToolsResult> {
+): Promise<installOspmToToolsResult> {
   const currentPkgName = getCurrentPackageName();
 
   const dir = getToolDirPath({
-    pnpmHomeDir: opts.pnpmHomeDir,
+    ospmHomeDir: opts.ospmHomeDir,
     tool: {
       name: currentPkgName,
-      version: pnpmVersion,
+      version: ospmVersion,
     },
   });
 
@@ -48,13 +48,13 @@ export async function installPnpmToTools(
 
   try {
     // The reason we don't just run add.handler is that at this point we might have settings from local config files
-    // that we don't want to use while installing the pnpm CLI.
-    runPnpmCli(
+    // that we don't want to use while installing the ospm CLI.
+    runOspmCli(
       [
         'add',
-        `${currentPkgName}@${pnpmVersion}`,
+        `${currentPkgName}@${ospmVersion}`,
         '--loglevel=error',
-        '--allow-build=@pnpm/exe',
+        '--allow-build=@ospm/exe',
         // We want to avoid symlinks because of the rename step,
         // which breaks the junctions on Windows.
         '--config.node-linker=hoisted',

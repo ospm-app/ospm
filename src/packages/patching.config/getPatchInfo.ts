@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type {
   ExtendedPatchInfo,
   PatchGroupRangeItem,
@@ -6,7 +6,7 @@ import type {
 } from '../patching.types/index.ts';
 import { satisfies } from 'semver';
 
-class PatchKeyConflictError extends PnpmError {
+class PatchKeyConflictError extends OspmError {
   constructor(
     pkgName: string,
     pkgVersion: string,

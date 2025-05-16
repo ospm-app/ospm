@@ -39,7 +39,7 @@ export async function filterLockfileByEngine(
 export type FilterLockfileOptions = {
   currentEngine: {
     nodeVersion?: string | undefined;
-    pnpmVersion?: string | undefined;
+    ospmVersion?: string | undefined;
   };
   engineStrict: boolean;
   include: { [dependenciesField in DependenciesField]: boolean };
@@ -114,7 +114,7 @@ async function pickPkgsWithAllDeps(
   opts: {
     currentEngine: {
       nodeVersion?: string | undefined;
-      pnpmVersion?: string | undefined;
+      ospmVersion?: string | undefined;
     };
     engineStrict: boolean;
     failOnMissingDependencies: boolean;
@@ -148,7 +148,7 @@ async function pkgAllDeps(
   opts: {
     currentEngine: {
       nodeVersion?: string | undefined;
-      pnpmVersion?: string | undefined;
+      ospmVersion?: string | undefined;
     };
     engineStrict: boolean;
     failOnMissingDependencies: boolean;

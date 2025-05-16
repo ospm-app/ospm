@@ -24,7 +24,7 @@ export type PublishRecursiveOpts = Required<
     | 'cacheDir'
     | 'cliOptions'
     | 'dir'
-    | 'pnpmHomeDir'
+    | 'ospmHomeDir'
     | 'rawConfig'
     | 'registries'
     | 'workspaceDir'
@@ -209,7 +209,7 @@ export async function recursivePublish(
 
   if (opts.reportSummary === true) {
     await writeJsonFile(
-      path.join(opts.lockfileDir ?? opts.dir, 'pnpm-publish-summary.json'),
+      path.join(opts.lockfileDir ?? opts.dir, 'ospm-publish-summary.json'),
       { publishedPackages }
     );
   }

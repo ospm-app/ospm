@@ -1,12 +1,12 @@
 import path from 'node:path';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type {
   SupportedArchitectures,
   AllowedDeprecatedVersions,
   PackageExtension,
   PeerDependencyRules,
   ProjectManifest,
-  PnpmSettings,
+  OspmSettings,
   LockFileDir,
   ProjectRootDir,
   ProjectRootDirRealPath,
@@ -29,7 +29,7 @@ export type OptionsFromRootManifest = {
   patchedDependencies?: Record<string, string> | undefined;
   peerDependencyRules?: PeerDependencyRules | undefined;
   supportedArchitectures?: SupportedArchitectures | undefined;
-} & Pick<PnpmSettings, 'configDependencies'>;
+} & Pick<OspmSettings, 'configDependencies'>;
 
 export function getOptionsFromRootManifest(
   manifestDir:
@@ -40,7 +40,7 @@ export function getOptionsFromRootManifest(
     | WorkspaceDir,
   manifest?: ProjectManifest | undefined
 ): OptionsFromRootManifest {
-  const settings: OptionsFromRootManifest = getOptionsFromPnpmSettings(
+  const settings: OptionsFromRootManifest = getOptionsFromOspmSettings(
     manifestDir,
     {
       ...pick.default(
@@ -59,14 +59,14 @@ export function getOptionsFromRootManifest(
           'peerDependencyRules',
           'supportedArchitectures',
         ],
-        manifest?.pnpm ?? {}
+        manifest?.ospm ?? {}
       ),
       // We read Yarn's resolutions field for compatibility
       // but we really replace the version specs to any other version spec, not only to exact versions,
       // so we cannot call it resolutions
       overrides: {
         ...manifest?.resolutions,
-        ...manifest?.pnpm?.overrides,
+        ...manifest?.ospm?.overrides,
       },
     },
     manifest
@@ -75,17 +75,18 @@ export function getOptionsFromRootManifest(
   return settings;
 }
 
-export function getOptionsFromPnpmSettings(
+export function getOptionsFromOspmSettings(
   manifestDir: string,
-  pnpmSettings: PnpmSettings,
+  ospmSettings: OspmSettings,
   manifest?: ProjectManifest | undefined
 ): OptionsFromRootManifest {
-  const settings: OptionsFromRootManifest = { ...pnpmSettings };
-  if (settings.overrides) {
+  const settings: OptionsFromRootManifest = { ...ospmSettings };
+
+  if (typeof settings.overrides !== 'undefined') {
     if (Object.keys(settings.overrides).length === 0) {
       // biome-ignore lint/performance/noDelete: <explanation>
       delete settings.overrides;
-    } else if (manifest) {
+    } else if (typeof manifest !== 'undefined') {
       settings.overrides = mapValues.default(
         createVersionReferencesReplacer(manifest),
         settings.overrides
@@ -93,23 +94,24 @@ export function getOptionsFromPnpmSettings(
     }
   }
 
-  if (typeof pnpmSettings.onlyBuiltDependenciesFile === 'string') {
+  if (typeof ospmSettings.onlyBuiltDependenciesFile === 'string') {
     settings.onlyBuiltDependenciesFile = path.join(
       manifestDir,
-      pnpmSettings.onlyBuiltDependenciesFile
+      ospmSettings.onlyBuiltDependenciesFile
     );
   }
 
-  if (pnpmSettings.patchedDependencies) {
-    settings.patchedDependencies = { ...pnpmSettings.patchedDependencies };
+  if (ospmSettings.patchedDependencies) {
+    settings.patchedDependencies = { ...ospmSettings.patchedDependencies };
 
     for (const [dep, patchFile] of Object.entries(
-      pnpmSettings.patchedDependencies
+      ospmSettings.patchedDependencies
     )) {
       if (path.isAbsolute(patchFile)) continue;
       settings.patchedDependencies[dep] = path.join(manifestDir, patchFile);
     }
   }
+
   return settings;
 }
 
@@ -121,6 +123,7 @@ function createVersionReferencesReplacer(
     ...manifest.dependencies,
     ...manifest.optionalDependencies,
   };
+
   return replaceVersionReferences.bind(null, allDeps);
 }
 
@@ -135,7 +138,7 @@ function replaceVersionReferences(
     return newSpec;
   }
 
-  throw new PnpmError(
+  throw new OspmError(
     'CANNOT_RESOLVE_OVERRIDE_VERSION',
     `Cannot resolve version ${spec} in overrides. The direct dependencies don't have dependency "${dependencyName}".`
   );

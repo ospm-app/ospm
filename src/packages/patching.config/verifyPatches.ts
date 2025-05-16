@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { globalWarn } from '../logger/index.ts';
 import type { PatchGroupRecord } from '../patching.types/index.ts';
 import { allPatchKeys } from './allPatchKeys.ts';
@@ -32,7 +32,7 @@ export function verifyPatches({
     return;
   }
 
-  throw new PnpmError('UNUSED_PATCH', message, {
+  throw new OspmError('UNUSED_PATCH', message, {
     hint: 'Either remove them from "patchedDependencies" or update them to match packages in your dependencies.',
   });
 }

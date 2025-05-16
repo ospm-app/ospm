@@ -1,7 +1,7 @@
 import type { Config } from '../config/index.ts';
 import { createResolver } from '../client/index.ts';
 
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { sortDeepKeys } from '../object.key-sorting/index.ts';
 import { getStorePath } from '../store-path/index.ts';
 import {
@@ -28,14 +28,14 @@ export function help(): string {
   return renderHelp({
     description: 'Prints the index file of a specific package from the store.',
     descriptionLists: [],
-    usages: ['pnpm cat-index <pkg name>@<pkg version>'],
+    usages: ['ospm cat-index <pkg name>@<pkg version>'],
   });
 }
 
 export type CatIndexCommandOptions = Pick<
   Config,
   | 'rawConfig'
-  | 'pnpmHomeDir'
+  | 'ospmHomeDir'
   | 'storeDir'
   | 'lockfileDir'
   | 'dir'
@@ -49,7 +49,7 @@ export async function handler(
   params: string[]
 ): Promise<string> {
   if (params.length === 0) {
-    throw new PnpmError('MISSING_PACKAGE_NAME', 'Specify a package', {
+    throw new OspmError('MISSING_PACKAGE_NAME', 'Specify a package', {
       hint: help(),
     });
   }
@@ -57,7 +57,7 @@ export async function handler(
   const wantedDependency = params[0];
 
   if (typeof wantedDependency === 'undefined') {
-    throw new PnpmError('MISSING_PACKAGE_NAME', 'Specify a package', {
+    throw new OspmError('MISSING_PACKAGE_NAME', 'Specify a package', {
       hint: help(),
     });
   }
@@ -65,7 +65,7 @@ export async function handler(
   const { alias, pref } = parseWantedDependency(wantedDependency);
 
   if (typeof alias === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_SELECTOR',
       `Cannot parse the "${wantedDependency}" selector`
     );
@@ -74,7 +74,7 @@ export async function handler(
   const storeDir = await getStorePath({
     pkgRoot: process.cwd(),
     storePath: opts.storeDir,
-    pnpmHomeDir: opts.pnpmHomeDir,
+    ospmHomeDir: opts.ospmHomeDir,
   });
 
   const { resolve } = createResolver({
@@ -93,7 +93,7 @@ export async function handler(
   );
 
   if (typeof pkgSnapshot.resolution.integrity === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'MISSING_INTEGRITY',
       'No integrity found for the package'
     );
@@ -110,9 +110,9 @@ export async function handler(
 
     return JSON.stringify(sortDeepKeys(pkgFilesIndex), null, 2);
   } catch {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_PACKAGE',
-      'No corresponding index file found. You can use pnpm list to see if the package is installed.'
+      'No corresponding index file found. You can use ospm list to see if the package is installed.'
     );
   }
 }

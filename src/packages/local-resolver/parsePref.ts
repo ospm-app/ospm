@@ -1,6 +1,6 @@
 import os from 'node:os';
 import path from 'node:path';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import normalize from 'normalize-path';
 
 import process from 'node:process';
@@ -51,7 +51,7 @@ export function parsePref(
   }
 
   if (wd.pref.startsWith('path:')) {
-    const err = new PnpmError(
+    const err = new OspmError(
       'PATH_IS_UNSUPPORTED_PROTOCOL',
       'Local dependencies via `path:` protocol are not supported. ' +
         'Use the `link:` protocol for folder dependencies and `file:` for local tarballs'

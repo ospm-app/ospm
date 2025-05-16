@@ -54,7 +54,7 @@ export type LockfileToHoistedDepGraphOptions = {
   lockfileDir: LockFileDir;
   modulesDir: ModulesDir;
   nodeVersion?: string | undefined;
-  pnpmVersion?: string | undefined;
+  ospmVersion?: string | undefined;
   registries: Registries;
   patchedDependencies?: PatchGroupRecord | undefined;
   sideEffectsCacheRead: boolean;

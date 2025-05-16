@@ -1,8 +1,8 @@
 import { docsUrl, readDepNameCompletions } from '../cli-utils/index.ts';
 import type { CompletionFunc } from '../command/index.ts';
 import { FILTERING } from '../common-cli-options-help/index.ts';
-import { types as allTypes } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { types as allTypes } from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import pick from 'ramda/src/pick';
 import renderHelp from 'render-help';
 import type { LicensesCommandResult } from './LicensesCommandResult.ts';
@@ -69,10 +69,10 @@ To display the details, pass this option.',
     ],
     url: docsUrl('licenses'),
     usages: [
-      'pnpm licenses ls',
-      'pnpm licenses ls --long',
-      'pnpm licenses list',
-      'pnpm licenses list --long',
+      'ospm licenses ls',
+      'ospm licenses ls --long',
+      'ospm licenses list',
+      'ospm licenses list --long',
     ],
   });
 }
@@ -86,7 +86,7 @@ export async function handler(
   params: string[] = []
 ): Promise<LicensesCommandResult> {
   if (params.length === 0) {
-    throw new PnpmError(
+    throw new OspmError(
       'LICENCES_NO_SUBCOMMAND',
       'Please specify the subcommand',
       {
@@ -99,7 +99,7 @@ export async function handler(
     case 'ls':
       return licensesList(opts);
     default: {
-      throw new PnpmError(
+      throw new OspmError(
         'LICENSES_UNKNOWN_SUBCOMMAND',
         'This subcommand is not known'
       );

@@ -13,7 +13,7 @@ import type {
 type GetManifestOpts = {
   dir: string;
   lockfileDir: LockFileDir;
-  rawConfig: object;
+  rawConfig: Record<string, string>;
   registries: Registries;
 };
 

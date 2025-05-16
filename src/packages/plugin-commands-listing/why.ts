@@ -4,8 +4,8 @@ import {
   OPTIONS,
   UNIVERSAL_OPTIONS,
 } from '../common-cli-options-help/index.ts';
-import { types as allTypes } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { types as allTypes } from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import pick from 'ramda/src/pick';
 import renderHelp from 'render-help';
 import { handler as list, type ListCommandOptions } from './list.ts';
@@ -43,7 +43,7 @@ export const commandNames = ['why'];
 export function help(): string {
   return renderHelp({
     description: `Shows the packages that depend on <pkg>
-For example: pnpm why babel-* eslint-*`,
+For example: ospm why babel-* eslint-*`,
     descriptionLists: [
       {
         title: 'Options',
@@ -53,7 +53,7 @@ For example: pnpm why babel-* eslint-*`,
             description:
               'Perform command on every package in subdirectories \
 or on every workspace package, when executed inside a workspace. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -102,7 +102,7 @@ For options that may be used with `-r`, see "pnpm help recursive"',
       FILTERING,
     ],
     url: docsUrl('why'),
-    usages: ['pnpm why <pkg> ...'],
+    usages: ['ospm why <pkg> ...'],
   });
 }
 
@@ -111,9 +111,9 @@ export async function handler(
   params: string[]
 ): Promise<string> {
   if (params.length === 0) {
-    throw new PnpmError(
+    throw new OspmError(
       'MISSING_PACKAGE_NAME',
-      '`pnpm why` requires the package name'
+      '`ospm why` requires the package name'
     );
   }
 

@@ -22,6 +22,7 @@ import {
 } from '../tarball-fetcher/index.ts';
 import { createGetAuthHeaderByURI } from '../network.auth-header/index.ts';
 import mapValue from 'ramda/src/map';
+import { createOspmTarballFetcher } from '../tarball-fetcher/ospmTarballFetcher.ts';
 
 export type { ResolveFunction };
 
@@ -138,6 +139,7 @@ function createFetchers(
       resolveSymlinks: opts.resolveSymlinksInInjectedDirs,
       includeOnlyPackageFiles: opts.includeOnlyPackageFiles,
     }),
+    ...createOspmTarballFetcher(fetchFromRegistry, getAuthHeader),
   };
 
   // TODO: fix

@@ -7,7 +7,7 @@ export function insertComments(
   // We need to reintroduce the comments. So create an index of
   // the lines of the manifest so we can try to match them up.
   // We eliminate whitespace and quotes in the index entries,
-  // because pnpm may have changed them.
+  // because ospm may have changed them.
   const jsonLines = json.split('\n');
 
   const index: Record<string, number> = {};
@@ -105,7 +105,7 @@ export function insertComments(
     }
 
     jsonLines[location] +=
-      `${separator + comment.content} /* [comment possibly relocated by pnpm] */`;
+      `${separator + comment.content} /* [comment possibly relocated by ospm] */`;
   }
   // Insert the accumulated prefixes:
   for (let i = 0; i < jsonLines.length; ++i) {

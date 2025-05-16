@@ -30,7 +30,7 @@ export async function packageIsInstallable(
     engineStrict?: boolean | undefined;
     nodeVersion?: string | undefined;
     optional: boolean;
-    pnpmVersion?: string | undefined;
+    ospmVersion?: string | undefined;
     lockfileDir: string;
     supportedArchitectures?: SupportedArchitectures | undefined;
   }
@@ -56,7 +56,7 @@ export async function packageIsInstallable(
       },
       prefix: options.lockfileDir,
       reason:
-        warn.code === 'ERR_PNPM_UNSUPPORTED_ENGINE'
+        warn.code === 'ERR_OSPM_UNSUPPORTED_ENGINE'
           ? 'unsupported_engine'
           : 'unsupported_platform',
     });
@@ -81,7 +81,7 @@ export async function checkPackage(
   },
   options: {
     nodeVersion?: string | undefined;
-    pnpmVersion?: string | undefined;
+    ospmVersion?: string | undefined;
     supportedArchitectures?: SupportedArchitectures | undefined;
   }
 ): Promise<null | UnsupportedEngineError | UnsupportedPlatformError> {
@@ -102,7 +102,7 @@ export async function checkPackage(
             options.nodeVersion ??
             (await getSystemNodeVersion()) ??
             process.version,
-          pnpm: options.pnpmVersion,
+          ospm: options.ospmVersion,
         }))
   );
 }

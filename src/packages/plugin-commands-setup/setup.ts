@@ -27,7 +27,7 @@ export const commandNames = ['setup'];
 
 export function help(): string {
   return renderHelp({
-    description: 'Sets up pnpm',
+    description: 'Sets up ospm',
     descriptionLists: [
       {
         title: 'Options',
@@ -35,7 +35,7 @@ export function help(): string {
         list: [
           {
             description:
-              'Override the PNPM_HOME env variable in case it already exists',
+              'Override the OSPM_HOME env variable in case it already exists',
             name: '--force',
             shortAlias: '-f',
           },
@@ -43,13 +43,13 @@ export function help(): string {
       },
     ],
     url: docsUrl('setup'),
-    usages: ['pnpm setup'],
+    usages: ['ospm setup'],
   });
 }
 
 function getExecPath(): string {
   if (detectIfCurrentPkgIsExecutable()) {
-    // If the pnpm CLI was bundled by vercel/pkg then we cannot use the js path for npm_execpath
+    // If the ospm CLI was bundled by vercel/pkg then we cannot use the js path for npm_execpath
     // because in that case the js is in a virtual filesystem inside the executor.
     // Instead, we use the path to the exe file.
     return process.execPath;
@@ -64,7 +64,7 @@ function copyCli(currentLocation: string, targetDir: string): void {
   if (path.relative(newExecPath, currentLocation) === '') return;
 
   logger.info({
-    message: `Copying pnpm CLI from ${currentLocation} to ${newExecPath}`,
+    message: `Copying ospm CLI from ${currentLocation} to ${newExecPath}`,
     prefix: process.cwd(),
   });
 
@@ -86,16 +86,16 @@ function createPnpxScripts(targetDir: string): void {
   fs.mkdirSync(targetDir, { recursive: true });
 
   // windows can also use shell script via mingw or cygwin so no filter
-  const shellScript = ['#!/bin/sh', 'exec pnpm dlx "$@"'].join('\n');
+  const shellScript = ['#!/bin/sh', 'exec ospm dlx "$@"'].join('\n');
 
   fs.writeFileSync(path.join(targetDir, 'pnpx'), shellScript, { mode: 0o755 });
 
   if (process.platform === 'win32') {
-    const batchScript = ['@echo off', 'pnpm dlx %*'].join('\n');
+    const batchScript = ['@echo off', 'ospm dlx %*'].join('\n');
 
     fs.writeFileSync(path.join(targetDir, 'pnpx.cmd'), batchScript);
 
-    const powershellScript = 'pnpm dlx @args';
+    const powershellScript = 'ospm dlx @args';
 
     fs.writeFileSync(path.join(targetDir, 'pnpx.ps1'), powershellScript);
   }
@@ -103,20 +103,20 @@ function createPnpxScripts(targetDir: string): void {
 
 export async function handler(opts: {
   force?: boolean | undefined;
-  pnpmHomeDir: string;
+  ospmHomeDir: string;
 }): Promise<string> {
   const execPath = getExecPath();
 
   if (execPath.match(/\.[cm]?js$/) == null) {
-    copyCli(execPath, opts.pnpmHomeDir);
+    copyCli(execPath, opts.ospmHomeDir);
 
-    createPnpxScripts(opts.pnpmHomeDir);
+    createPnpxScripts(opts.ospmHomeDir);
   }
 
   try {
-    const report = await addDirToEnvPath(opts.pnpmHomeDir, {
-      configSectionName: 'pnpm',
-      proxyVarName: 'PNPM_HOME',
+    const report = await addDirToEnvPath(opts.ospmHomeDir, {
+      configSectionName: 'ospm',
+      proxyVarName: 'OSPM_HOME',
       overwrite: opts.force ?? false,
       position: 'start',
     });
@@ -125,13 +125,13 @@ export async function handler(opts: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     switch (err.code) {
-      case 'ERR_PNPM_BAD_ENV_FOUND': {
+      case 'ERR_OSPM_BAD_ENV_FOUND': {
         err.hint =
           'If you want to override the existing env variable, use the --force option';
         break;
       }
 
-      case 'ERR_PNPM_BAD_SHELL_SECTION': {
+      case 'ERR_OSPM_BAD_SHELL_SECTION': {
         err.hint =
           'If you want to override the existing configuration section, use the --force option';
         break;
@@ -156,9 +156,9 @@ function renderSetupOutput(report: PathExtenderReport): string {
   output.push(`Next configuration changes were made: ${report.newSettings}`);
 
   if (report.configFile == null) {
-    output.push('Setup complete. Open a new terminal to start using pnpm.');
+    output.push('Setup complete. Open a new terminal to start using ospm.');
   } else if (report.configFile.changeType !== 'skipped') {
-    output.push(`To start using pnpm, run: source ${report.configFile.path}`);
+    output.push(`To start using ospm, run: source ${report.configFile.path}`);
   }
 
   return output.join('\n\n');

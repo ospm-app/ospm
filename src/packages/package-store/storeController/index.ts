@@ -37,7 +37,7 @@ export function createPackageStore(
     force?: boolean | undefined;
     nodeVersion?: string | undefined;
     importPackage?: ImportIndexedPackageAsync | undefined;
-    pnpmVersion?: string | undefined;
+    ospmVersion?: string | undefined;
     ignoreFile?: ((filename: string) => boolean) | undefined;
     cacheDir: string;
     storeDir: string;
@@ -82,7 +82,7 @@ export function createPackageStore(
     force: initOpts.force,
     engineStrict: initOpts.engineStrict,
     nodeVersion: initOpts.nodeVersion,
-    pnpmVersion: initOpts.pnpmVersion,
+    ospmVersion: initOpts.ospmVersion,
     resolve,
     fetchers,
     cafs,
@@ -150,7 +150,7 @@ export function createNewPackageStore(
     force?: boolean | undefined;
     nodeVersion?: string | undefined;
     importPackage?: ImportIndexedPackageAsync | undefined;
-    pnpmVersion?: string | undefined;
+    ospmVersion?: string | undefined;
     ignoreFile?: ((filename: string) => boolean) | undefined;
     cacheDir: string;
     storeDir: string;
@@ -195,7 +195,7 @@ export function createNewPackageStore(
     force: initOpts.force,
     engineStrict: initOpts.engineStrict,
     nodeVersion: initOpts.nodeVersion,
-    pnpmVersion: initOpts.pnpmVersion,
+    ospmVersion: initOpts.ospmVersion,
     resolve,
     fetchers,
     cafs,
@@ -263,7 +263,7 @@ export function createServerPackageStore(
     force?: boolean | undefined;
     nodeVersion?: string | undefined;
     importPackage?: ImportIndexedPackageAsync | undefined;
-    pnpmVersion?: string | undefined;
+    ospmVersion?: string | undefined;
     ignoreFile?: ((filename: string) => boolean) | undefined;
     cacheDir: string;
     storeDir: string;
@@ -311,7 +311,7 @@ export function createServerPackageStore(
     force: initOpts.force,
     engineStrict: initOpts.engineStrict,
     nodeVersion: initOpts.nodeVersion,
-    pnpmVersion: initOpts.pnpmVersion,
+    ospmVersion: initOpts.ospmVersion,
     resolve,
     fetchers,
     cafs,

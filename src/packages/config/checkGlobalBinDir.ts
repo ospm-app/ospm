@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import util from 'node:util';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { sync as canWriteToDir } from 'can-write-to-dir';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -18,23 +18,23 @@ export async function checkGlobalBinDir(
   }
 ): Promise<void> {
   if (typeof env[PATH] === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'NO_PATH_ENV',
       `Couldn't find a global directory for executables because the "${PATH}" environment variable is not set.`
     );
   }
 
   if (!(await globalBinDirIsInPath(globalBinDir, env))) {
-    throw new PnpmError(
+    throw new OspmError(
       'GLOBAL_BIN_DIR_NOT_IN_PATH',
       `The configured global bin directory "${globalBinDir}" is not in PATH`
     );
   }
 
   if (shouldAllowWrite === true && !canWriteToDirAndExists(globalBinDir)) {
-    throw new PnpmError(
-      'PNPM_DIR_NOT_WRITABLE',
-      `The CLI has no write access to the pnpm home directory at ${globalBinDir}`
+    throw new OspmError(
+      'OSPM_DIR_NOT_WRITABLE',
+      `The CLI has no write access to the ospm home directory at ${globalBinDir}`
     );
   }
 }

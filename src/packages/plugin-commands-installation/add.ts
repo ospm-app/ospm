@@ -4,8 +4,8 @@ import {
   OPTIONS,
   UNIVERSAL_OPTIONS,
 } from '../common-cli-options-help/index.ts';
-import { types as allTypes } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { types as allTypes } from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import { prepareExecutionEnv } from '../plugin-commands-env/index.ts';
 import pick from 'ramda/src/pick';
 import renderHelp from 'render-help';
@@ -28,12 +28,12 @@ export function rcOptionsTypes(): Record<string, unknown> {
       'force',
       'global-bin-dir',
       'global-dir',
-      'global-pnpmfile',
+      'global-ospmfile',
       'global',
       'hoist',
       'hoist-pattern',
       'https-proxy',
-      'ignore-pnpmfile',
+      'ignore-ospmfile',
       'ignore-scripts',
       'ignore-workspace-root-check',
       'link-workspace-packages',
@@ -47,7 +47,7 @@ export function rcOptionsTypes(): Record<string, unknown> {
       'noproxy',
       'npm-path',
       'package-import-method',
-      'pnpmfile',
+      'ospmfile',
       'prefer-offline',
       'production',
       'proxy',
@@ -141,7 +141,7 @@ export function help(): string {
             description:
               'Run installation recursively in every package found in subdirectories \
 or in every workspace package, when executed inside a workspace. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -168,15 +168,15 @@ For options that may be used with `-r`, see "pnpm help recursive"',
     ],
     url: docsUrl('add'),
     usages: [
-      'pnpm add <name>',
-      'pnpm add <name>@<tag>',
-      'pnpm add <name>@<version>',
-      'pnpm add <name>@<version range>',
-      'pnpm add <git host>:<git user>/<repo name>',
-      'pnpm add <git repo url>',
-      'pnpm add <tarball file>',
-      'pnpm add <tarball url>',
-      'pnpm add <dir>',
+      'ospm add <name>',
+      'ospm add <name>@<tag>',
+      'ospm add <name>@<version>',
+      'ospm add <name>@<version range>',
+      'ospm add <git host>:<git user>/<repo name>',
+      'ospm add <git repo url>',
+      'ospm add <tarball file>',
+      'ospm add <tarball url>',
+      'ospm add <dir>',
     ],
   });
 }
@@ -196,16 +196,16 @@ export async function handler(
   params: string[]
 ): Promise<void> {
   if (opts.cliOptions['save'] === false) {
-    throw new PnpmError(
+    throw new OspmError(
       'OPTION_NOT_SUPPORTED',
       'The "add" command currently does not support the no-save option'
     );
   }
 
   if (params.length === 0) {
-    throw new PnpmError(
+    throw new OspmError(
       'MISSING_PACKAGE_NAME',
-      '`pnpm add` requires the package name'
+      '`ospm add` requires the package name'
     );
   }
 
@@ -217,7 +217,7 @@ export async function handler(
     opts.workspacePackagePatterns &&
     opts.workspacePackagePatterns.length > 1
   ) {
-    throw new PnpmError(
+    throw new OspmError(
       'ADDING_TO_ROOT',
       'Running this command will add the dependency to the workspace root, ' +
         'which might not be what you want - if you really meant it, ' +
@@ -227,19 +227,19 @@ export async function handler(
   }
   if (opts.global === true) {
     if (!opts.bin) {
-      throw new PnpmError(
+      throw new OspmError(
         'NO_GLOBAL_BIN_DIR',
         'Unable to find the global bin directory',
         {
-          hint: 'Run "pnpm setup" to create it automatically, or set the global-bin-dir setting, or the PNPM_HOME env variable. The global bin directory should be in the PATH.',
+          hint: 'Run "ospm setup" to create it automatically, or set the global-bin-dir setting, or the OSPM_HOME env variable. The global bin directory should be in the PATH.',
         }
       );
     }
 
-    if (params.includes('pnpm') || params.includes('@pnpm/exe')) {
-      throw new PnpmError(
-        'GLOBAL_PNPM_INSTALL',
-        'Use the "pnpm self-update" command to install or update pnpm'
+    if (params.includes('ospm') || params.includes('@pnpm/exe')) {
+      throw new OspmError(
+        'GLOBAL_OSPM_INSTALL',
+        'Use the "ospm self-update" command to install or update ospm'
       );
     }
   }
@@ -252,23 +252,23 @@ export async function handler(
 
   if (typeof opts.allowBuild !== 'undefined' && opts.allowBuild.length > 0) {
     if (
-      typeof opts.rootProjectManifest?.pnpm?.ignoredBuiltDependencies !==
+      typeof opts.rootProjectManifest?.ospm?.ignoredBuiltDependencies !==
         'undefined' &&
-      opts.rootProjectManifest.pnpm.ignoredBuiltDependencies.length
+      opts.rootProjectManifest.ospm.ignoredBuiltDependencies.length
     ) {
       const overlapDependencies =
-        opts.rootProjectManifest.pnpm.ignoredBuiltDependencies.filter(
+        opts.rootProjectManifest.ospm.ignoredBuiltDependencies.filter(
           (dep): boolean => {
             return opts.allowBuild?.includes(dep) === true;
           }
         );
 
       if (overlapDependencies.length) {
-        throw new PnpmError(
+        throw new OspmError(
           'OVERRIDING_IGNORED_BUILT_DEPENDENCIES',
           `The following dependencies are ignored by the root project, but are allowed to be built by the current command: ${overlapDependencies.join(', ')}`,
           {
-            hint: 'If you are sure you want to allow those dependencies to run installation scripts, remove them from the pnpm.ignoredBuiltDependencies list.',
+            hint: 'If you are sure you want to allow those dependencies to run installation scripts, remove them from the ospm.ignoredBuiltDependencies list.',
           }
         );
       }
@@ -283,20 +283,20 @@ export async function handler(
     const manifest: ProjectManifest = opts.rootProjectManifest ?? {
       name: '',
       version: '0.0.1',
-      pnpm: {
+      ospm: {
         onlyBuiltDependencies: opts.onlyBuiltDependencies,
       },
     };
 
-    manifest.pnpm = manifest.pnpm ??
-      opts.rootProjectManifest?.pnpm ?? {
+    manifest.ospm = manifest.ospm ??
+      opts.rootProjectManifest?.ospm ?? {
         onlyBuiltDependencies: opts.onlyBuiltDependencies,
       };
 
-    // opts.rootProjectManifest.pnpm = opts.rootProjectManifest.pnpm ?? {};
+    // opts.rootProjectManifest.ospm = opts.rootProjectManifest.ospm ?? {};
 
-    manifest.pnpm.onlyBuiltDependencies =
-      manifest.pnpm.onlyBuiltDependencies ?? opts.onlyBuiltDependencies;
+    manifest.ospm.onlyBuiltDependencies =
+      manifest.ospm.onlyBuiltDependencies ?? opts.onlyBuiltDependencies;
 
     const writeProjectManifest = await createProjectManifestWriter(
       opts.rootProjectManifestDir

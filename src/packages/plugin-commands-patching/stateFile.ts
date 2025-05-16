@@ -93,5 +93,5 @@ function readStateFile(modulesDir: string): State | undefined {
 }
 
 function getStateFilePath(modulesDir: string): string {
-  return path.join(modulesDir, '.pnpm_patches', 'state.json');
+  return path.join(modulesDir, '.ospm_patches', 'state.json');
 }

@@ -1,10 +1,10 @@
-import path from 'path'
+import path from 'node:path'
 
-export function getPnpmfilePath (prefix: string, pnpmfile?: string): string {
-  if (!pnpmfile) {
-    pnpmfile = '.pnpmfile.cjs'
-  } else if (path.isAbsolute(pnpmfile)) {
-    return pnpmfile
+export function getOspmfilePath (prefix: string, ospmfile?: string | undefined): string {
+  if (!ospmfile) {
+    ospmfile = '.ospmfile.cjs'
+  } else if (path.isAbsolute(ospmfile)) {
+    return ospmfile
   }
-  return path.join(prefix, pnpmfile)
+  return path.join(prefix, ospmfile)
 }

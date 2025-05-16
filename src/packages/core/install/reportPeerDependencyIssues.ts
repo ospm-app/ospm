@@ -1,4 +1,4 @@
-import { PnpmError } from '../../error/index.ts';
+import { OspmError } from '../../error/index.ts';
 import { peerDependencyIssuesLogger } from '../../core-loggers/index.ts';
 import type {
   PeerDependencyIssues,
@@ -37,7 +37,7 @@ export function reportPeerDependencyIssues(
   });
 }
 
-export class PeerDependencyIssuesError extends PnpmError {
+export class PeerDependencyIssuesError extends OspmError {
   issuesByProjects: PeerDependencyIssuesByProjects;
 
   constructor(issues: PeerDependencyIssuesByProjects) {

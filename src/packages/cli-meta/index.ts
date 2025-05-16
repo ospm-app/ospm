@@ -7,7 +7,7 @@ const defaultManifest = {
   name:
     process.env.npm_package_name != null && process.env.npm_package_name !== ''
       ? process.env.npm_package_name
-      : 'pnpm',
+      : 'ospm',
   version:
     process.env.npm_package_version != null &&
     process.env.npm_package_version !== ''
@@ -63,11 +63,11 @@ export function isExecutedByCorepack(
 export function getCurrentPackageName(proc: Process = process): string {
   return detectIfCurrentPkgIsExecutable(proc)
     ? getExePackageName(proc)
-    : 'pnpm';
+    : 'ospm';
 }
 
 function getExePackageName(proc: Process): string {
-  return `@pnpm/${normalizePlatformName(proc)}-${normalizeArchName(proc)}`;
+  return `@ospm/${normalizePlatformName(proc)}-${normalizeArchName(proc)}`;
 }
 
 function normalizePlatformName(proc: Process): string {

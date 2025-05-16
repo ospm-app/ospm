@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { parseWantedDependency } from '../parse-wanted-dependency/index.ts';
 import {
   matchCatalogResolveResult,
@@ -71,7 +71,7 @@ export function parseOverrides(
           misconfiguration: ({
             error,
           }: CatalogResolutionMisconfiguration): never => {
-            throw new PnpmError(
+            throw new OspmError(
               'CATALOG_IN_OVERRIDES',
               `Could not resolve a catalog in the overrides: ${error.message}`
             );
@@ -120,7 +120,7 @@ function parsePkgSelector(selector: string): PackageSelector {
   const wantedDep = parseWantedDependency(selector);
 
   if (typeof wantedDep.alias === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_SELECTOR',
       `Cannot parse the "${selector}" selector`
     );

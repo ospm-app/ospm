@@ -2,7 +2,7 @@ import type { Config } from '../config/index.ts';
 import type { Log } from '../core-loggers/index.ts';
 import { renderDedupeCheckIssues } from '../dedupe.issues-renderer/index.ts';
 import type { DedupeCheckIssues } from '../dedupe.types/index.ts';
-import type { PnpmError } from '../error/index.ts';
+import type { OspmError } from '../error/index.ts';
 import { renderPeerIssues } from '../render-peer-issues/index.ts';
 import type {
   PeerDependencyRules,
@@ -76,62 +76,62 @@ function getErrorInfo(
   peerDependencyRules?: PeerDependencyRules | undefined
 ): ErrorInfo | null {
   if ('err' in logObj && logObj.err) {
-    const err = logObj.err as PnpmError & { stack: object };
+    const err = logObj.err as OspmError & { stack: object };
 
     switch (err.code) {
-      case 'ERR_PNPM_UNEXPECTED_STORE': {
+      case 'ERR_OSPM_UNEXPECTED_STORE': {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return reportUnexpectedStore(err, logObj as any);
       }
 
-      case 'ERR_PNPM_UNEXPECTED_VIRTUAL_STORE': {
+      case 'ERR_OSPM_UNEXPECTED_VIRTUAL_STORE': {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return reportUnexpectedVirtualStoreDir(err, logObj as any);
       }
 
-      case 'ERR_PNPM_STORE_BREAKING_CHANGE': {
+      case 'ERR_OSPM_STORE_BREAKING_CHANGE': {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return reportStoreBreakingChange(logObj as any);
       }
 
-      case 'ERR_PNPM_MODULES_BREAKING_CHANGE': {
+      case 'ERR_OSPM_MODULES_BREAKING_CHANGE': {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return reportModulesBreakingChange(logObj as any);
       }
 
-      case 'ERR_PNPM_MODIFIED_DEPENDENCY': {
+      case 'ERR_OSPM_MODIFIED_DEPENDENCY': {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return reportModifiedDependency(logObj as any);
       }
 
-      case 'ERR_PNPM_LOCKFILE_BREAKING_CHANGE': {
+      case 'ERR_OSPM_LOCKFILE_BREAKING_CHANGE': {
         return reportLockfileBreakingChange(err, logObj);
       }
 
-      case 'ERR_PNPM_RECURSIVE_RUN_NO_SCRIPT': {
+      case 'ERR_OSPM_RECURSIVE_RUN_NO_SCRIPT': {
         return { title: err.message };
       }
 
-      case 'ERR_PNPM_MISSING_TIME': {
+      case 'ERR_OSPM_MISSING_TIME': {
         return {
           title: err.message,
           body: 'If you cannot fix this registry issue, then set "resolution-mode" to "highest".',
         };
       }
 
-      case 'ERR_PNPM_NO_MATCHING_VERSION': {
+      case 'ERR_OSPM_NO_MATCHING_VERSION': {
         return formatNoMatchingVersion(
           err,
           logObj as unknown as { packageMeta: PackageMeta }
         );
       }
 
-      case 'ERR_PNPM_RECURSIVE_FAIL': {
+      case 'ERR_OSPM_RECURSIVE_FAIL': {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return formatRecursiveCommandSummary(logObj as any);
       }
 
-      case 'ERR_PNPM_BAD_TARBALL_SIZE': {
+      case 'ERR_OSPM_BAD_TARBALL_SIZE': {
         return reportBadTarballSize(err, logObj);
       }
 
@@ -140,12 +140,12 @@ function getErrorInfo(
         return reportLifecycleError(logObj as any);
       }
 
-      case 'ERR_PNPM_UNSUPPORTED_ENGINE': {
+      case 'ERR_OSPM_UNSUPPORTED_ENGINE': {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return reportEngineError(logObj as any);
       }
 
-      case 'ERR_PNPM_PEER_DEP_ISSUES': {
+      case 'ERR_OSPM_PEER_DEP_ISSUES': {
         return reportPeerDependencyIssuesError(
           err,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -154,25 +154,25 @@ function getErrorInfo(
         );
       }
 
-      case 'ERR_PNPM_DEDUPE_CHECK_ISSUES': {
+      case 'ERR_OSPM_DEDUPE_CHECK_ISSUES': {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return reportDedupeCheckIssuesError(err, logObj as any);
       }
 
-      case 'ERR_PNPM_SPEC_NOT_SUPPORTED_BY_ANY_RESOLVER': {
+      case 'ERR_OSPM_SPEC_NOT_SUPPORTED_BY_ANY_RESOLVER': {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return reportSpecNotSupportedByAnyResolverError(err, logObj as any);
       }
 
-      case 'ERR_PNPM_FETCH_401':
-      case 'ERR_PNPM_FETCH_403': {
+      case 'ERR_OSPM_FETCH_401':
+      case 'ERR_OSPM_FETCH_403': {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return reportAuthError(err, logObj as any, config);
       }
 
       default: {
         // Errors with unknown error codes are printed with stack trace
-        if (!err.code.startsWith('ERR_PNPM_')) {
+        if (!err.code.startsWith('ERR_OSPM_')) {
           return formatGenericError(
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             err.message ?? (logObj as { message: string }).message,
@@ -242,7 +242,7 @@ function formatNoMatchingVersion(
     }
   }
 
-  output += `${EOL}If you need the full list of all ${Object.keys(meta.versions).length} published versions run "$ pnpm view ${meta.name} versions".`;
+  output += `${EOL}If you need the full list of all ${Object.keys(meta.versions).length} published versions run "$ ospm view ${meta.name} versions".`;
 
   return {
     title: err.message,
@@ -262,12 +262,12 @@ function reportUnexpectedStore(
     title: err.message,
     body: `The dependencies at "${msg.modulesDir}" are currently linked from the store at "${msg.expectedStorePath}".
 
-pnpm now wants to use the store at "${msg.actualStorePath}" to link dependencies.
+ospm now wants to use the store at "${msg.actualStorePath}" to link dependencies.
 
-If you want to use the new store location, reinstall your dependencies with "pnpm install".
+If you want to use the new store location, reinstall your dependencies with "ospm install".
 
-You may change the global store location by running "pnpm config set store-dir <dir> --global".
-(This error may happen if the node_modules was installed with a different major version of pnpm)`,
+You may change the global store location by running "ospm config set store-dir <dir> --global".
+(This error may happen if the node_modules was installed with a different major version of ospm)`,
   };
 }
 
@@ -283,9 +283,9 @@ function reportUnexpectedVirtualStoreDir(
     title: err.message,
     body: `The dependencies at "${msg.modulesDir}" are currently symlinked from the virtual store directory at "${msg.expected}".
 
-pnpm now wants to use the virtual store at "${msg.actual}" to link dependencies from the store.
+ospm now wants to use the virtual store at "${msg.actual}" to link dependencies from the store.
 
-If you want to use the new virtual store location, reinstall your dependencies with "pnpm install".
+If you want to use the new virtual store location, reinstall your dependencies with "ospm install".
 
 You may change the virtual store location by changing the value of the virtual-store-dir config.`,
   };
@@ -299,7 +299,7 @@ function reportStoreBreakingChange(msg: {
 }): ErrorInfo {
   let output = `Store path: ${colorPath(msg.storePath)}
 
-Run "pnpm install" to recreate node_modules.`;
+Run "ospm install" to recreate node_modules.`;
 
   if (typeof msg.additionalInformation === 'string') {
     output = `${output}${EOL}${EOL}${msg.additionalInformation}`;
@@ -308,7 +308,7 @@ Run "pnpm install" to recreate node_modules.`;
   output += formatRelatedSources(msg);
   return {
     title:
-      'The store used for the current node_modules is incompatible with the current version of pnpm',
+      'The store used for the current node_modules is incompatible with the current version of ospm',
     body: output,
   };
 }
@@ -321,7 +321,7 @@ function reportModulesBreakingChange(msg: {
 }): ErrorInfo {
   let output = `node_modules path: ${colorPath(msg.modulesPath)}
 
-Run ${highlight('pnpm install')} to recreate node_modules.`;
+Run ${highlight('ospm install')} to recreate node_modules.`;
 
   if (typeof msg.additionalInformation === 'string') {
     output = `${output}${EOL}${EOL}${msg.additionalInformation}`;
@@ -331,7 +331,7 @@ Run ${highlight('pnpm install')} to recreate node_modules.`;
 
   return {
     title:
-      'The current version of pnpm is not compatible with the available node_modules structure',
+      'The current version of ospm is not compatible with the available node_modules structure',
     body: output,
   };
 }
@@ -352,11 +352,11 @@ function formatRelatedSources(msg: {
   output += EOL;
 
   if (typeof msg.relatedIssue === 'number') {
-    output += `${EOL}Related issue: ${colorPath(`https://github.com/pnpm/pnpm/issues/${msg.relatedIssue}`)}`;
+    output += `${EOL}Related issue: ${colorPath(`https://github.com/ospm/ospm/issues/${msg.relatedIssue}`)}`;
   }
 
   if (typeof msg.relatedPR === 'number') {
-    output += `${EOL}Related PR: ${colorPath(`https://github.com/pnpm/pnpm/pull/${msg.relatedPR}`)}`;
+    output += `${EOL}Related PR: ${colorPath(`https://github.com/ospm/ospm/pull/${msg.relatedPR}`)}`;
   }
 
   return output;
@@ -394,7 +394,7 @@ function reportModifiedDependency(msg: { modified: string[] }): ErrorInfo {
     body: `These packages are modified:
 ${msg.modified.map((pkgPath: string) => colorPath(pkgPath)).join(EOL)}
 
-You can run ${highlight('pnpm install --force')} to refetch the modified packages`,
+You can run ${highlight('ospm install --force')} to refetch the modified packages`,
   };
 }
 
@@ -428,15 +428,15 @@ Try running the same command again.
 If that doesn't help, try one of the following:
 
 - Set a bigger value for the \`fetch-retries\` config.
-    To check the current value of \`fetch-retries\`, run \`pnpm get fetch-retries\`.
-    To set a new value, run \`pnpm set fetch-retries <number>\`.
+    To check the current value of \`fetch-retries\`, run \`ospm get fetch-retries\`.
+    To set a new value, run \`ospm set fetch-retries <number>\`.
 
 - Set \`network-concurrency\` to 1.
     This change will slow down installation times, so it is recommended to
-    delete the config once the internet connection is good again: \`pnpm config delete network-concurrency\`
+    delete the config once the internet connection is good again: \`ospm config delete network-concurrency\`
 
 NOTE: You may also override configs via flags.
-For instance, \`pnpm install --fetch-retries 5 --network-concurrency 1\``,
+For instance, \`ospm install --fetch-retries 5 --network-concurrency 1\``,
   };
 }
 
@@ -459,28 +459,28 @@ function reportEngineError(msg: {
   message: string;
   current: {
     node: string;
-    pnpm: string;
+    ospm: string;
   };
   packageId: string;
   wanted: {
     node?: string | undefined;
-    pnpm?: string | undefined;
+    ospm?: string | undefined;
   };
 }): ErrorInfo {
   let output = '';
 
-  if (typeof msg.wanted.pnpm === 'string') {
+  if (typeof msg.wanted.ospm === 'string') {
     output += `\
-Your pnpm version is incompatible with "${msg.packageId}".
+Your ospm version is incompatible with "${msg.packageId}".
 
-Expected version: ${msg.wanted.pnpm}
-Got: ${msg.current.pnpm}
+Expected version: ${msg.wanted.ospm}
+Got: ${msg.current.ospm}
 
-This is happening because the package's manifest has an engines.pnpm field specified.
-To fix this issue, install the required pnpm version globally.
+This is happening because the package's manifest has an engines.ospm field specified.
+To fix this issue, install the required ospm version globally.
 
-To install the latest version of pnpm, run "pnpm i -g pnpm".
-To check your pnpm version, run "pnpm -v".`;
+To install the latest version of ospm, run "ospm i -g ospm".
+To check your ospm version, run "ospm -v".`;
   }
   if (typeof msg.wanted.node === 'string') {
     if (output) output += EOL + EOL;
@@ -494,7 +494,7 @@ This is happening because the package's manifest has an engines.node field speci
 To fix this issue, install the required Node version.`;
   }
   return {
-    title: 'Unsupported environment (bad pnpm and/or Node.js version)',
+    title: 'Unsupported environment (bad ospm and/or Node.js version)',
     body: output,
   };
 }
@@ -526,7 +526,7 @@ function reportAuthError(
 
   if (foundSettings.length === 0) {
     output += `No authorization settings were found in the configs.
-Try to log in to the registry by running "pnpm login"
+Try to log in to the registry by running "ospm login"
 or add the auth tokens manually to the ~/.npmrc file.`;
   } else {
     output += `These authorization settings were found:
@@ -567,7 +567,7 @@ function reportPeerDependencyIssuesError(
   }
 
   hints.push(
-    'If you don\'t want pnpm to fail on peer dependency issues, add "strict-peer-dependencies=false" to an .npmrc file at the root of your project.'
+    'If you don\'t want ospm to fail on peer dependency issues, add "strict-peer-dependencies=false" to an .npmrc file at the root of your project.'
   );
 
   const rendered = renderPeerIssues(msg.issuesByProjects, {
@@ -604,7 +604,7 @@ function reportDedupeCheckIssuesError(
     title: err.message,
     body: `\
 ${renderDedupeCheckIssues(msg.dedupeCheckIssues)}
-Run ${chalk.yellow('pnpm dedupe')} to apply the changes above.
+Run ${chalk.yellow('ospm dedupe')} to apply the changes above.
 `,
   };
 }
@@ -621,7 +621,7 @@ function reportSpecNotSupportedByAnyResolverError(
   // If this kind of error is thrown, and the dependency pref is using the
   // catalog protocol it's most likely because we're trying to install an out of
   // repo dependency that was published incorrectly. For example, it may be been
-  // mistakenly published with 'npm publish' instead of 'pnpm publish'. Report a
+  // mistakenly published with 'npm publish' instead of 'ospm publish'. Report a
   // more clear error in this case.
   if (logObj.package?.pref?.startsWith('catalog:') === true) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -643,10 +643,10 @@ function reportExternalCatalogProtocolError(
   const problemDep = pkgsStack?.[0];
 
   let body = `\
-An external package outside of the pnpm workspace declared a dependency using
+An external package outside of the ospm workspace declared a dependency using
 the catalog protocol. This is likely a bug in that external package. Only
-packages within the pnpm workspace may use catalogs. Usages of the catalog
-protocol are replaced with real specifiers on 'pnpm publish'.
+packages within the ospm workspace may use catalogs. Usages of the catalog
+protocol are replaced with real specifiers on 'ospm publish'.
 `;
 
   if (problemDep != null) {

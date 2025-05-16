@@ -2,9 +2,10 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { docsUrl } from '../cli-utils/index.ts';
 import { install } from '../plugin-commands-installation/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
 import { tryReadProjectManifest } from '../read-project-manifest/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type { ProjectManifest, ProjectRootDir } from '../types/index.ts';
 import renderHelp from 'render-help';
 import { prompt } from 'enquirer';
@@ -24,7 +25,7 @@ export function help(): string {
   return renderHelp({
     description: 'Remove existing patch files',
     url: docsUrl('patch-remove'),
-    usages: ['pnpm patch-remove [pkg...]'],
+    usages: ['ospm patch-remove [pkg...]'],
   });
 }
 
@@ -47,18 +48,18 @@ export async function handler(
     opts.rootProjectManifest ?? manifest;
 
   if (rootProjectManifest === null) {
-    throw new PnpmError(
+    throw new OspmError(
       'MISSING_PROJECT_MANIFEST',
       'Project manifest not found'
     );
   }
 
   const patchedDependencies =
-    'pnpm' in rootProjectManifest &&
+    'ospm' in rootProjectManifest &&
     typeof rootProjectManifest === 'object' &&
-    typeof rootProjectManifest.pnpm === 'object' &&
-    'patchedDependencies' in rootProjectManifest.pnpm
-      ? rootProjectManifest.pnpm.patchedDependencies
+    typeof rootProjectManifest.ospm === 'object' &&
+    'patchedDependencies' in rootProjectManifest.ospm
+      ? rootProjectManifest.ospm.patchedDependencies
       : undefined;
 
   if (!params.length) {
@@ -80,7 +81,7 @@ export async function handler(
   }
 
   if (!patchesToRemove.length) {
-    throw new PnpmError(
+    throw new OspmError(
       'NO_PATCHES_TO_REMOVE',
       'There are no patches that need to be removed'
     );
@@ -103,18 +104,18 @@ export async function handler(
 
         await fs.rm(patchFile, { force: true });
 
-        delete rootProjectManifest.pnpm?.patchedDependencies?.[patch];
+        delete rootProjectManifest.ospm?.patchedDependencies?.[patch];
 
         if (
-          !Object.keys(rootProjectManifest.pnpm?.patchedDependencies ?? {})
+          !Object.keys(rootProjectManifest.ospm?.patchedDependencies ?? {})
             .length
         ) {
           // biome-ignore lint/performance/noDelete: <explanation>
-          delete rootProjectManifest.pnpm?.patchedDependencies;
+          delete rootProjectManifest.ospm?.patchedDependencies;
 
-          if (!Object.keys(rootProjectManifest.pnpm ?? {}).length) {
+          if (!Object.keys(rootProjectManifest.ospm ?? {}).length) {
             // biome-ignore lint/performance/noDelete: <explanation>
-            delete rootProjectManifest.pnpm;
+            delete rootProjectManifest.ospm;
           }
         }
       }

@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { parseCatalogProtocol } from '../catalogs.protocol-parser/index.ts';
 import type { Catalogs } from '../catalogs.types/index.ts';
 import type { WantedDependency } from '../resolve-dependencies/index.ts';
@@ -47,7 +47,7 @@ export interface CatalogResolutionMisconfiguration {
   /**
    * Convenience error to rethrow.
    */
-  readonly error: PnpmError;
+  readonly error: OspmError;
   readonly catalogName: string;
 }
 
@@ -81,7 +81,7 @@ export function resolveFromCatalog(
     return {
       type: 'misconfiguration',
       catalogName,
-      error: new PnpmError(
+      error: new OspmError(
         'CATALOG_ENTRY_NOT_FOUND_FOR_SPEC',
         `No catalog entry '${wantedDependency.alias}' was found for catalog '${catalogName}'.`
       ),
@@ -92,7 +92,7 @@ export function resolveFromCatalog(
     return {
       type: 'misconfiguration',
       catalogName,
-      error: new PnpmError(
+      error: new OspmError(
         'CATALOG_ENTRY_INVALID_RECURSIVE_DEFINITION',
         `Found invalid catalog entry using the catalog protocol recursively. The entry for '${wantedDependency.alias}' in catalog '${catalogName}' is invalid.`
       ),
@@ -104,31 +104,31 @@ export function resolveFromCatalog(
   //   1. It's kind of silly. It'd be better to encourage users to use the
   //      workspace protocol directly.
   //   2. Catalogs cache the resolved version of a dependency specifier in
-  //      pnpm-lock.yaml for more consistent resolution across importers. The
+  //      ospm-lock.yaml for more consistent resolution across importers. The
   //      link: resolutions can't be shared between importers.
   const protocolOfLookup = catalogLookup.split(':')[0];
   if (protocolOfLookup === 'workspace') {
     return {
       type: 'misconfiguration',
       catalogName,
-      error: new PnpmError(
+      error: new OspmError(
         'CATALOG_ENTRY_INVALID_WORKSPACE_SPEC',
         `The workspace protocol cannot be used as a catalog value. The entry for '${wantedDependency.alias}' in catalog '${catalogName}' is invalid.`
       ),
     };
   }
 
-  // A future version of pnpm will try to support this. These protocols aren't
+  // A future version of ospm will try to support this. These protocols aren't
   // supported today since these are often relative file paths that users expect
-  // to be relative to the repo root rather than the location of the pnpm
+  // to be relative to the repo root rather than the location of the ospm
   // workspace package.
   if (['link', 'file'].includes(protocolOfLookup ?? '')) {
     return {
       type: 'misconfiguration',
       catalogName,
-      error: new PnpmError(
+      error: new OspmError(
         'CATALOG_ENTRY_INVALID_SPEC',
-        `The entry for '${wantedDependency.alias}' in catalog '${catalogName}' declares a dependency using the '${protocolOfLookup}' protocol. This is not yet supported, but may be in a future version of pnpm.`
+        `The entry for '${wantedDependency.alias}' in catalog '${catalogName}' declares a dependency using the '${protocolOfLookup}' protocol. This is not yet supported, but may be in a future version of ospm.`
       ),
     };
   }

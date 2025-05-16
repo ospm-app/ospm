@@ -5,9 +5,10 @@ import { docsUrl } from '../cli-utils/index.ts';
 import { createResolver } from '../client/index.ts';
 import { parseWantedDependency } from '../parse-wanted-dependency/index.ts';
 import { OUTPUT_OPTIONS } from '../common-cli-options-help/index.ts';
-import { type Config, types } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
+import { types } from '../config/types.ts';
 import { createHexHash } from '../crypto.hash/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { add } from '../plugin-commands-installation/index.ts';
 import { readPackageJsonFromDir } from '../read-package-json/index.ts';
 import {
@@ -17,7 +18,7 @@ import {
 import { pickRegistryForPackage } from '../pick-registry-for-package/index.ts';
 import type {
   LockFileDir,
-  PnpmSettings,
+  OspmSettings,
   ProjectRootDirRealPath,
 } from '../types/index.ts';
 import * as execa from 'execa';
@@ -75,7 +76,7 @@ export function help(): string {
       OUTPUT_OPTIONS,
     ],
     url: docsUrl('dlx'),
-    usages: ['pnpm dlx <command> [args...]'],
+    usages: ['ospm dlx <command> [args...]'],
   });
 }
 
@@ -95,7 +96,7 @@ export type DlxCommandOptions = {
   | 'symlink'
 > &
   AddCommandOptions &
-  PnpmSettings;
+  OspmSettings;
 
 export async function handler(
   opts: DlxCommandOptions,
@@ -196,7 +197,7 @@ export async function handler(
     : await getBinName(modulesDir, await getPkgName(cachedDir));
 
   if (typeof binName !== 'string') {
-    throw new PnpmError('DLX_NO_BIN', `No binary found for ${command}`);
+    throw new OspmError('DLX_NO_BIN', `No binary found for ${command}`);
   }
 
   try {
@@ -231,7 +232,7 @@ async function getPkgName(pkgDir: string): Promise<string> {
   const dependencyName = dependencyNames[0];
 
   if (dependencyNames.length === 0 || typeof dependencyName !== 'string') {
-    throw new PnpmError(
+    throw new OspmError(
       'DLX_NO_DEP',
       'dlx was unable to find the installed dependency in "dependencies"'
     );
@@ -248,7 +249,7 @@ async function getBinName(
   const manifest = await readPackageJsonFromDir(pkgDir);
   const bins = await getBinsFromPackageManifest(manifest, pkgDir);
   if (bins.length === 0) {
-    throw new PnpmError('DLX_NO_BIN', `No binaries found in ${pkgName}`);
+    throw new OspmError('DLX_NO_BIN', `No binaries found in ${pkgName}`);
   }
 
   const firstBin = bins[0];
@@ -258,7 +259,7 @@ async function getBinName(
   }
 
   if (typeof manifest.name !== 'string') {
-    throw new PnpmError('DLX_NO_NAME', `No name found in ${pkgName}`);
+    throw new OspmError('DLX_NO_NAME', `No name found in ${pkgName}`);
   }
 
   const scopelessPkgName = scopeless(manifest.name);
@@ -273,12 +274,12 @@ async function getBinName(
     return name;
   });
 
-  throw new PnpmError(
+  throw new OspmError(
     'DLX_MULTIPLE_BINS',
     `Could not determine executable to run. ${pkgName} has multiple binaries: ${binNames.join(', ')}`,
     {
       hint: `Try one of the following:
-${binNames.map((name) => `pnpm --package=${pkgName} dlx ${name}`).join('\n')}
+${binNames.map((name) => `ospm --package=${pkgName} dlx ${name}`).join('\n')}
 `,
     }
   );

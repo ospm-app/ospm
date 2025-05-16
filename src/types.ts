@@ -2,7 +2,7 @@ import type { Config } from './packages/config/index.ts';
 import type { ReadPackageHook } from './packages/types/index.ts';
 import type { ReporterType } from './reporter/index.ts';
 
-export type PnpmOptions = Omit<Config, 'reporter'> & {
+export type OspmOptions = Omit<Config, 'reporter'> & {
   argv: {
     cooked: string[];
     original: string[];

@@ -3,14 +3,15 @@ import { docsUrl } from '../cli-utils/index.ts';
 import { packageManager, isExecutedByCorepack } from '../cli-meta/index.ts';
 import { createResolver } from '../client/index.ts';
 import { pickRegistryForPackage } from '../pick-registry-for-package/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import { globalWarn } from '../logger/index.ts';
 import { readProjectManifest } from '../read-project-manifest/index.ts';
 import { linkBins } from '../link-bins/index.ts';
 import pick from 'ramda/src/pick';
 import renderHelp from 'render-help';
-import { installPnpmToTools } from './installPnpmToTools.ts';
+import { installOspmToTools } from './installPnpmToTools.ts';
 import type { ModulesDir } from '../types/project.ts';
 
 export function rcOptionsTypes(): Record<string, unknown> {
@@ -27,14 +28,14 @@ export const commandNames = ['self-update'];
 
 export function help(): string {
   return renderHelp({
-    description: 'Updates pnpm to the latest version (or the one specified)',
+    description: 'Updates ospm to the latest version (or the one specified)',
     descriptionLists: [],
     url: docsUrl('self-update'),
     usages: [
-      'pnpm self-update',
-      'pnpm self-update 9',
-      'pnpm self-update next-10',
-      'pnpm self-update 9.10.0',
+      'ospm self-update',
+      'ospm self-update 9',
+      'ospm self-update next-10',
+      'ospm self-update 9.10.0',
     ],
   });
 }
@@ -46,7 +47,7 @@ export type SelfUpdateCommandOptions = Pick<
   | 'lockfileDir'
   | 'managePackageManagerVersions'
   | 'modulesDir'
-  | 'pnpmHomeDir'
+  | 'ospmHomeDir'
   | 'rawConfig'
   | 'registries'
   | 'rootProjectManifestDir'
@@ -58,15 +59,15 @@ export async function handler(
   params: string[]
 ): Promise<undefined | string> {
   if (isExecutedByCorepack()) {
-    throw new PnpmError(
+    throw new OspmError(
       'CANT_SELF_UPDATE_IN_COREPACK',
-      'You should update pnpm with corepack'
+      'You should update ospm with corepack'
     );
   }
 
   const { resolve } = createResolver({ ...opts, authConfig: opts.rawConfig });
 
-  const pkgName = 'pnpm';
+  const pkgName = 'ospm';
 
   const pref = params[0] ?? 'latest';
 
@@ -81,9 +82,9 @@ export async function handler(
   );
 
   if (typeof resolution.manifest === 'undefined') {
-    throw new PnpmError(
-      'CANNOT_RESOLVE_PNPM',
-      `Cannot find "${pref}" version of pnpm`
+    throw new OspmError(
+      'CANNOT_RESOLVE_OSPM',
+      `Cannot find "${pref}" version of ospm`
     );
   }
 
@@ -99,21 +100,21 @@ export async function handler(
       opts.rootProjectManifestDir
     );
 
-    manifest.packageManager = `pnpm@${resolution.manifest.version}`;
+    manifest.packageManager = `ospm@${resolution.manifest.version}`;
 
     await writeProjectManifest(manifest);
 
-    return `The current project has been updated to use pnpm v${resolution.manifest.version}`;
+    return `The current project has been updated to use ospm v${resolution.manifest.version}`;
   }
 
-  const { baseDir, alreadyExisted } = await installPnpmToTools(
+  const { baseDir, alreadyExisted } = await installOspmToTools(
     resolution.manifest.version,
     opts
   );
 
   await linkBins(
     path.join(baseDir, opts.modulesDir ?? 'node_modules') as ModulesDir,
-    opts.pnpmHomeDir,
+    opts.ospmHomeDir,
     {
       warn: globalWarn,
     }

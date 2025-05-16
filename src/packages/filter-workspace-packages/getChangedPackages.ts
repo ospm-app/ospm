@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import path from 'node:path';
 import util from 'node:util';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import * as micromatch from 'micromatch';
 import { execa } from 'execa';
 import { findUp } from 'find-up';
@@ -84,7 +84,7 @@ async function getChangedDirsSinceCommit(
     ).stdout;
   } catch (err: unknown) {
     assert(util.types.isNativeError(err));
-    throw new PnpmError(
+    throw new OspmError(
       'FILTER_CHANGED',
       `Filtering by changed packages failed. ${'stderr' in err ? (err.stderr as string) : ''}`
     );

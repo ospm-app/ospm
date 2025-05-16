@@ -7,5 +7,5 @@ export type InstallCheckMessage = {
   pkgId: string;
 };
 
-export type InstallCheckLog = { name: 'pnpm:install-check' } & LogBase &
+export type InstallCheckLog = { name: 'ospm:install-check' } & LogBase &
   InstallCheckMessage;

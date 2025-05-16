@@ -1,6 +1,6 @@
 import { cache } from '../packages/cache.commands/index.ts';
 import type { CompletionFunc } from '../packages/command/index.ts';
-import { types as allTypes } from '../packages/config/index.ts';
+import { types as allTypes } from '../packages/config/types.ts';
 import {
   approveBuilds,
   ignoredBuilds,
@@ -59,7 +59,7 @@ import {
 } from '../packages/plugin-commands-store-inspecting/index.ts';
 import { init } from '../packages/plugin-commands-init/index.ts';
 import pick from 'ramda/src/pick';
-import type { PnpmOptions } from '../types.ts';
+import type { OspmOptions } from '../types.ts';
 import { shorthands as universalShorthands } from '../shorthands.ts';
 import { parseCliArgs } from '../parseCliArgs.ts';
 import * as bin from './bin.ts';
@@ -97,11 +97,11 @@ export type CommandResponse = string | { output?: string; exitCode: number };
 export type Command =
   | ((
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      opts: PnpmOptions | any,
+      opts: OspmOptions | any,
       params: string[]
     ) => CommandResponse | Promise<CommandResponse>)
-  | ((opts: PnpmOptions | any, params: string[]) => void) // eslint-disable-line @typescript-eslint/no-explicit-any
-  | ((opts: PnpmOptions | any, params: string[]) => Promise<void>); // eslint-disable-line @typescript-eslint/no-explicit-any
+  | ((opts: OspmOptions | any, params: string[]) => void) // eslint-disable-line @typescript-eslint/no-explicit-any
+  | ((opts: OspmOptions | any, params: string[]) => Promise<void>); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export type CommandDefinition = {
   /** The main logic of the command. */
@@ -294,7 +294,7 @@ function initialCompletion(): Array<{ name: string }> {
   return Object.keys(handlerByCommandName).map((name) => ({ name }));
 }
 
-export const pnpmCmds = handlerByCommandName;
+export const ospmCmds = handlerByCommandName;
 
 export const skipPackageManagerCheckForCommand = new Set(
   skipPackageManagerCheckForCommandArray

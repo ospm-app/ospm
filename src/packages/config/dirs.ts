@@ -8,18 +8,18 @@ export function getCacheDir (
   }
 ): string {
   if (opts.env.XDG_CACHE_HOME) {
-    return path.join(opts.env.XDG_CACHE_HOME, 'pnpm')
+    return path.join(opts.env.XDG_CACHE_HOME, 'ospm')
   }
   if (opts.platform === 'darwin') {
-    return path.join(os.homedir(), 'Library/Caches/pnpm')
+    return path.join(os.homedir(), 'Library/Caches/ospm')
   }
   if (opts.platform !== 'win32') {
-    return path.join(os.homedir(), '.cache/pnpm')
+    return path.join(os.homedir(), '.cache/ospm')
   }
   if (opts.env.LOCALAPPDATA) {
-    return path.join(opts.env.LOCALAPPDATA, 'pnpm-cache')
+    return path.join(opts.env.LOCALAPPDATA, 'ospm-cache')
   }
-  return path.join(os.homedir(), '.pnpm-cache')
+  return path.join(os.homedir(), '.ospm-cache')
 }
 
 export function getStateDir (
@@ -29,15 +29,15 @@ export function getStateDir (
   }
 ): string {
   if (opts.env.XDG_STATE_HOME) {
-    return path.join(opts.env.XDG_STATE_HOME, 'pnpm')
+    return path.join(opts.env.XDG_STATE_HOME, 'ospm')
   }
   if (opts.platform !== 'win32') {
-    return path.join(os.homedir(), '.local/state/pnpm')
+    return path.join(os.homedir(), '.local/state/ospm')
   }
   if (opts.env.LOCALAPPDATA) {
-    return path.join(opts.env.LOCALAPPDATA, 'pnpm-state')
+    return path.join(opts.env.LOCALAPPDATA, 'ospm-state')
   }
-  return path.join(os.homedir(), '.pnpm-state')
+  return path.join(os.homedir(), '.ospm-state')
 }
 
 export function getDataDir (
@@ -46,22 +46,22 @@ export function getDataDir (
     platform: string
   }
 ): string {
-  if (opts.env.PNPM_HOME) {
-    return opts.env.PNPM_HOME
+  if (opts.env.OSPM_HOME) {
+    return opts.env.OSPM_HOME
   }
   if (opts.env.XDG_DATA_HOME) {
-    return path.join(opts.env.XDG_DATA_HOME, 'pnpm')
+    return path.join(opts.env.XDG_DATA_HOME, 'ospm')
   }
   if (opts.platform === 'darwin') {
-    return path.join(os.homedir(), 'Library/pnpm')
+    return path.join(os.homedir(), 'Library/ospm')
   }
   if (opts.platform !== 'win32') {
-    return path.join(os.homedir(), '.local/share/pnpm')
+    return path.join(os.homedir(), '.local/share/ospm')
   }
   if (opts.env.LOCALAPPDATA) {
-    return path.join(opts.env.LOCALAPPDATA, 'pnpm')
+    return path.join(opts.env.LOCALAPPDATA, 'ospm')
   }
-  return path.join(os.homedir(), '.pnpm')
+  return path.join(os.homedir(), '.ospm')
 }
 
 export function getConfigDir (
@@ -71,16 +71,16 @@ export function getConfigDir (
   }
 ): string {
   if (opts.env.XDG_CONFIG_HOME) {
-    return path.join(opts.env.XDG_CONFIG_HOME, 'pnpm')
+    return path.join(opts.env.XDG_CONFIG_HOME, 'ospm')
   }
   if (opts.platform === 'darwin') {
-    return path.join(os.homedir(), 'Library/Preferences/pnpm')
+    return path.join(os.homedir(), 'Library/Preferences/ospm')
   }
   if (opts.platform !== 'win32') {
-    return path.join(os.homedir(), '.config/pnpm')
+    return path.join(os.homedir(), '.config/ospm')
   }
   if (opts.env.LOCALAPPDATA) {
-    return path.join(opts.env.LOCALAPPDATA, 'pnpm/config')
+    return path.join(opts.env.LOCALAPPDATA, 'ospm/config')
   }
-  return path.join(os.homedir(), '.config/pnpm')
+  return path.join(os.homedir(), '.config/ospm')
 }

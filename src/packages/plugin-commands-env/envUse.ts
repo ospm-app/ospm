@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs';
 import util from 'node:util';
 import gfs from 'graceful-fs';
 import path from 'node:path';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import cmdShim from '@zkochan/cmd-shim';
 import isWindows from 'is-windows';
 import symlinkDir from 'symlink-dir';
@@ -19,16 +19,16 @@ export async function envUse(
   params: string[]
 ): Promise<string> {
   if (opts.global !== true) {
-    throw new PnpmError(
+    throw new OspmError(
       'NOT_IMPLEMENTED_YET',
-      '"pnpm env use <version>" can only be used with the "--global" option currently'
+      '"ospm env use <version>" can only be used with the "--global" option currently'
     );
   }
 
   const nodeInfo = await downloadNodeVersion(opts, params[0] ?? '');
 
   if (!nodeInfo) {
-    throw new PnpmError(
+    throw new OspmError(
       'COULD_NOT_RESOLVE_NODEJS',
       `Couldn't find Node.js version matching ${params[0]}`
     );
@@ -40,7 +40,7 @@ export async function envUse(
 
   const dest = getNodeExecPathInBinDir(opts.bin);
 
-  await symlinkDir(nodeDir, path.join(opts.pnpmHomeDir, CURRENT_NODE_DIRNAME));
+  await symlinkDir(nodeDir, path.join(opts.ospmHomeDir, CURRENT_NODE_DIRNAME));
 
   try {
     gfs.unlinkSync(dest);

@@ -10,7 +10,7 @@ import {
 import { promisify } from 'node:util';
 import path from 'node:path';
 import { packageManager } from '../cli-meta/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { logger } from '../logger/index.ts';
 import { type StoreServerHandle, createServer } from '../server/index.ts';
 import {
@@ -53,7 +53,7 @@ export async function start(
   const storeDir = await getStorePath({
     pkgRoot: opts.dir,
     storePath: opts.storeDir,
-    pnpmHomeDir: opts.pnpmHomeDir,
+    ospmHomeDir: opts.ospmHomeDir,
   });
 
   const connectionInfoDir = serverConnectionInfoDir(storeDir);
@@ -75,7 +75,7 @@ export async function start(
       throw error;
     }
 
-    throw new PnpmError(
+    throw new OspmError(
       'SERVER_MANIFEST_LOCKED',
       `Canceling startup of server (pid ${process.pid}) because another process got exclusive access to server.json`
     );
@@ -147,7 +147,7 @@ export async function start(
   const serverJson = {
     connectionOptions,
     pid: process.pid,
-    pnpmVersion: packageManager.version,
+    ospmVersion: packageManager.version,
   };
 
   const serverJsonStr = JSON.stringify(serverJson, undefined, 2); // undefined and 2 are for formatting.

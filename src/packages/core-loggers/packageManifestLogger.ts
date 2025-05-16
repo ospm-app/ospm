@@ -27,7 +27,7 @@ export type PackageManifestMessage =
   | PackageManifestMessageUpdated;
 
 export type PackageManifestLog = {
-  name: 'pnpm:package-manifest';
+  name: 'ospm:package-manifest';
   initial?: ProjectManifest | undefined;
   updated?: ProjectManifest | undefined;
 } & LogBase &

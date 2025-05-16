@@ -5,7 +5,7 @@ import process from 'node:process';
 export async function getNodeExecPath(): Promise<string> {
   try {
     // The system default Node.js executable is preferred
-    // not the one used to run the pnpm CLI.
+    // not the one used to run the ospm CLI.
     const nodeExecPath = await which('node');
 
     return fs.realpath(nodeExecPath);

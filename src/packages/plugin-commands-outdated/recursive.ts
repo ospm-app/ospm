@@ -1,5 +1,5 @@
 import { TABLE_OPTIONS } from '../cli-utils/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import {
   outdatedDepsOfProjects,
   type OutdatedPackage,
@@ -69,7 +69,7 @@ export async function outdatedRecursive(
     ...opts,
     fullMetadata: opts.long ?? false,
     ignoreDependencies:
-      rootManifest?.manifest.pnpm?.updateConfig?.ignoreDependencies,
+      rootManifest?.manifest.ospm?.updateConfig?.ignoreDependencies,
     retry: {
       factor: opts.fetchRetryFactor ?? 3,
       maxTimeout: opts.fetchRetryMaxtimeout ?? 60_000,
@@ -124,7 +124,7 @@ export async function outdatedRecursive(
     }
 
     default: {
-      throw new PnpmError(
+      throw new OspmError(
         'BAD_OUTDATED_FORMAT',
         `Unsupported format: ${opts.format?.toString() ?? 'undefined'}`
       );

@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import { STORE_VERSION } from '../constants/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import rimraf from '@zkochan/rimraf';
 import canLink from 'can-link';
 import os from 'node:os';
@@ -13,21 +13,21 @@ import touch from 'touch';
 export function getStorePath({
   pkgRoot,
   storePath,
-  pnpmHomeDir,
+  ospmHomeDir,
 }: {
   pkgRoot: string;
   storePath?: string | undefined;
-  pnpmHomeDir?: string | undefined;
+  ospmHomeDir?: string | undefined;
 }): string | Promise<string> {
   if (typeof storePath === 'undefined') {
-    if (typeof pnpmHomeDir === 'undefined') {
-      throw new PnpmError(
-        'NO_PNPM_HOME_DIR',
-        'The pnpm home directory is unknown. Cannot calculate the store directory location.'
+    if (typeof ospmHomeDir === 'undefined') {
+      throw new OspmError(
+        'NO_OSPM_HOME_DIR',
+        'The ospm home directory is unknown. Cannot calculate the store directory location.'
       );
     }
 
-    return storePathRelativeToHome(pkgRoot, 'store', pnpmHomeDir);
+    return storePathRelativeToHome(pkgRoot, 'store', ospmHomeDir);
   }
 
   if (isHomepath(storePath)) {
@@ -88,7 +88,7 @@ async function storePathRelativeToHome(
       return storeInHomeDir;
     }
 
-    return path.join(mountpoint, '.pnpm-store', STORE_VERSION);
+    return path.join(mountpoint, '.ospm-store', STORE_VERSION);
   } catch {
     // this is an unlikely situation but if there is no way to find
     // a linkable place on the disk, create the store in homedir

@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type { ProjectManifest } from '../types/index.ts';
 import { isValidPeerRange } from '../semver.peer-range/index.ts';
 
@@ -20,7 +20,7 @@ export function validatePeerDependencies(project: ProjectToValidate): void {
     const version = peerDependencies[depName];
 
     if (typeof version !== 'string' || !isValidPeerRange(version)) {
-      throw new PnpmError(
+      throw new OspmError(
         'INVALID_PEER_DEPENDENCY_SPECIFICATION',
         `The peerDependencies field named '${depName}' of package '${projectId}' has an invalid value: '${version}'`,
         {

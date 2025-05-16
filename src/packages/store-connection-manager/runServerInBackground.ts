@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 // cspell:ignore diable
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -6,9 +6,9 @@ import diable from '@zkochan/diable';
 
 export function runServerInBackground(storePath: string): void {
   if (require.main == null) {
-    throw new PnpmError(
+    throw new OspmError(
       'CANNOT_START_SERVER',
-      'pnpm server cannot be started when pnpm is streamed to Node.js'
+      'ospm server cannot be started when ospm is streamed to Node.js'
     );
   }
 

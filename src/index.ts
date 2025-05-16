@@ -3,10 +3,11 @@ import '@total-typescript/ts-reset';
 import process from 'node:process';
 
 // Avoid "Possible EventEmitter memory leak detected" warnings
-// because it breaks pnpm's CLI output
+// because it breaks ospm's CLI output
 process.setMaxListeners(0);
 
 const argv = process.argv.slice(2);
+
 (async () => {
   switch (argv[0]) {
     // commands that are passed through to npm:
@@ -50,16 +51,18 @@ const argv = process.argv.slice(2);
     }
 
     default: {
-      await runPnpm();
+      await runOspm();
       break;
     }
   }
 })();
 
-async function runPnpm(): Promise<void> {
+async function runOspm(): Promise<void> {
   const { errorHandler } = await import('./errorHandler.ts');
+
   try {
     const { main } = await import('./main.ts');
+
     await main(argv);
   } catch (err: unknown) {
     // TODO: valibot error handling

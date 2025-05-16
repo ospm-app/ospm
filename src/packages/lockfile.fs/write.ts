@@ -122,7 +122,7 @@ export async function writeLockfiles(opts: {
 
   const yamlDoc = yamlStringify(wantedLockfileToStringify);
 
-  // in most cases the `pnpm-lock.yaml` and `node_modules/.pnpm-lock.yaml` are equal
+  // in most cases the `ospm-lock.yaml` and `node_modules/.ospm-lock.yaml` are equal
   // in those cases the YAML document can be stringified only once for both files
   // which is more efficient
   if (opts.wantedLockfile === opts.currentLockfile) {

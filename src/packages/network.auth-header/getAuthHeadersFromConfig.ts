@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -118,7 +118,7 @@ export function loadToken(
   settingName: string
 ): string {
   if (!path.isAbsolute(helperPath) || !fs.existsSync(helperPath)) {
-    throw new PnpmError(
+    throw new OspmError(
       'BAD_TOKEN_HELPER_PATH',
       `${settingName} must be an absolute path, without arguments`
     );
@@ -127,7 +127,7 @@ export function loadToken(
   const spawnResult = spawnSync(helperPath, { shell: true });
 
   if (spawnResult.status !== 0) {
-    throw new PnpmError(
+    throw new OspmError(
       'TOKEN_HELPER_ERROR_STATUS',
       `Error running "${helperPath}" as a token helper, configured as ${settingName}. Exit code ${spawnResult.status?.toString() ?? ''}`
     );

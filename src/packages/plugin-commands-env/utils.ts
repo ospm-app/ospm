@@ -4,11 +4,11 @@ import path from 'node:path';
 export const CURRENT_NODE_DIRNAME = 'nodejs_current';
 
 export async function getNodeExecPathAndTargetDir(
-  pnpmHomeDir: string
+  ospmHomeDir: string
 ): Promise<{ nodePath: string; nodeLink?: string | undefined }> {
-  const nodePath = getNodeExecPathInBinDir(pnpmHomeDir);
+  const nodePath = getNodeExecPathInBinDir(ospmHomeDir);
 
-  const nodeCurrentDirLink = path.join(pnpmHomeDir, CURRENT_NODE_DIRNAME);
+  const nodeCurrentDirLink = path.join(ospmHomeDir, CURRENT_NODE_DIRNAME);
 
   let nodeCurrentDir: string | undefined;
 
@@ -27,9 +27,9 @@ export async function getNodeExecPathAndTargetDir(
   };
 }
 
-export function getNodeExecPathInBinDir(pnpmHomeDir: string): string {
+export function getNodeExecPathInBinDir(ospmHomeDir: string): string {
   return path.resolve(
-    pnpmHomeDir,
+    ospmHomeDir,
     process.platform === 'win32' ? 'node.exe' : 'node'
   );
 }

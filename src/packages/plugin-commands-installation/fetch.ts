@@ -1,6 +1,6 @@
 import { docsUrl } from '../cli-utils/index.ts';
 import { UNIVERSAL_OPTIONS } from '../common-cli-options-help/index.ts';
-import { type Config, getOptionsFromRootManifest } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
 import {
   createOrConnectStoreController,
   type CreateStoreControllerOptions,
@@ -10,6 +10,7 @@ import renderHelp from 'render-help';
 import { cliOptionsTypes } from './install.ts';
 import { mutateModulesInSingleProject } from '../core/install/index.ts';
 import path from 'node:path';
+import { getOptionsFromRootManifest } from '../config/getOptionsFromRootManifest.ts';
 
 export const rcOptionsTypes = cliOptionsTypes;
 
@@ -46,7 +47,7 @@ export function help(): string {
       },
     ],
     url: docsUrl('fetch'),
-    usages: ['pnpm fetch [--dev | --prod]'],
+    usages: ['ospm fetch [--dev | --prod]'],
   });
 }
 

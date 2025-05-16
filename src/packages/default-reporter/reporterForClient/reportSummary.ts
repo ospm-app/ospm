@@ -52,7 +52,7 @@ export function reportSummary(
     cwd: string;
     env: NodeJS.ProcessEnv;
     filterPkgsDiff?: FilterPkgsDiff | undefined;
-    pnpmConfig?: Config | undefined;
+    ospmConfig?: Config | undefined;
   }
 ): Rx.Observable<Rx.Observable<{ msg: string }>> {
   const pkgsDiff$ = getPkgsDiff(log$, { prefix: opts.cwd });
@@ -62,7 +62,7 @@ export function reportSummary(
   const _printDiffs = printDiffs.bind(null, {
     cmd: opts.cmd,
     prefix: opts.cwd,
-    pnpmConfig: opts.pnpmConfig,
+    ospmConfig: opts.ospmConfig,
   });
 
   return Rx.combineLatest(
@@ -93,7 +93,7 @@ export function reportSummary(
         if (diffs.length > 0) {
           msg += EOL;
 
-          if (opts.pnpmConfig?.global === true) {
+          if (opts.ospmConfig?.global === true) {
             msg += chalk.cyanBright(`${opts.cwd}:`);
           } else {
             msg += chalk.cyanBright(
@@ -105,7 +105,7 @@ export function reportSummary(
           msg += EOL;
         } else if (
           CONFIG_BY_DEP_TYPE[depType] &&
-          opts.pnpmConfig?.[CONFIG_BY_DEP_TYPE[depType]] === false
+          opts.ospmConfig?.[CONFIG_BY_DEP_TYPE[depType]] === false
         ) {
           msg += EOL;
           msg += `${chalk.cyanBright(`${propertyByDependencyType[depType] as string}:`)} skipped`;
@@ -115,12 +115,12 @@ export function reportSummary(
       if (
         ignoredScripts.packageNames &&
         ignoredScripts.packageNames.length > 0 &&
-        opts.pnpmConfig?.strictDepBuilds !== true
+        opts.ospmConfig?.strictDepBuilds !== true
       ) {
         msg += EOL;
         msg += boxen(
           `Ignored build scripts: ${Array.from(ignoredScripts.packageNames).sort(lexCompare).join(', ')}.
-Run "pnpm approve-builds${opts.pnpmConfig?.cliOptions.global === true ? ' -g' : ''}" to pick which dependencies should be allowed to run scripts.`,
+Run "ospm approve-builds${opts.ospmConfig?.cliOptions.global === true ? ' -g' : ''}" to pick which dependencies should be allowed to run scripts.`,
           {
             title: 'Warning',
             padding: 1,
@@ -142,7 +142,7 @@ function printDiffs(
   opts: {
     cmd: string;
     prefix: string;
-    pnpmConfig?: Config | undefined;
+    ospmConfig?: Config | undefined;
   },
   pkgsDiff: PackageDiff[],
   depType: string
@@ -186,7 +186,7 @@ function printDiffs(
       if (
         pkg.added &&
         depType === 'dev' &&
-        opts.pnpmConfig?.saveDev === false &&
+        opts.ospmConfig?.saveDev === false &&
         opts.cmd === 'add'
       ) {
         result += `${chalk.yellow(' already in devDependencies, was not moved to dependencies.')}`;

@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { packageManager } from '../cli-meta/index.ts';
 import type { Config } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { logger } from '../logger/index.ts';
 import type { PackageResponse } from '../package-store/index.ts';
 import type { StoreServerController } from '../server/index.ts';
@@ -32,7 +32,7 @@ export type CreateStoreControllerOptions = Omit<
     Config,
     | 'storeDir'
     | 'dir'
-    | 'pnpmHomeDir'
+    | 'ospmHomeDir'
     | 'useRunningStoreServer'
     | 'useStoreServer'
     | 'workspaceDir'
@@ -54,7 +54,7 @@ export async function createOrConnectStoreController(
   const storeDir = await getStorePath({
     pkgRoot: opts.workspaceDir ?? opts.dir,
     storePath: opts.storeDir,
-    pnpmHomeDir: opts.pnpmHomeDir,
+    ospmHomeDir: opts.ospmHomeDir,
   });
 
   const connectionInfoDir = serverConnectionInfoDir(storeDir);
@@ -67,9 +67,9 @@ export async function createOrConnectStoreController(
   });
 
   if (serverJson !== null) {
-    if (serverJson.pnpmVersion !== packageManager.version) {
+    if (serverJson.ospmVersion !== packageManager.version) {
       logger.warn({
-        message: `The store server runs on pnpm v${serverJson.pnpmVersion}. It is recommended to connect with the same version (current is v${packageManager.version})`,
+        message: `The store server runs on ospm v${serverJson.ospmVersion}. It is recommended to connect with the same version (current is v${packageManager.version})`,
         prefix: opts.dir,
       });
     }
@@ -87,7 +87,7 @@ export async function createOrConnectStoreController(
   }
 
   if (opts.useRunningStoreServer === true) {
-    throw new PnpmError('NO_STORE_SERVER', 'No store server is running.');
+    throw new OspmError('NO_STORE_SERVER', 'No store server is running.');
   }
 
   if (opts.useStoreServer === true) {
@@ -100,7 +100,7 @@ export async function createOrConnectStoreController(
 
     logger.info({
       message:
-        'A store server has been started. To stop it, use `pnpm server stop`',
+        'A store server has been started. To stop it, use `ospm server stop`',
       prefix: opts.dir,
     });
 
@@ -134,7 +134,7 @@ export async function tryLoadServerJson(options: {
     remotePrefix: string;
   };
   pid: number;
-  pnpmVersion: string;
+  ospmVersion: string;
 }> {
   let beforeFirstAttempt = true;
 
@@ -188,7 +188,7 @@ export async function tryLoadServerJson(options: {
     let serverJson: {
       connectionOptions: { remotePrefix: string };
       pid: number;
-      pnpmVersion: string;
+      ospmVersion: string;
     } | null;
 
     try {
@@ -196,7 +196,7 @@ export async function tryLoadServerJson(options: {
       serverJson = JSON.parse(serverJsonStr) as {
         connectionOptions: { remotePrefix: string };
         pid: number;
-        pnpmVersion: string;
+        ospmVersion: string;
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars

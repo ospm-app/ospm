@@ -9,12 +9,11 @@ import {
   OPTIONS,
   UNIVERSAL_OPTIONS,
 } from '../common-cli-options-help/index.ts';
+import type { Config } from '../config/index.ts';
 import {
-  type Config,
-  getOptionsFromRootManifest,
   types as allTypes,
-} from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+} from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import { arrayOfWorkspacePackagesToMap } from '../get-context/index.ts';
 import { findWorkspacePackages } from '../workspace.find-packages/index.ts';
 import { getAllDependenciesFromManifest } from '../manifest-utils/index.ts';
@@ -31,8 +30,9 @@ import renderHelp from 'render-help';
 import { getSaveType } from './getSaveType.ts';
 import { recursive } from './recursive.ts';
 import { installConfigDeps } from './installConfigDeps.ts';
+import { getOptionsFromRootManifest } from '../config/getOptionsFromRootManifest.ts';
 
-class RemoveMissingDepsError extends PnpmError {
+class RemoveMissingDepsError extends OspmError {
   constructor(opts: {
     availableDependencies: string[];
     nonMatchedDependencies: string[];
@@ -63,7 +63,7 @@ export function rcOptionsTypes(): Record<string, unknown> {
     [
       'cache-dir',
       'global-dir',
-      'global-pnpmfile',
+      'global-ospmfile',
       'global',
       'lockfile-dir',
       'lockfile-directory',
@@ -71,7 +71,7 @@ export function rcOptionsTypes(): Record<string, unknown> {
       'lockfile',
       'node-linker',
       'package-import-method',
-      'pnpmfile',
+      'ospmfile',
       'reporter',
       'save-dev',
       'save-optional',
@@ -107,7 +107,7 @@ export function help(): string {
             description:
               'Remove from every package found in subdirectories \
 or from every workspace package, when executed inside a workspace. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -134,12 +134,12 @@ For options that may be used with `-r`, see "pnpm help recursive"',
       FILTERING,
     ],
     url: docsUrl('remove'),
-    usages: ['pnpm remove <pkg>[@<version>]...'],
+    usages: ['ospm remove <pkg>[@<version>]...'],
   });
 }
 
-// Unlike npm, pnpm does not treat "r" as an alias of "remove".
-// This way we avoid the confusion about whether "pnpm r" means remove, run, or recursive.
+// Unlike npm, ospm does not treat "r" as an alias of "remove".
+// This way we avoid the confusion about whether "ospm r" means remove, run, or recursive.
 export const commandNames = ['remove', 'uninstall', 'rm', 'un', 'uni'];
 
 export const completion: CompletionFunc = async (
@@ -163,13 +163,13 @@ export async function handler(
       | 'configDependencies'
       | 'dev'
       | 'engineStrict'
-      | 'globalPnpmfile'
+      | 'globalOspmfile'
       | 'hooks'
-      | 'ignorePnpmfile'
+      | 'ignoreOspmfile'
       | 'linkWorkspacePackages'
       | 'lockfileDir'
       | 'optional'
-      | 'pnpmfile'
+      | 'ospmfile'
       | 'production'
       | 'rawLocalConfig'
       | 'registries'
@@ -188,7 +188,7 @@ export async function handler(
   params: string[]
 ): Promise<void> {
   if (params.length === 0) {
-    throw new PnpmError(
+    throw new OspmError(
       'MUST_REMOVE_SOMETHING',
       'At least one dependency name should be specified for removal'
     );
@@ -210,7 +210,7 @@ export async function handler(
     });
   }
 
-  if (opts.ignorePnpmfile !== true) {
+  if (opts.ignoreOspmfile !== true) {
     opts.hooks = requireHooks(opts.lockfileDir, opts); //  ?? opts.dir
 
     if (opts.hooks.fetchers != null || opts.hooks.importPackage != null) {
@@ -259,7 +259,7 @@ export async function handler(
     force: false,
     lockfileDir: '',
     nodeVersion: '',
-    pnpmfile: '',
+    ospmfile: '',
     rawLocalConfig: false,
     registry: '',
     rootProjectManifest: undefined,
@@ -275,7 +275,7 @@ export async function handler(
     unsafePerm: false,
     userAgent: '',
     resolveSymlinksInInjectedDirs: false,
-    ignorePnpmfile: false,
+    ignoreOspmfile: false,
     allowedDeprecatedVersions: {},
     packageExtensions: {},
     packageManager: { name: '', version: '' },

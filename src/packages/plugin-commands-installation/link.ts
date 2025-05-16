@@ -5,13 +5,14 @@ import {
   type ReadProjectManifestOpts,
 } from '../cli-utils/index.ts';
 import { UNIVERSAL_OPTIONS } from '../common-cli-options-help/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
 import {
   DEPENDENCIES_FIELDS,
   type ProjectManifest,
   type Project,
 } from '../types/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { arrayOfWorkspacePackagesToMap } from '../get-context/index.ts';
 import { findWorkspacePackages } from '../workspace.find-packages/index.ts';
 import type { WorkspacePackages } from '../core/index.ts';
@@ -86,7 +87,7 @@ export function help(): string {
       },
     ],
     url: docsUrl('link'),
-    usages: ['pnpm link <dir|pkg name>', 'pnpm link'],
+    usages: ['ospm link <dir|pkg name>', 'ospm link'],
   });
 }
 
@@ -106,7 +107,7 @@ async function checkPeerDeps(
       .join(', ');
 
     logger.warn({
-      message: `The package ${packageName}, which you have just pnpm linked, has the following peerDependencies specified in its package.json:
+      message: `The package ${packageName}, which you have just ospm linked, has the following peerDependencies specified in its package.json:
 
 ${peerDeps}
 
@@ -143,11 +144,11 @@ export async function handler(
   });
 
   if (opts.cliOptions.global === true && opts.bin === '') {
-    throw new PnpmError(
+    throw new OspmError(
       'NO_GLOBAL_BIN_DIR',
       'Unable to find the global bin directory',
       {
-        hint: 'Run "pnpm setup" to create it automatically, or set the global-bin-dir setting, or the PNPM_HOME env variable. The global bin directory should be in the PATH.',
+        hint: 'Run "ospm setup" to create it automatically, or set the global-bin-dir setting, or the OSPM_HOME env variable. The global bin directory should be in the PATH.',
       }
     );
   }
@@ -156,11 +157,11 @@ export async function handler(
     opts.rootProjectManifestDir
   );
 
-  // pnpm link
+  // ospm link
   if (params == null || params.length === 0) {
     const cwd = process.cwd();
     if (path.relative(linkOpts.dir, cwd) === '') {
-      throw new PnpmError('LINK_BAD_PARAMS', 'You must provide a parameter');
+      throw new OspmError('LINK_BAD_PARAMS', 'You must provide a parameter');
     }
 
     await checkPeerDeps(cwd, opts);
@@ -225,14 +226,14 @@ async function addLinkToManifest(
   linkedDepDir: string,
   manifestDir: string
 ): Promise<void> {
-  if (typeof manifest.pnpm === 'undefined') {
-    manifest.pnpm = {
+  if (typeof manifest.ospm === 'undefined') {
+    manifest.ospm = {
       overrides: {},
     };
   }
 
-  if (typeof manifest.pnpm.overrides === 'undefined') {
-    manifest.pnpm.overrides = {};
+  if (typeof manifest.ospm.overrides === 'undefined') {
+    manifest.ospm.overrides = {};
   }
 
   const { manifest: linkedManifest } = await tryReadProjectManifest(
@@ -244,7 +245,7 @@ async function addLinkToManifest(
 
   const linkedPkgSpec = `link:${normalize(path.relative(manifestDir, linkedDepDir))}`;
 
-  manifest.pnpm.overrides[linkedPkgName] = linkedPkgSpec;
+  manifest.ospm.overrides[linkedPkgName] = linkedPkgSpec;
 
   if (
     DEPENDENCIES_FIELDS.every(

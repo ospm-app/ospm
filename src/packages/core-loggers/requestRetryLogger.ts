@@ -18,5 +18,5 @@ export type RequestRetryMessage = {
   url: string;
 };
 
-export type RequestRetryLog = { name: 'pnpm:request-retry' } & LogBase &
+export type RequestRetryLog = { name: 'ospm:request-retry' } & LogBase &
   RequestRetryMessage;

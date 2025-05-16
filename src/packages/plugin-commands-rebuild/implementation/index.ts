@@ -12,11 +12,11 @@ import {
 } from '../../calc-dep-state/index.ts';
 import { LAYOUT_VERSION, WANTED_LOCKFILE } from '../../constants/index.ts';
 import { skippedOptionalDependencyLogger } from '../../core-loggers/index.ts';
-import { PnpmError } from '../../error/index.ts';
+import { OspmError } from '../../error/index.ts';
 import {
   getContext,
   type HookOptions,
-  type PnpmContext,
+  type OspmContext,
   type ProjectOptions,
 } from '../../get-context/index.ts';
 import {
@@ -90,7 +90,7 @@ function findPackages(
     if (!pkgInfo.name) {
       logger.warn({
         message: `Skipping ${relativeDepPath} because cannot get the package name from ${WANTED_LOCKFILE}.
-            Try to run run \`pnpm update --depth 100\` to create a new ${WANTED_LOCKFILE} with all the necessary info.`,
+            Try to run run \`ospm update --depth 100\` to create a new ${WANTED_LOCKFILE} with all the necessary info.`,
         prefix: opts.prefix,
       });
 
@@ -348,7 +348,7 @@ async function _rebuild<IP>(
     >;
     extraBinPaths: string[];
     extraNodePaths: string[];
-  } & Pick<PnpmContext, 'modulesFile'>,
+  } & Pick<OspmContext, 'modulesFile'>,
   opts: StrictRebuildOptions<IP>
 ): Promise<{ pkgsThatWereRebuilt: Set<string>; ignoredPkgs: string[] }> {
   const depGraph = lockfileToDepGraph(ctx.currentLockfile);
@@ -465,11 +465,11 @@ async function _rebuild<IP>(
             return;
           }
 
-          throw new PnpmError(
+          throw new OspmError(
             'MISSING_HOISTED_LOCATIONS',
             `${depPath} is not found in hoistedLocations inside node_modules/.modules.yaml`,
             {
-              hint: 'If you installed your node_modules with pnpm older than v7.19.0, you may need to remove it and run "pnpm install"',
+              hint: 'If you installed your node_modules with ospm older than v7.19.0, you may need to remove it and run "ospm install"',
             }
           );
         }

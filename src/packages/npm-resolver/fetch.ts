@@ -4,7 +4,7 @@ import {
   FetchError,
   type FetchErrorRequest,
   type FetchErrorResponse,
-  PnpmError,
+  OspmError,
 } from '../error/index.ts';
 import type {
   FetchFromRegistry,
@@ -74,7 +74,7 @@ export async function fromRegistry(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         reject(
-          new PnpmError(
+          new OspmError(
             'META_FETCH_FAIL',
             `GET ${uri}: ${error.message as string}`,
             { attempts: attempt }
@@ -102,7 +102,7 @@ export async function fromRegistry(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         const timeout = op.retry(
-          new PnpmError('BROKEN_METADATA_JSON', error.message)
+          new OspmError('BROKEN_METADATA_JSON', error.message)
         );
 
         if (timeout === false) {

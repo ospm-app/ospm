@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 
 export type NodeSpecifier = {
   releaseChannel: string;
@@ -48,7 +48,7 @@ export function parseNodeSpecifier(specifier: string): NodeSpecifier {
       typeof releaseChannel !== 'string' ||
       typeof useNodeVersion !== 'string'
     ) {
-      throw new PnpmError(
+      throw new OspmError(
         'INVALID_NODE_VERSION',
         `"${specifier}" is not a valid Node.js version`
       );
@@ -56,7 +56,7 @@ export function parseNodeSpecifier(specifier: string): NodeSpecifier {
 
     if (releaseChannel === 'release') {
       if (!isStableVersion(useNodeVersion)) {
-        throw new PnpmError(
+        throw new OspmError(
           'INVALID_NODE_VERSION',
           `"${specifier}" is not a valid Node.js version`,
           {
@@ -65,7 +65,7 @@ export function parseNodeSpecifier(specifier: string): NodeSpecifier {
         );
       }
     } else if (!useNodeVersion.includes(releaseChannel)) {
-      throw new PnpmError(
+      throw new OspmError(
         'MISMATCHED_RELEASE_CHANNEL',
         `Node.js version (${useNodeVersion}) must contain the release channel (${releaseChannel})`
       );
@@ -80,7 +80,7 @@ export function parseNodeSpecifier(specifier: string): NodeSpecifier {
     const m2 = prereleaseMatch[2];
 
     if (typeof m2 !== 'string') {
-      throw new PnpmError(
+      throw new OspmError(
         'INVALID_NODE_VERSION',
         `"${specifier}" is not a valid Node.js version`
       );
@@ -103,7 +103,7 @@ export function parseNodeSpecifier(specifier: string): NodeSpecifier {
   ) {
     hint = STABLE_RELEASE_ERROR_HINT;
   }
-  throw new PnpmError(
+  throw new OspmError(
     'INVALID_NODE_VERSION',
     `"${specifier}" is not a valid Node.js version`,
     { hint }

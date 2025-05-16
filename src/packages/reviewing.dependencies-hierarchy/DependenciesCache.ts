@@ -66,7 +66,7 @@ export type CacheHit = {
  * ## Future Optimizations
  *
  * The necessity of this cache may be removed in the future with a refactor of
- * the `pnpm list` command. This cache attempts to optimize runtime to O(# of
+ * the `ospm list` command. This cache attempts to optimize runtime to O(# of
  * unique packages), but the list command is O(# of nodes) anyway since every
  * node needs to be printed. It's possible a generator function could be
  * returned here to avoid computing large trees in-memory before passing to

@@ -19,12 +19,12 @@ const kill = promisify(killcb) as (
 export async function stop(opts: {
   storeDir?: string | undefined;
   dir: string;
-  pnpmHomeDir: string;
+  ospmHomeDir: string;
 }): Promise<void> {
   const storeDir = await getStorePath({
     pkgRoot: opts.dir,
     storePath: opts.storeDir,
-    pnpmHomeDir: opts.pnpmHomeDir,
+    ospmHomeDir: opts.ospmHomeDir,
   });
 
   const connectionInfoDir = serverConnectionInfoDir(storeDir);

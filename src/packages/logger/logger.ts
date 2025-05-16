@@ -4,7 +4,7 @@ import bole from 'bole';
 
 bole.setFastTime();
 
-export const logger = bole('pnpm') as Logger<object>;
+export const logger = bole('ospm') as Logger<object>;
 
 export interface Logger<T> {
   <Y>(name: string): Logger<Y>;
@@ -18,7 +18,7 @@ export interface Logger<T> {
   error: (err: Error, log?: string | Error | undefined) => void;
 }
 
-const globalLogger = bole('pnpm:global');
+const globalLogger = bole('ospm:global');
 
 export function globalWarn(message: string): void {
   globalLogger.warn(message);

@@ -1,6 +1,6 @@
 import util from 'node:util';
 import { WORKSPACE_MANIFEST_FILENAME } from '../constants/index.ts';
-import type { PnpmSettings } from '../types/index.ts';
+import type { OspmSettings } from '../types/index.ts';
 import path from 'node:path';
 import readYamlFile from 'read-yaml-file';
 import {
@@ -11,7 +11,7 @@ import {
 } from './catalogs.ts';
 import { InvalidWorkspaceManifestError } from './errors/InvalidWorkspaceManifestError.ts';
 
-export interface WorkspaceManifest extends PnpmSettings {
+export interface WorkspaceManifest extends OspmSettings {
   packages: string[];
 
   /**

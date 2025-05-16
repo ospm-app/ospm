@@ -71,7 +71,7 @@ export async function outdatedDepsOfProjects(
   );
 
   const virtualStoreDir =
-    modules?.virtualStoreDir ?? path.join(lockfileDir, 'node_modules/.pnpm');
+    modules?.virtualStoreDir ?? path.join(lockfileDir, 'node_modules/.ospm');
 
   const currentLockfile = await readCurrentLockfile(virtualStoreDir, {
     ignoreIncompatible: false,

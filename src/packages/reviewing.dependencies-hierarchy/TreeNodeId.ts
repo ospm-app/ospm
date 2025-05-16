@@ -3,7 +3,7 @@ import type { DepPath } from '../types/index.ts';
 export type TreeNodeId = TreeNodeIdImporter | TreeNodeIdPackage;
 
 /**
- * A project local to the pnpm workspace.
+ * A project local to the ospm workspace.
  */
 type TreeNodeIdImporter = {
   readonly type: 'importer';

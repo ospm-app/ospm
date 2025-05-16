@@ -8,12 +8,12 @@ import {
 import { getStorePath } from '../store-path/index.ts';
 
 export async function status(
-  opts: Pick<Config, 'dir' | 'pnpmHomeDir' | 'storeDir'>
+  opts: Pick<Config, 'dir' | 'ospmHomeDir' | 'storeDir'>
 ): Promise<void> {
   const storeDir = await getStorePath({
     pkgRoot: opts.dir,
     storePath: opts.storeDir,
-    pnpmHomeDir: opts.pnpmHomeDir,
+    ospmHomeDir: opts.ospmHomeDir,
   });
 
   const connectionInfoDir = serverConnectionInfoDir(storeDir);

@@ -26,7 +26,7 @@ export function rcOptionsTypes(): Record<string, unknown> {
 
 export async function handler(opts: IgnoredBuildsCommandOpts): Promise<string> {
   const ignoredBuiltDependencies =
-    opts.rootProjectManifest?.pnpm?.ignoredBuiltDependencies ?? [];
+    opts.rootProjectManifest?.ospm?.ignoredBuiltDependencies ?? [];
 
   const automaticallyIgnoredBuilds = (
     await getAutomaticallyIgnoredBuilds(opts)
@@ -42,14 +42,14 @@ export async function handler(opts: IgnoredBuildsCommandOpts): Promise<string> {
     output += '  None';
   } else {
     output += `  ${automaticallyIgnoredBuilds.join('\n  ')}
-hint: To allow the execution of build scripts for a package, add its name to "pnpm.onlyBuiltDependencies" in your "package.json", then run "pnpm rebuild".
-hint: If you don't want to build a package, add it to the "pnpm.ignoredBuiltDependencies" list.`;
+hint: To allow the execution of build scripts for a package, add its name to "ospm.onlyBuiltDependencies" in your "package.json", then run "ospm rebuild".
+hint: If you don't want to build a package, add it to the "ospm.ignoredBuiltDependencies" list.`;
   }
 
   output += '\n';
 
   if (ignoredBuiltDependencies.length) {
-    output += `\nExplicitly ignored package builds (via pnpm.ignoredBuiltDependencies):\n  ${ignoredBuiltDependencies.join('\n  ')}\n`;
+    output += `\nExplicitly ignored package builds (via ospm.ignoredBuiltDependencies):\n  ${ignoredBuiltDependencies.join('\n  ')}\n`;
   }
 
   return output;

@@ -7,6 +7,7 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
+.ospm-debug.log*
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 
@@ -170,27 +171,10 @@ dist
 .yarn/install-state.gz
 .pnp.\*
 
-# wrangler project
-
-.dev.vars
-.wrangler/
 tsconfig.tsbuildinfo
-
-# certs
-.certs/
 
 # MacOS
 .DS_Store
 
 bundled/
 dist/
-.wrangler/
-
-schemas/exports/
-
-apps/ospm-remix-admin
-apps/ospm-remix-client
-
-cli/pnpm/
-
-pnpm/

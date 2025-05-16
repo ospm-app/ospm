@@ -17,7 +17,7 @@ export async function readJson5File(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     err.message = `${err.message as string} in ${filePath}`;
-    err['code'] = 'ERR_PNPM_JSON5_PARSE';
+    err['code'] = 'ERR_OSPM_JSON5_PARSE';
     throw err;
   }
 }
@@ -34,7 +34,7 @@ export async function readJsonFile(
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
-    err['code'] = 'ERR_PNPM_JSON_PARSE';
+    err['code'] = 'ERR_OSPM_JSON_PARSE';
     throw err;
   }
 }

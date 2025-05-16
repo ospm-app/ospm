@@ -15,7 +15,7 @@ export function help(): string {
   return renderHelp({
     description: 'Print shell completion code to stdout',
     url: docsUrl('completion'),
-    usages: SUPPORTED_SHELLS.map((shell) => `pnpm completion ${shell}`),
+    usages: SUPPORTED_SHELLS.map((shell) => `ospm completion ${shell}`),
   });
 }
 
@@ -36,8 +36,8 @@ export function createCompletionGenerator(ctx: Context): CompletionGenerator {
     const shell = getShellFromParams(params);
 
     const output = await getCompletionScript({
-      name: 'pnpm',
-      completer: 'pnpm',
+      name: 'ospm',
+      completer: 'ospm',
       shell,
     });
 

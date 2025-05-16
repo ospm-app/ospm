@@ -1,6 +1,6 @@
 import type { VerifyDepsBeforeRun } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
-import { runPnpmCli } from '../exec.pnpm-cli-runner/index.ts';
+import { OspmError } from '../error/index.ts';
+import { runOspmCli } from '../exec.pnpm-cli-runner/index.ts';
 import { globalWarn } from '../logger/index.ts';
 import {
   checkDepsStatus,
@@ -17,8 +17,8 @@ export type RunDepsStatusCheckOptions = CheckDepsStatusOptions & {
 export async function runDepsStatusCheck(
   opts: RunDepsStatusCheckOptions
 ): Promise<void> {
-  // the following flags are always the default values during `pnpm run` and `pnpm exec`,
-  // so they may not match the workspace state after `pnpm install --production|--no-optional`
+  // the following flags are always the default values during `ospm run` and `ospm exec`,
+  // so they may not match the workspace state after `ospm install --production|--no-optional`
   const ignoredWorkspaceStateSettings = [
     'dev',
     'optional',
@@ -34,7 +34,7 @@ export async function runDepsStatusCheck(
 
   const command = ['install', ...createInstallArgs(workspaceState?.settings)];
 
-  const install = runPnpmCli.bind(null, command, { cwd: opts.dir });
+  const install = runOspmCli.bind(null, command, { cwd: opts.dir });
 
   switch (opts.verifyDepsBeforeRun) {
     case 'install': {
@@ -47,9 +47,9 @@ export async function runDepsStatusCheck(
       const confirmed = await prompt<{ runInstall: boolean }>({
         type: 'confirm',
         name: 'runInstall',
-        message: `Your "node_modules" directory is out of sync with the "pnpm-lock.yaml" file. This can lead to issues during scripts execution.
+        message: `Your "node_modules" directory is out of sync with the "ospm-lock.yaml" file. This can lead to issues during scripts execution.
 
-Would you like to run "pnpm ${command.join(' ')}" to update your "node_modules"?`,
+Would you like to run "ospm ${command.join(' ')}" to update your "node_modules"?`,
         initial: true,
       });
 
@@ -61,11 +61,11 @@ Would you like to run "pnpm ${command.join(' ')}" to update your "node_modules"?
     }
 
     case 'error': {
-      throw new PnpmError(
+      throw new OspmError(
         'VERIFY_DEPS_BEFORE_RUN',
         issue ?? 'Your node_modules are out of sync with your lockfile',
         {
-          hint: 'Run "pnpm install"',
+          hint: 'Run "ospm install"',
         }
       );
     }

@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import { getCatalogsFromWorkspaceManifest } from '../catalogs.config/index.ts';
 import { LAYOUT_VERSION } from '../constants/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { loadNpmConf, defaults } from '@pnpm/npm-conf';
+import { loadNpmConf, defaults } from '@ospm/npm-conf';
 import type { types as npmTypes } from '@pnpm/npm-conf/lib/types.ts';
 import { safeReadProjectManifestOnly } from '../read-project-manifest/index.ts';
 import { getCurrentBranch } from '../git-utils/index.ts';
@@ -38,7 +38,7 @@ import { readWorkspaceManifest } from '../workspace.read-manifest/index.ts';
 
 import { types } from './types.ts';
 import {
-  getOptionsFromPnpmSettings,
+  getOptionsFromOspmSettings,
   getOptionsFromRootManifest,
   type OptionsFromRootManifest,
 } from './getOptionsFromRootManifest.ts';
@@ -48,15 +48,6 @@ import type {
   LockFileDir,
   WorkspaceDir,
 } from '../types/index.ts';
-
-export { types };
-
-export {
-  getOptionsFromRootManifest,
-  getOptionsFromPnpmSettings,
-  type OptionsFromRootManifest,
-} from './getOptionsFromRootManifest.ts';
-export * from './readLocalConfig.ts';
 
 export type {
   Config,
@@ -143,7 +134,7 @@ export async function getConfig<IP>(opts: {
   const env = opts.env ?? process.env;
 
   const packageManager = opts.packageManager ?? {
-    name: 'pnpm',
+    name: 'ospm',
     version: 'undefined',
   };
 
@@ -151,21 +142,21 @@ export async function getConfig<IP>(opts: {
 
   if (cliOptions.hoist === false) {
     if (cliOptions['shamefully-hoist'] === true) {
-      throw new PnpmError(
+      throw new OspmError(
         'CONFIG_CONFLICT_HOIST',
         '--shamefully-hoist cannot be used with --no-hoist'
       );
     }
 
     if (cliOptions['shamefully-flatten'] === true) {
-      throw new PnpmError(
+      throw new OspmError(
         'CONFIG_CONFLICT_HOIST',
         '--shamefully-flatten cannot be used with --no-hoist'
       );
     }
 
     if (typeof cliOptions['hoist-pattern'] !== 'undefined') {
-      throw new PnpmError(
+      throw new OspmError(
         'CONFIG_CONFLICT_HOIST',
         '--hoist-pattern cannot be used with --no-hoist'
       );
@@ -268,7 +259,7 @@ export async function getConfig<IP>(opts: {
     userconfig: npmDefaults.userconfig,
     'verify-deps-before-run': false,
     'verify-store-integrity': true,
-    'virtual-store-dir': 'node_modules/.pnpm',
+    'virtual-store-dir': 'node_modules/.ospm',
     'workspace-concurrency': 4,
     'workspace-prefix': opts.workspaceDir,
     'embed-readme': false,
@@ -286,7 +277,7 @@ export async function getConfig<IP>(opts: {
   const configDir = getConfigDir(process);
 
   {
-    const warn = npmConfig.addFile(path.join(configDir, 'rc'), 'pnpm-global');
+    const warn = npmConfig.addFile(path.join(configDir, 'rc'), 'ospm-global');
 
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (warn) {
@@ -296,8 +287,8 @@ export async function getConfig<IP>(opts: {
 
   {
     const warn = npmConfig.addFile(
-      path.resolve(path.join(__dirname, 'pnpmrc')),
-      'pnpm-builtin'
+      path.resolve(path.join(__dirname, 'ospmrc')),
+      'ospm-builtin'
     );
 
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -323,7 +314,7 @@ export async function getConfig<IP>(opts: {
       })
   );
 
-  const pnpmConfig: ConfigWithDeprecatedSettings = Object.assign(
+  const ospmConfig: ConfigWithDeprecatedSettings = Object.assign(
     Object.fromEntries(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       rcOptions.map((configKey: string): [string, any] => {
@@ -342,23 +333,23 @@ export async function getConfig<IP>(opts: {
     betterPathResolve(cliOptions.dir ?? npmConfig.localPrefix)
   ) as WorkspaceDir;
 
-  pnpmConfig.maxSockets = npmConfig.maxsockets;
+  ospmConfig.maxSockets = npmConfig.maxsockets;
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
   // biome-ignore lint/performance/noDelete: <explanation>
-  delete pnpmConfig.maxsockets;
+  delete ospmConfig.maxsockets;
 
-  pnpmConfig.configDir = configDir;
-  pnpmConfig.workspaceDir = opts.workspaceDir;
-  pnpmConfig.workspaceRoot = cliOptions['workspace-root']; // This is needed to prevent pnpm reading workspaceRoot from env variables
-  pnpmConfig.rawLocalConfig = Object.assign.apply(Object, [
+  ospmConfig.configDir = configDir;
+  ospmConfig.workspaceDir = opts.workspaceDir;
+  ospmConfig.workspaceRoot = cliOptions['workspace-root']; // This is needed to prevent ospm reading workspaceRoot from env variables
+  ospmConfig.rawLocalConfig = Object.assign.apply(Object, [
     {},
     ...npmConfig.list
       .slice(
         3,
-        typeof pnpmConfig.workspaceDir === 'string' &&
-          pnpmConfig.workspaceDir !== cwd
+        typeof ospmConfig.workspaceDir === 'string' &&
+          ospmConfig.workspaceDir !== cwd
           ? 5
           : 4
       )
@@ -366,58 +357,58 @@ export async function getConfig<IP>(opts: {
     cliOptions,
   ]);
 
-  pnpmConfig.userAgent =
-    typeof pnpmConfig.rawLocalConfig['user-agent'] === 'string'
-      ? pnpmConfig.rawLocalConfig['user-agent']
+  ospmConfig.userAgent =
+    typeof ospmConfig.rawLocalConfig['user-agent'] === 'string'
+      ? ospmConfig.rawLocalConfig['user-agent']
       : `${packageManager.name}/${packageManager.version} npm/? node/${process.version} ${process.platform} ${process.arch}`;
 
-  pnpmConfig.rawConfig = Object.assign.apply(Object, [
+  ospmConfig.rawConfig = Object.assign.apply(Object, [
     { registry: 'https://registry.npmjs.org/' },
     ...[...npmConfig.list].reverse(),
     cliOptions,
-    { 'user-agent': pnpmConfig.userAgent },
+    { 'user-agent': ospmConfig.userAgent },
   ]);
 
-  const networkConfigs = getNetworkConfigs(pnpmConfig.rawConfig);
+  const networkConfigs = getNetworkConfigs(ospmConfig.rawConfig);
 
-  pnpmConfig.registries = {
-    default: normalizeRegistryUrl(pnpmConfig.rawConfig.registry),
+  ospmConfig.registries = {
+    default: normalizeRegistryUrl(ospmConfig.rawConfig.registry),
     ...networkConfigs.registries,
   };
 
-  pnpmConfig.sslConfigs = networkConfigs.sslConfigs;
+  ospmConfig.sslConfigs = networkConfigs.sslConfigs;
 
-  pnpmConfig.useLockfile = (() => {
-    if (typeof pnpmConfig.lockfile === 'boolean') {
-      return pnpmConfig.lockfile;
+  ospmConfig.useLockfile = (() => {
+    if (typeof ospmConfig.lockfile === 'boolean') {
+      return ospmConfig.lockfile;
     }
 
-    if (typeof pnpmConfig.packageLock === 'boolean') {
-      return pnpmConfig.packageLock;
+    if (typeof ospmConfig.packageLock === 'boolean') {
+      return ospmConfig.packageLock;
     }
 
     return false;
   })();
 
-  pnpmConfig.useGitBranchLockfile = (() => {
-    if (typeof pnpmConfig.gitBranchLockfile === 'boolean')
-      return pnpmConfig.gitBranchLockfile;
+  ospmConfig.useGitBranchLockfile = (() => {
+    if (typeof ospmConfig.gitBranchLockfile === 'boolean')
+      return ospmConfig.gitBranchLockfile;
     return false;
   })();
 
-  pnpmConfig.mergeGitBranchLockfiles = await (async () => {
-    if (typeof pnpmConfig.mergeGitBranchLockfiles === 'boolean') {
-      return pnpmConfig.mergeGitBranchLockfiles;
+  ospmConfig.mergeGitBranchLockfiles = await (async () => {
+    if (typeof ospmConfig.mergeGitBranchLockfiles === 'boolean') {
+      return ospmConfig.mergeGitBranchLockfiles;
     }
     if (
-      pnpmConfig.mergeGitBranchLockfilesBranchPattern != null &&
-      pnpmConfig.mergeGitBranchLockfilesBranchPattern.length > 0
+      ospmConfig.mergeGitBranchLockfilesBranchPattern != null &&
+      ospmConfig.mergeGitBranchLockfilesBranchPattern.length > 0
     ) {
       const branch = await getCurrentBranch();
 
       if (typeof branch === 'string') {
         const branchMatcher = createMatcher(
-          pnpmConfig.mergeGitBranchLockfilesBranchPattern
+          ospmConfig.mergeGitBranchLockfilesBranchPattern
         );
 
         return branchMatcher(branch);
@@ -427,79 +418,79 @@ export async function getConfig<IP>(opts: {
     return undefined;
   })();
 
-  pnpmConfig.pnpmHomeDir = getDataDir(process);
+  ospmConfig.ospmHomeDir = getDataDir(process);
 
   const globalDirRoot =
-    typeof pnpmConfig.globalDir === 'string'
-      ? pnpmConfig.globalDir
-      : path.join(pnpmConfig.pnpmHomeDir, 'global');
+    typeof ospmConfig.globalDir === 'string'
+      ? ospmConfig.globalDir
+      : path.join(ospmConfig.ospmHomeDir, 'global');
 
-  pnpmConfig.globalPkgDir = path.join(
+  ospmConfig.globalPkgDir = path.join(
     globalDirRoot,
     LAYOUT_VERSION.toString()
   ) as GlobalPkgDir;
 
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (cliOptions.global) {
-    pnpmConfig.dir = pnpmConfig.globalPkgDir;
+    ospmConfig.dir = ospmConfig.globalPkgDir;
 
-    pnpmConfig.bin = npmConfig.get('global-bin-dir') ?? env.PNPM_HOME;
+    ospmConfig.bin = npmConfig.get('global-bin-dir') ?? env.OSPM_HOME;
 
-    if (pnpmConfig.bin) {
-      fs.mkdirSync(pnpmConfig.bin, { recursive: true });
+    if (ospmConfig.bin) {
+      fs.mkdirSync(ospmConfig.bin, { recursive: true });
 
-      await checkGlobalBinDir(pnpmConfig.bin, {
+      await checkGlobalBinDir(ospmConfig.bin, {
         env,
         shouldAllowWrite: opts.globalDirShouldAllowWrite,
       });
     }
 
-    pnpmConfig.save = true;
-    pnpmConfig.allowNew = true;
-    pnpmConfig.ignoreCurrentPrefs = true;
-    pnpmConfig.saveProd = true;
-    pnpmConfig.saveDev = false;
-    pnpmConfig.saveOptional = false;
+    ospmConfig.save = true;
+    ospmConfig.allowNew = true;
+    ospmConfig.ignoreCurrentPrefs = true;
+    ospmConfig.saveProd = true;
+    ospmConfig.saveDev = false;
+    ospmConfig.saveOptional = false;
     if (
-      pnpmConfig.hoistPattern != null &&
-      (pnpmConfig.hoistPattern.length > 1 || pnpmConfig.hoistPattern[0] !== '*')
+      ospmConfig.hoistPattern != null &&
+      (ospmConfig.hoistPattern.length > 1 || ospmConfig.hoistPattern[0] !== '*')
     ) {
       if (opts.cliOptions?.['hoist-pattern']) {
-        throw new PnpmError(
+        throw new OspmError(
           'CONFIG_CONFLICT_HOIST_PATTERN_WITH_GLOBAL',
           'Configuration conflict. "hoist-pattern" may not be used with "global"'
         );
       }
     }
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (pnpmConfig.linkWorkspacePackages) {
+    if (ospmConfig.linkWorkspacePackages) {
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (opts.cliOptions?.['link-workspace-packages']) {
-        throw new PnpmError(
+        throw new OspmError(
           'CONFIG_CONFLICT_LINK_WORKSPACE_PACKAGES_WITH_GLOBAL',
           'Configuration conflict. "link-workspace-packages" may not be used with "global"'
         );
       }
 
-      pnpmConfig.linkWorkspacePackages = false;
+      ospmConfig.linkWorkspacePackages = false;
     }
 
-    if (pnpmConfig.sharedWorkspaceLockfile === true) {
+    if (ospmConfig.sharedWorkspaceLockfile === true) {
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (opts.cliOptions?.['shared-workspace-lockfile']) {
-        throw new PnpmError(
+        throw new OspmError(
           'CONFIG_CONFLICT_SHARED_WORKSPACE_LOCKFILE_WITH_GLOBAL',
           'Configuration conflict. "shared-workspace-lockfile" may not be used with "global"'
         );
       }
 
-      pnpmConfig.sharedWorkspaceLockfile = false;
+      ospmConfig.sharedWorkspaceLockfile = false;
     }
 
-    if (typeof pnpmConfig.lockfileDir === 'string') {
+    if (typeof ospmConfig.lockfileDir === 'string') {
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (opts.cliOptions?.['lockfile-dir']) {
-        throw new PnpmError(
+        throw new OspmError(
           'CONFIG_CONFLICT_LOCKFILE_DIR_WITH_GLOBAL',
           'Configuration conflict. "lockfile-dir" may not be used with "global"'
         );
@@ -508,23 +499,23 @@ export async function getConfig<IP>(opts: {
       // @ts-expect-error The operand of a 'delete' operator must be optional.ts(2790)
 
       // biome-ignore lint/performance/noDelete: <explanation>
-      delete pnpmConfig.lockfileDir;
+      delete ospmConfig.lockfileDir;
     }
 
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (opts.cliOptions?.['virtual-store-dir']) {
-      throw new PnpmError(
+      throw new OspmError(
         'CONFIG_CONFLICT_VIRTUAL_STORE_DIR_WITH_GLOBAL',
         'Configuration conflict. "virtual-store-dir" may not be used with "global"'
       );
     }
 
-    pnpmConfig.virtualStoreDir = '.pnpm';
+    ospmConfig.virtualStoreDir = '.ospm';
   } else {
-    pnpmConfig.dir = cwd;
+    ospmConfig.dir = cwd;
 
-    if (!pnpmConfig.bin) {
-      pnpmConfig.bin = path.join(pnpmConfig.dir, 'node_modules', '.bin');
+    if (!ospmConfig.bin) {
+      ospmConfig.bin = path.join(ospmConfig.dir, 'node_modules', '.bin');
     }
   }
 
@@ -532,7 +523,7 @@ export async function getConfig<IP>(opts: {
   if (opts.cliOptions?.['save-peer']) {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (opts.cliOptions['save-prod']) {
-      throw new PnpmError(
+      throw new OspmError(
         'CONFIG_CONFLICT_PEER_CANNOT_BE_PROD_DEP',
         'A package cannot be a peer dependency and a prod dependency at the same time'
       );
@@ -540,7 +531,7 @@ export async function getConfig<IP>(opts: {
 
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (opts.cliOptions['save-optional']) {
-      throw new PnpmError(
+      throw new OspmError(
         'CONFIG_CONFLICT_PEER_CANNOT_BE_OPTIONAL_DEP',
         'A package cannot be a peer dependency and an optional dependency at the same time'
       );
@@ -548,185 +539,185 @@ export async function getConfig<IP>(opts: {
   }
 
   if (
-    pnpmConfig.sharedWorkspaceLockfile === true &&
-    typeof pnpmConfig.lockfileDir !== 'string' &&
-    typeof pnpmConfig.workspaceDir === 'string'
+    ospmConfig.sharedWorkspaceLockfile === true &&
+    typeof ospmConfig.lockfileDir !== 'string' &&
+    typeof ospmConfig.workspaceDir === 'string'
   ) {
-    pnpmConfig.lockfileDir = pnpmConfig.workspaceDir as unknown as LockFileDir;
+    ospmConfig.lockfileDir = ospmConfig.workspaceDir as unknown as LockFileDir;
   }
 
-  pnpmConfig.packageManager = packageManager;
+  ospmConfig.packageManager = packageManager;
 
   if (
-    pnpmConfig.only === 'prod' ||
-    pnpmConfig.only === 'production' ||
-    (!pnpmConfig.only && pnpmConfig.production === true)
+    ospmConfig.only === 'prod' ||
+    ospmConfig.only === 'production' ||
+    (!ospmConfig.only && ospmConfig.production === true)
   ) {
-    pnpmConfig.production = true;
-    pnpmConfig.dev = false;
+    ospmConfig.production = true;
+    ospmConfig.dev = false;
   } else if (
-    pnpmConfig.only === 'dev' ||
-    pnpmConfig.only === 'development' ||
-    pnpmConfig.dev === true
+    ospmConfig.only === 'dev' ||
+    ospmConfig.only === 'development' ||
+    ospmConfig.dev === true
   ) {
-    pnpmConfig.production = false;
-    pnpmConfig.dev = true;
-    pnpmConfig.optional = false;
+    ospmConfig.production = false;
+    ospmConfig.dev = true;
+    ospmConfig.optional = false;
   } else {
-    pnpmConfig.production = true;
-    pnpmConfig.dev = true;
+    ospmConfig.production = true;
+    ospmConfig.dev = true;
   }
 
-  if (typeof pnpmConfig.filter === 'string') {
-    pnpmConfig.filter = pnpmConfig.filter.split(' ');
+  if (typeof ospmConfig.filter === 'string') {
+    ospmConfig.filter = ospmConfig.filter.split(' ');
   }
 
-  if (typeof pnpmConfig.filterProd === 'string') {
-    pnpmConfig.filterProd = pnpmConfig.filterProd.split(' ');
+  if (typeof ospmConfig.filterProd === 'string') {
+    ospmConfig.filterProd = ospmConfig.filterProd.split(' ');
   }
 
-  pnpmConfig.extraBinPaths =
-    pnpmConfig.ignoreScripts !== true &&
-    typeof pnpmConfig.workspaceDir === 'string'
-      ? [path.join(pnpmConfig.workspaceDir, 'node_modules', '.bin')]
+  ospmConfig.extraBinPaths =
+    ospmConfig.ignoreScripts !== true &&
+    typeof ospmConfig.workspaceDir === 'string'
+      ? [path.join(ospmConfig.workspaceDir, 'node_modules', '.bin')]
       : [];
 
-  pnpmConfig.extraEnv = {
+  ospmConfig.extraEnv = {
     npm_config_verify_deps_before_run: 'false',
   };
 
-  if (pnpmConfig.preferSymlinkedExecutables === true && !isWindows()) {
+  if (ospmConfig.preferSymlinkedExecutables === true && !isWindows()) {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    const cwd = pnpmConfig.lockfileDir || pnpmConfig.dir;
+    const cwd = ospmConfig.lockfileDir || ospmConfig.dir;
 
     const virtualStoreDir =
-      typeof pnpmConfig.virtualStoreDir === 'string'
-        ? pnpmConfig.virtualStoreDir
-        : typeof pnpmConfig.modulesDir === 'string'
-          ? path.join(pnpmConfig.modulesDir, '.pnpm')
-          : 'node_modules/.pnpm';
+      typeof ospmConfig.virtualStoreDir === 'string'
+        ? ospmConfig.virtualStoreDir
+        : typeof ospmConfig.modulesDir === 'string'
+          ? path.join(ospmConfig.modulesDir, '.ospm')
+          : 'node_modules/.ospm';
 
-    pnpmConfig.extraEnv['NODE_PATH'] = pathAbsolute(
+    ospmConfig.extraEnv['NODE_PATH'] = pathAbsolute(
       path.join(virtualStoreDir, 'node_modules'),
       cwd
     );
   }
 
-  if (pnpmConfig.shamefullyFlatten === true) {
+  if (ospmConfig.shamefullyFlatten === true) {
     warnings.push(
       'The "shamefully-flatten" setting has been renamed to "shamefully-hoist". Also, in most cases you won\'t need "shamefully-hoist". Since v4, a semistrict node_modules structure is on by default (via hoist-pattern=[*]).'
     );
 
-    pnpmConfig.shamefullyHoist = true;
+    ospmConfig.shamefullyHoist = true;
   }
 
-  if (!pnpmConfig.cacheDir) {
-    pnpmConfig.cacheDir = getCacheDir(process);
+  if (!ospmConfig.cacheDir) {
+    ospmConfig.cacheDir = getCacheDir(process);
   }
 
-  if (!pnpmConfig.stateDir) {
-    pnpmConfig.stateDir = getStateDir(process);
+  if (!ospmConfig.stateDir) {
+    ospmConfig.stateDir = getStateDir(process);
   }
 
-  if (pnpmConfig.hoist === false) {
+  if (ospmConfig.hoist === false) {
     // biome-ignore lint/performance/noDelete: <explanation>
-    delete pnpmConfig.hoistPattern;
+    delete ospmConfig.hoistPattern;
   }
 
-  switch (pnpmConfig.shamefullyHoist) {
+  switch (ospmConfig.shamefullyHoist) {
     case false: {
       // biome-ignore lint/performance/noDelete: <explanation>
-      delete pnpmConfig.publicHoistPattern;
+      delete ospmConfig.publicHoistPattern;
 
       break;
     }
 
     case true: {
-      pnpmConfig.publicHoistPattern = ['*'];
+      ospmConfig.publicHoistPattern = ['*'];
 
       break;
     }
 
     default: {
       if (
-        pnpmConfig.publicHoistPattern == null ||
-        pnpmConfig.publicHoistPattern === '' ||
-        (Array.isArray(pnpmConfig.publicHoistPattern) &&
-          pnpmConfig.publicHoistPattern.length === 1 &&
-          pnpmConfig.publicHoistPattern[0] === '')
+        ospmConfig.publicHoistPattern == null ||
+        ospmConfig.publicHoistPattern === '' ||
+        (Array.isArray(ospmConfig.publicHoistPattern) &&
+          ospmConfig.publicHoistPattern.length === 1 &&
+          ospmConfig.publicHoistPattern[0] === '')
       ) {
         // biome-ignore lint/performance/noDelete: <explanation>
-        delete pnpmConfig.publicHoistPattern;
+        delete ospmConfig.publicHoistPattern;
       }
 
       break;
     }
   }
 
-  if (!pnpmConfig.symlink) {
+  if (!ospmConfig.symlink) {
     // biome-ignore lint/performance/noDelete: <explanation>
-    delete pnpmConfig.hoistPattern;
+    delete ospmConfig.hoistPattern;
     // biome-ignore lint/performance/noDelete: <explanation>
-    delete pnpmConfig.publicHoistPattern;
+    delete ospmConfig.publicHoistPattern;
   }
 
-  if (typeof pnpmConfig['color'] === 'boolean') {
-    switch (pnpmConfig['color']) {
+  if (typeof ospmConfig['color'] === 'boolean') {
+    switch (ospmConfig['color']) {
       case true:
-        pnpmConfig.color = 'always';
+        ospmConfig.color = 'always';
         break;
       case false:
-        pnpmConfig.color = 'never';
+        ospmConfig.color = 'never';
         break;
       default:
-        pnpmConfig.color = 'auto';
+        ospmConfig.color = 'auto';
         break;
     }
   }
 
-  if (typeof pnpmConfig.httpsProxy === 'undefined') {
-    pnpmConfig.httpsProxy = pnpmConfig.proxy ?? getProcessEnv('https_proxy');
+  if (typeof ospmConfig.httpsProxy === 'undefined') {
+    ospmConfig.httpsProxy = ospmConfig.proxy ?? getProcessEnv('https_proxy');
   }
 
-  if (typeof pnpmConfig.httpProxy === 'undefined') {
-    pnpmConfig.httpProxy =
-      pnpmConfig.httpsProxy ??
+  if (typeof ospmConfig.httpProxy === 'undefined') {
+    ospmConfig.httpProxy =
+      ospmConfig.httpsProxy ??
       getProcessEnv('http_proxy') ??
       getProcessEnv('proxy');
   }
 
   if (
-    typeof pnpmConfig.noProxy === 'undefined' ||
-    pnpmConfig.noProxy === false
+    typeof ospmConfig.noProxy === 'undefined' ||
+    ospmConfig.noProxy === false
   ) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    pnpmConfig.noProxy = pnpmConfig['noproxy'] ?? getProcessEnv('no_proxy');
+    ospmConfig.noProxy = ospmConfig['noproxy'] ?? getProcessEnv('no_proxy');
   }
 
-  switch (pnpmConfig.nodeLinker) {
+  switch (ospmConfig.nodeLinker) {
     case 'pnp': {
-      pnpmConfig.enablePnp = true;
+      ospmConfig.enablePnp = true;
 
       break;
     }
 
     case 'hoisted': {
-      if (pnpmConfig.preferSymlinkedExecutables == null) {
-        pnpmConfig.preferSymlinkedExecutables = true;
+      if (ospmConfig.preferSymlinkedExecutables == null) {
+        ospmConfig.preferSymlinkedExecutables = true;
       }
 
       break;
     }
   }
 
-  if (!pnpmConfig.userConfig) {
-    pnpmConfig.userConfig = npmConfig.sources.user?.data;
+  if (!ospmConfig.userConfig) {
+    ospmConfig.userConfig = npmConfig.sources.user?.data;
   }
 
-  pnpmConfig.sideEffectsCacheRead =
-    pnpmConfig.sideEffectsCache ?? pnpmConfig.sideEffectsCacheReadonly;
-  pnpmConfig.sideEffectsCacheWrite = pnpmConfig.sideEffectsCache;
+  ospmConfig.sideEffectsCacheRead =
+    ospmConfig.sideEffectsCache ?? ospmConfig.sideEffectsCacheReadonly;
+  ospmConfig.sideEffectsCacheWrite = ospmConfig.sideEffectsCache;
 
   if (opts.checkUnknownSetting === true) {
     const settingKeys = Object.keys({
@@ -755,76 +746,76 @@ export async function getConfig<IP>(opts: {
     }
   }
 
-  pnpmConfig.workspaceConcurrency = getWorkspaceConcurrency(
-    pnpmConfig.workspaceConcurrency
+  ospmConfig.workspaceConcurrency = getWorkspaceConcurrency(
+    ospmConfig.workspaceConcurrency
   );
 
   if (opts.ignoreLocalSettings !== true) {
-    pnpmConfig.rootProjectManifestDir =
+    ospmConfig.rootProjectManifestDir =
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      pnpmConfig.lockfileDir ?? pnpmConfig.workspaceDir ?? pnpmConfig.dir;
+      ospmConfig.lockfileDir ?? ospmConfig.workspaceDir ?? ospmConfig.dir;
 
-    pnpmConfig.rootProjectManifest =
-      (await safeReadProjectManifestOnly(pnpmConfig.rootProjectManifestDir)) ??
+    ospmConfig.rootProjectManifest =
+      (await safeReadProjectManifestOnly(ospmConfig.rootProjectManifestDir)) ??
       undefined;
 
-    if (pnpmConfig.rootProjectManifest != null) {
+    if (ospmConfig.rootProjectManifest != null) {
       if (
-        typeof pnpmConfig.rootProjectManifest.workspaces?.length === 'number' &&
-        typeof pnpmConfig.workspaceDir === 'undefined'
+        typeof ospmConfig.rootProjectManifest.workspaces?.length === 'number' &&
+        typeof ospmConfig.workspaceDir === 'undefined'
       ) {
         warnings.push(
-          'The "workspaces" field in package.json is not supported by pnpm. Create a "pnpm-workspace.yaml" file instead.'
+          'The "workspaces" field in package.json is not supported by ospm. Create a "ospm-workspace.yaml" file instead.'
         );
       }
 
-      if (typeof pnpmConfig.rootProjectManifest.packageManager === 'string') {
-        pnpmConfig.wantedPackageManager = parsePackageManager(
-          pnpmConfig.rootProjectManifest.packageManager
+      if (typeof ospmConfig.rootProjectManifest.packageManager === 'string') {
+        ospmConfig.wantedPackageManager = parsePackageManager(
+          ospmConfig.rootProjectManifest.packageManager
         );
       }
 
-      if (typeof pnpmConfig.rootProjectManifest !== 'undefined') {
+      if (typeof ospmConfig.rootProjectManifest !== 'undefined') {
         Object.assign<ConfigWithDeprecatedSettings, OptionsFromRootManifest>(
-          pnpmConfig,
+          ospmConfig,
           getOptionsFromRootManifest(
-            pnpmConfig.rootProjectManifestDir,
-            pnpmConfig.rootProjectManifest
+            ospmConfig.rootProjectManifestDir,
+            ospmConfig.rootProjectManifest
           )
         );
       }
     }
 
-    if (pnpmConfig.workspaceDir != null) {
+    if (ospmConfig.workspaceDir != null) {
       const workspaceManifest = await readWorkspaceManifest(
-        pnpmConfig.workspaceDir
+        ospmConfig.workspaceDir
       );
 
-      pnpmConfig.workspacePackagePatterns = (cliOptions['workspace-packages'] as
+      ospmConfig.workspacePackagePatterns = (cliOptions['workspace-packages'] as
         | string[]
         | undefined) ??
         workspaceManifest?.packages ?? ['.'];
 
-      if (workspaceManifest) {
+      if (typeof workspaceManifest !== 'undefined') {
         Object.assign(
-          pnpmConfig,
-          getOptionsFromPnpmSettings(
-            pnpmConfig.workspaceDir,
-            workspaceManifest,
-            pnpmConfig.rootProjectManifest
+          ospmConfig,
+          getOptionsFromOspmSettings(
+            ospmConfig.workspaceDir,
+            {},
+            ospmConfig.rootProjectManifest
           ),
           configFromCliOpts
         );
 
-        pnpmConfig.catalogs =
+        ospmConfig.catalogs =
           getCatalogsFromWorkspaceManifest(workspaceManifest);
       }
     }
   }
 
-  pnpmConfig.failedToLoadBuiltInConfig = failedToLoadBuiltInConfig;
+  ospmConfig.failedToLoadBuiltInConfig = failedToLoadBuiltInConfig;
 
-  return { config: pnpmConfig, warnings };
+  return { config: ospmConfig, warnings };
 }
 
 function getProcessEnv(env: string): string | undefined {
@@ -854,7 +845,7 @@ function parsePackageManager(packageManager: string): {
     return { name, version: undefined };
   }
 
-  // Remove the integrity hash. Ex: "pnpm@9.5.0+sha512.140036830124618d624a2187b50d04289d5a087f326c9edfc0ccd733d76c4f52c3a313d4fc148794a2a9d81553016004e6742e8cf850670268a7387fc220c903"
+  // Remove the integrity hash. Ex: "ospm@9.5.0+sha512.140036830124618d624a2187b50d04289d5a087f326c9edfc0ccd733d76c4f52c3a313d4fc148794a2a9d81553016004e6742e8cf850670268a7387fc220c903"
   const [version] = pmReference.split('+');
 
   return {

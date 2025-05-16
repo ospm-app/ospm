@@ -7,8 +7,8 @@ import { createHashFromFile } from '../crypto.hash/index.ts';
 import pathAbsolute from 'path-absolute';
 import type { CustomFetchers } from '../fetcher-base/index.ts';
 import type { ImportIndexedPackageAsync } from '../store-controller-types/index.ts';
-import { getPnpmfilePath } from './getPnpmfilePath.ts';
-import { requirePnpmfile } from './requirePnpmfile.ts';
+import { getOspmfilePath } from './getPnpmfilePath.ts';
+import { requireOspmfile } from './requirePnpmfile.ts';
 import type { HookContext, Hooks } from './Hooks.ts';
 import type { LockfileObject } from '../lockfile.types/index.ts';
 
@@ -34,35 +34,35 @@ export type CookedHooks = {
     | undefined;
   importPackage?: ImportIndexedPackageAsync | undefined;
   fetchers?: CustomFetchers | undefined;
-  calculatePnpmfileChecksum?: (() => Promise<string | undefined>) | undefined;
+  calculateOspmfileChecksum?: (() => Promise<string | undefined>) | undefined;
 };
 
 export function requireHooks(
   prefix: string,
   opts: {
-    globalPnpmfile?: string | undefined;
-    pnpmfile?: string | undefined;
+    globalOspmfile?: string | undefined;
+    ospmfile?: string | undefined;
   }
 ): CookedHooks {
-  const globalPnpmfile =
-    typeof opts.globalPnpmfile === 'string'
-      ? requirePnpmfile(pathAbsolute(opts.globalPnpmfile, prefix), prefix)
+  const globalOspmfile =
+    typeof opts.globalOspmfile === 'string'
+      ? requireOspmfile(pathAbsolute(opts.globalOspmfile, prefix), prefix)
       : undefined;
 
-  let globalHooks: Hooks | undefined = globalPnpmfile?.hooks;
+  let globalHooks: Hooks | undefined = globalOspmfile?.hooks;
 
-  const pnpmfilePath = getPnpmfilePath(prefix, opts.pnpmfile);
+  const ospmfilePath = getOspmfilePath(prefix, opts.ospmfile);
 
-  const pnpmFile = requirePnpmfile(pnpmfilePath, prefix);
+  const ospmFile = requireOspmfile(ospmfilePath, prefix);
 
-  let hooks: Hooks | undefined = pnpmFile?.hooks;
+  let hooks: Hooks | undefined = ospmFile?.hooks;
 
   if (!globalHooks && !hooks) {
     return { afterAllResolved: [], filterLog: [], readPackage: [] };
   }
 
-  const calculatePnpmfileChecksum = hooks
-    ? () => createHashFromFile(pnpmfilePath)
+  const calculateOspmfileChecksum = hooks
+    ? () => createHashFromFile(ospmfilePath)
     : undefined;
 
   globalHooks = globalHooks ?? {};
@@ -73,7 +73,7 @@ export function requireHooks(
     afterAllResolved: [],
     filterLog: [],
     readPackage: [],
-    calculatePnpmfileChecksum,
+    calculateOspmfileChecksum,
   };
 
   for (const hookName of ['readPackage', 'afterAllResolved'] as const) {
@@ -81,7 +81,7 @@ export function requireHooks(
       const globalHook = globalHooks[hookName];
 
       const context = createReadPackageHookContext(
-        globalPnpmfile?.filename ?? '',
+        globalOspmfile?.filename ?? '',
         prefix,
         hookName
       );
@@ -94,7 +94,7 @@ export function requireHooks(
     if (hooks[hookName]) {
       const hook = hooks[hookName];
       const context = createReadPackageHookContext(
-        pnpmFile?.filename ?? '',
+        ospmFile?.filename ?? '',
         prefix,
         hookName
       );
@@ -109,7 +109,7 @@ export function requireHooks(
     cookedHooks.filterLog?.push(hooks.filterLog);
   }
 
-  // `importPackage`, `preResolution` and `fetchers` can only be defined via a global pnpmfile
+  // `importPackage`, `preResolution` and `fetchers` can only be defined via a global ospmfile
 
   cookedHooks.importPackage = globalHooks.importPackage;
 

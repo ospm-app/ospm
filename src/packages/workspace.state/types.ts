@@ -12,7 +12,7 @@ export interface WorkspaceState {
       version?: string | undefined;
     }
   >;
-  pnpmfileExists?: boolean | undefined;
+  ospmfileExists?: boolean | undefined;
   filteredInstall?: boolean | undefined;
   configDependencies?: Record<string, string> | undefined;
   settings: WorkspaceStateSettings;

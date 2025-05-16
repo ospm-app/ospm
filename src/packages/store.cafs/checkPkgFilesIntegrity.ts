@@ -27,7 +27,7 @@ export type VerifyResult = {
 
 export type PackageFilesIndex = {
   // name and version are nullable for backward compatibility
-  // the initial specs of pnpm store v3 did not require these fields.
+  // the initial specs of ospm store v3 did not require these fields.
   // However, it might be possible that some types of dependencies don't
   // have the name/version fields, like the local tarball dependencies.
   name?: string | undefined;

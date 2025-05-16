@@ -29,5 +29,5 @@ export type FetchingProgressMessage =
   | FetchingProgressMessageStarted
   | FetchingProgressMessageInProgress;
 
-export type FetchingProgressLog = { name: 'pnpm:fetching-progress' } & LogBase &
+export type FetchingProgressLog = { name: 'ospm:fetching-progress' } & LogBase &
   FetchingProgressMessage;

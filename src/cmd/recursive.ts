@@ -13,7 +13,7 @@ export function help(): string {
   return renderHelp({
     description:
       'Concurrently performs some actions in all subdirectories with a `package.json` (excluding node_modules). \
-A `pnpm-workspace.yaml` file may be used to control what directories are searched for packages.',
+A `ospm-workspace.yaml` file may be used to control what directories are searched for packages.',
     descriptionLists: [
       {
         title: 'Commands',
@@ -125,9 +125,9 @@ A shared lockfile also means that all dependencies of all projects will be in a 
     ],
     url: docsUrl('recursive'),
     usages: [
-      'pnpm recursive [command] [flags] [--filter <package selector>]',
-      'pnpm multi [command] [flags] [--filter <package selector>]',
-      'pnpm m [command] [flags] [--filter <package selector>]',
+      'ospm recursive [command] [flags] [--filter <package selector>]',
+      'ospm multi [command] [flags] [--filter <package selector>]',
+      'ospm m [command] [flags] [--filter <package selector>]',
     ],
   });
 }

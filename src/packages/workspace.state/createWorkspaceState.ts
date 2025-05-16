@@ -8,7 +8,7 @@ import type { Project, ProjectRootDir } from '../types/index.ts';
 
 export type CreateWorkspaceStateOptions = {
   allProjects: ProjectsList;
-  pnpmfileExists?: boolean | undefined;
+  ospmfileExists?: boolean | undefined;
   filteredInstall?: boolean | undefined;
   settings: WorkspaceStateSettings;
   configDependencies?: Record<string, string> | undefined;
@@ -40,7 +40,7 @@ export function createWorkspaceState(
         }
       )
     ),
-    pnpmfileExists: opts.pnpmfileExists,
+    ospmfileExists: opts.ospmfileExists,
     settings: pick.default(
       [
         'autoInstallPeers',

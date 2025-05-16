@@ -2,8 +2,9 @@ import { promises as fs, existsSync } from 'node:fs';
 import path from 'node:path';
 import { docsUrl, readProjectManifest } from '../cli-utils/index.ts';
 import { FILTERING } from '../common-cli-options-help/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import {
   runLifecycleHook,
   type RunLifecycleHookOptions,
@@ -123,7 +124,7 @@ export function help(): string {
           },
           {
             description:
-              'Save the list of the newly published packages to "pnpm-publish-summary.json". Useful when some other tooling is used to report the list of published packages.',
+              'Save the list of the newly published packages to "ospm-publish-summary.json". Useful when some other tooling is used to report the list of published packages.',
             name: '--report-summary',
           },
           {
@@ -142,7 +143,7 @@ export function help(): string {
     ],
     url: docsUrl('publish'),
     usages: [
-      'pnpm publish [<tarball>|<dir>] [--tag <tag>] [--access <public|restricted>] [options]',
+      'ospm publish [<tarball>|<dir>] [--tag <tag>] [--access <public|restricted>] [options]',
     ],
   });
 }
@@ -165,7 +166,7 @@ export async function handler(
       | 'storeDir'
       | 'gitChecks'
       | 'ignoreScripts'
-      | 'pnpmHomeDir'
+      | 'ospmHomeDir'
       | 'publishBranch'
       | 'embedReadme'
     >,
@@ -200,7 +201,7 @@ export async function publish(
       | 'storeDir'
       | 'gitChecks'
       | 'ignoreScripts'
-      | 'pnpmHomeDir'
+      | 'ospmHomeDir'
       | 'publishBranch'
       | 'embedReadme'
       | 'packGzipLevel'
@@ -209,7 +210,7 @@ export async function publish(
 ): Promise<PublishResult> {
   if (opts.gitChecks !== false && (await isGitRepo())) {
     if (!(await isWorkingTreeClean())) {
-      throw new PnpmError(
+      throw new OspmError(
         'GIT_UNCLEAN',
         'Unclean working tree. Commit or stash changes first.',
         {
@@ -226,7 +227,7 @@ export async function publish(
     const currentBranch = await getCurrentBranch();
 
     if (currentBranch === null) {
-      throw new PnpmError(
+      throw new OspmError(
         'GIT_UNKNOWN_BRANCH',
         `The Git HEAD may not attached to any branch, but your "publish-branch" is set to "${branches.join('|')}".`,
         {
@@ -244,7 +245,7 @@ Do you want to continue?`,
       } as any)) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
       if (confirm !== true) {
-        throw new PnpmError(
+        throw new OspmError(
           'GIT_NOT_CORRECT_BRANCH',
           `Branch is not on '${branches.join('|')}'.`,
           {
@@ -254,7 +255,7 @@ Do you want to continue?`,
       }
     }
     if (!(await isRemoteHistoryClean())) {
-      throw new PnpmError(
+      throw new OspmError(
         'GIT_NOT_LATEST',
         'Remote history differs. Please pull changes.',
         {

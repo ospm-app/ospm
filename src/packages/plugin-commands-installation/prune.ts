@@ -3,7 +3,7 @@ import {
   UNIVERSAL_OPTIONS,
   OPTIONS,
 } from '../common-cli-options-help/index.ts';
-import { types as allTypes } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
 import pick from 'ramda/src/pick';
 import renderHelp from 'render-help';
 import * as install from './install.ts';
@@ -42,7 +42,7 @@ export function help(): string {
       },
     ],
     url: docsUrl('prune'),
-    usages: ['pnpm prune [--prod]'],
+    usages: ['ospm prune [--prod]'],
   });
 }
 

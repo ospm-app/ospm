@@ -13,9 +13,9 @@ import {
 import { installDeps } from './installDeps.ts';
 import omit from 'ramda/src/omit';
 
-// In general, the "pnpm dedupe" command should use .npmrc options that "pnpm install" would also accept.
+// In general, the "ospm dedupe" command should use .npmrc options that "ospm install" would also accept.
 export function rcOptionsTypes(): Record<string, unknown> {
-  // Some options on pnpm install (like --frozen-lockfile) don't make sense on pnpm dedupe.
+  // Some options on ospm install (like --frozen-lockfile) don't make sense on ospm dedupe.
   return omit.default(['frozen-lockfile'], installCommandRcOptionsTypes());
 }
 
@@ -52,7 +52,7 @@ export function help(): string {
       },
     ],
     url: docsUrl('dedupe'),
-    usages: ['pnpm dedupe'],
+    usages: ['ospm dedupe'],
   });
 }
 

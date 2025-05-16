@@ -11,7 +11,7 @@ import {
 } from './fetch.ts';
 import type { HeadersInit } from 'node-fetch';
 
-const USER_AGENT = 'pnpm'; // or maybe make it `${pkg.name}/${pkg.version} (+https://npm.im/${pkg.name})`
+const USER_AGENT = 'ospm'; // or maybe make it `${pkg.name}/${pkg.version} (+https://npm.im/${pkg.name})`
 
 const ABBREVIATED_DOC =
   'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*';
@@ -39,7 +39,7 @@ export function fetchWithAgent(
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore Element implicitly has an 'any' type because expression of type '"connection"' can't be used to index type 'HeadersInit'.
   //Property 'connection' does not exist on type 'HeadersInit'.ts(7053)
-  headers['connection'] = agent ? 'keep-alive' : 'close';
+  headers.connection = agent ? 'keep-alive' : 'close';
 
   return fetch(url, {
     ...opts,

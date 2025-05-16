@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 
 export type EnvSpecifier = {
   releaseChannel: string;
@@ -13,7 +13,7 @@ export function parseEnvSpecifier(specifier: string): EnvSpecifier {
       typeof releaseChannel === 'undefined' ||
       typeof versionSpecifier === 'undefined'
     ) {
-      throw new PnpmError(
+      throw new OspmError(
         'INVALID_ENV_SPECIFIER',
         `"${specifier}" is not a valid environment specifier`
       );

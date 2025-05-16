@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { createMatcher } from '../matcher/index.ts';
 import type {
   BadPeerDependencyIssue,
@@ -337,9 +337,9 @@ function tryParseAllowedVersions(
   try {
     return parseOverrides(allowedVersions);
   } catch (err) {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_ALLOWED_VERSION_SELECTOR',
-      `${(err as PnpmError).message} in pnpm.peerDependencyRules.allowedVersions`
+      `${(err as OspmError).message} in ospm.peerDependencyRules.allowedVersions`
     );
   }
 }

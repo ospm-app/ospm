@@ -5,14 +5,10 @@ import equals from 'ramda/src/equals';
 import isEmpty from 'ramda/src/isEmpty';
 import filter from 'ramda/src/filter';
 import once from 'ramda/src/once';
-import {
-  type Config,
-  type OptionsFromRootManifest,
-  getOptionsFromRootManifest,
-} from '../config/index.ts';
+import type { Config } from '../config/index.ts';
 import { MANIFEST_BASE_NAMES, WANTED_LOCKFILE } from '../constants/index.ts';
 import { hashObjectNullableWithPrefix } from '../crypto.object-hasher/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { arrayOfWorkspacePackagesToMap } from '../get-context/index.ts';
 import {
   getLockfileImporterId,
@@ -31,7 +27,7 @@ import {
 } from '../lockfile.verification/index.ts';
 import { globalWarn, logger } from '../logger/index.ts';
 import { parseOverrides } from '../parse-overrides/index.ts';
-import { getPnpmfilePath } from '../pnpmfile/index.ts';
+import { getOspmfilePath } from '../pnpmfile/index.ts';
 import type { WorkspacePackages } from '../resolver-base/index.ts';
 import type {
   DependencyManifest,
@@ -56,6 +52,7 @@ import { assertLockfilesEqual } from './assertLockfilesEqual.ts';
 import { safeStat, safeStatSync } from './safeStat.ts';
 import { statManifestFile } from './statManifestFile.ts';
 import type { LockfileObject } from '../lockfile.types/index.ts';
+import { getOptionsFromRootManifest, type OptionsFromRootManifest } from '../config/getOptionsFromRootManifest.ts';
 
 export type CheckDepsStatusOptions = Pick<
   Config,
@@ -73,7 +70,7 @@ export type CheckDepsStatusOptions = Pick<
   | 'virtualStoreDir'
   | 'workspaceDir'
   | 'patchesDir'
-  | 'pnpmfile'
+  | 'ospmfile'
   | 'configDependencies'
 > & {
   ignoreFilteredInstallCache?: boolean;
@@ -105,7 +102,7 @@ export async function checkDepsStatus(
     if (
       util.types.isNativeError(error) &&
       'code' in error &&
-      String(error.code).startsWith('ERR_PNPM_RUN_CHECK_DEPS_')
+      String(error.code).startsWith('ERR_OSPM_RUN_CHECK_DEPS_')
     ) {
       return {
         upToDate: false,
@@ -114,7 +111,7 @@ export async function checkDepsStatus(
       };
     }
     // This function never throws an error.
-    // We want to ensure that pnpm CLI never crashes when checking the status of dependencies.
+    // We want to ensure that ospm CLI never crashes when checking the status of dependencies.
     // In the worst-case scenario, the install will run redundantly.
     return {
       upToDate: undefined,
@@ -317,8 +314,8 @@ async function _checkDepsStatus(
       rootManifestOptions,
       rootDir: rootProjectManifestDir,
       lastValidatedTimestamp: workspaceState?.lastValidatedTimestamp,
-      pnpmfile: opts.pnpmfile,
-      hadPnpmfile: workspaceState?.pnpmfileExists,
+      ospmfile: opts.ospmfile,
+      hadOspmfile: workspaceState?.ospmfileExists,
     });
 
     if (typeof issue === 'string' && issue !== '') {
@@ -363,7 +360,7 @@ async function _checkDepsStatus(
       ) {
         const virtualStoreDir =
           opts.virtualStoreDir ??
-          path.join(workspaceDir, 'node_modules', '.pnpm');
+          path.join(workspaceDir, 'node_modules', '.ospm');
 
         const currentLockfile = await readCurrentLockfile(virtualStoreDir, {
           ignoreIncompatible: false,
@@ -411,7 +408,7 @@ async function _checkDepsStatus(
         ) {
           const virtualStoreDir =
             opts.virtualStoreDir ??
-            path.join(wantedLockfileDir, 'node_modules', '.pnpm');
+            path.join(wantedLockfileDir, 'node_modules', '.ospm');
 
           const currentLockfile = await readCurrentLockfile(virtualStoreDir, {
             ignoreIncompatible: false,
@@ -508,7 +505,7 @@ async function _checkDepsStatus(
     await updateWorkspaceState({
       allProjects,
       workspaceDir,
-      pnpmfileExists: workspaceState?.pnpmfileExists,
+      ospmfileExists: workspaceState?.ospmfileExists,
       settings: opts,
       filteredInstall: workspaceState?.filteredInstall,
     });
@@ -543,7 +540,7 @@ async function _checkDepsStatus(
     const virtualStoreDir = path.join(
       rootProjectManifestDir,
       'node_modules',
-      '.pnpm'
+      '.ospm'
     );
 
     const currentLockfilePromise = readCurrentLockfile(virtualStoreDir, {
@@ -569,8 +566,8 @@ async function _checkDepsStatus(
       rootManifestOptions,
       rootDir: rootProjectManifestDir,
       lastValidatedTimestamp: wantedLockfileStats.mtime.valueOf(),
-      pnpmfile: opts.pnpmfile,
-      hadPnpmfile: workspaceState?.pnpmfileExists,
+      ospmfile: opts.ospmfile,
+      hadOspmfile: workspaceState?.ospmfileExists,
     });
 
     if (typeof issue !== 'undefined') {
@@ -649,11 +646,11 @@ async function _checkDepsStatus(
         throwLockfileNotFound(rootProjectManifestDir);
 
       if (!isEmpty.default(wantedLockfile.packages ?? {})) {
-        throw new PnpmError(
+        throw new OspmError(
           'RUN_CHECK_DEPS_NO_DEPS',
           'The lockfile requires dependencies but none were installed',
           {
-            hint: 'Run `pnpm install` to install dependencies',
+            hint: 'Run `ospm install` to install dependencies',
           }
         );
       }
@@ -664,7 +661,7 @@ async function _checkDepsStatus(
 
   // `opts.allProject` being `undefined` means that the run command was not run with `--recursive`.
   // `rootProjectManifest` being `undefined` means that there's no root manifest.
-  // Both means that `pnpm run` would fail, so checking lockfiles here is pointless.
+  // Both means that `ospm run` would fail, so checking lockfiles here is pointless.
   globalWarn('Skipping check.');
 
   return { upToDate: undefined, workspaceState };
@@ -718,9 +715,9 @@ async function assertWantedLockfileUpToDate(
     wantedLockfileDir,
   } = opts;
 
-  const [patchedDependencies, pnpmfileChecksum] = await Promise.all([
+  const [patchedDependencies, ospmfileChecksum] = await Promise.all([
     calcPatchHashes(rootManifestOptions?.patchedDependencies ?? {}, rootDir),
-    config.hooks?.calculatePnpmfileChecksum?.(),
+    config.hooks?.calculateOspmfileChecksum?.(),
   ]);
 
   const outdatedLockfileSettingName = getOutdatedLockfileSetting(
@@ -739,16 +736,16 @@ async function assertWantedLockfileUpToDate(
         rootManifestOptions?.packageExtensions
       ),
       patchedDependencies,
-      pnpmfileChecksum,
+      ospmfileChecksum,
     }
   );
 
   if (outdatedLockfileSettingName) {
-    throw new PnpmError(
+    throw new OspmError(
       'RUN_CHECK_DEPS_OUTDATED_LOCKFILE',
       `Setting ${outdatedLockfileSettingName} of lockfile in ${wantedLockfileDir} is outdated`,
       {
-        hint: 'Run `pnpm install` to update the lockfile',
+        hint: 'Run `ospm install` to update the lockfile',
       }
     );
   }
@@ -763,11 +760,11 @@ async function assertWantedLockfileUpToDate(
       projectManifest
     ).satisfies
   ) {
-    throw new PnpmError(
+    throw new OspmError(
       'RUN_CHECK_DEPS_UNSATISFIED_PKG_MANIFEST',
       `The lockfile in ${wantedLockfileDir} does not satisfy project of id ${projectId}`,
       {
-        hint: 'Run `pnpm install` to update the lockfile',
+        hint: 'Run `ospm install` to update the lockfile',
       }
     );
   }
@@ -788,22 +785,22 @@ async function assertWantedLockfileUpToDate(
       }
     ))
   ) {
-    throw new PnpmError(
+    throw new OspmError(
       'RUN_CHECK_DEPS_LINKED_PKGS_OUTDATED',
       `The linked packages by ${projectDir} is outdated`,
       {
-        hint: 'Run `pnpm install` to update the packages',
+        hint: 'Run `ospm install` to update the packages',
       }
     );
   }
 }
 
 function throwLockfileNotFound(wantedLockfileDir: string): never {
-  throw new PnpmError(
+  throw new OspmError(
     'RUN_CHECK_DEPS_LOCKFILE_NOT_FOUND',
     `Cannot find a lockfile in ${wantedLockfileDir}`,
     {
-      hint: 'Run `pnpm install` to create the lockfile',
+      hint: 'Run `ospm install` to create the lockfile',
     }
   );
 }
@@ -817,8 +814,8 @@ async function patchesAreModified(opts: {
     | WorkspaceDir
     | LockFileDir;
   lastValidatedTimestamp?: number | undefined;
-  pnpmfile: string;
-  hadPnpmfile?: boolean | undefined;
+  ospmfile: string;
+  hadOspmfile?: boolean | undefined;
 }): Promise<string | undefined> {
   if (opts.rootManifestOptions?.patchedDependencies) {
     const allPatchStats = await Promise.all(
@@ -841,22 +838,22 @@ async function patchesAreModified(opts: {
     }
   }
 
-  const pnpmfilePath = getPnpmfilePath(opts.rootDir, opts.pnpmfile);
+  const ospmfilePath = getOspmfilePath(opts.rootDir, opts.ospmfile);
 
-  const pnpmfileStats = safeStatSync(pnpmfilePath);
+  const ospmfileStats = safeStatSync(ospmfilePath);
   if (
-    pnpmfileStats != null &&
-    pnpmfileStats.mtime.valueOf() > (opts.lastValidatedTimestamp ?? 0)
+    ospmfileStats != null &&
+    ospmfileStats.mtime.valueOf() > (opts.lastValidatedTimestamp ?? 0)
   ) {
-    return `pnpmfile at "${pnpmfilePath}" was modified`;
+    return `ospmfile at "${ospmfilePath}" was modified`;
   }
 
-  if (opts.hadPnpmfile === true && pnpmfileStats == null) {
-    return `pnpmfile at "${pnpmfilePath}" was removed`;
+  if (opts.hadOspmfile === true && ospmfileStats == null) {
+    return `ospmfile at "${ospmfilePath}" was removed`;
   }
 
-  if (opts.hadPnpmfile !== true && typeof pnpmfileStats !== 'undefined') {
-    return `pnpmfile at "${pnpmfilePath}" was added`;
+  if (opts.hadOspmfile !== true && typeof ospmfileStats !== 'undefined') {
+    return `ospmfile at "${ospmfilePath}" was added`;
   }
 
   return undefined;

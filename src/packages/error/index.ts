@@ -1,6 +1,6 @@
 import { WANTED_LOCKFILE } from '../constants/index.ts';
 
-export class PnpmError extends Error {
+export class OspmError extends Error {
   readonly code: string;
   readonly hint?: string | undefined;
   attempts?: number | undefined;
@@ -17,7 +17,7 @@ export class PnpmError extends Error {
       | undefined
   ) {
     super(message);
-    this.code = code.startsWith('ERR_PNPM_') ? code : `ERR_PNPM_${code}`;
+    this.code = code.startsWith('ERR_OSPM_') ? code : `ERR_OSPM_${code}`;
     this.hint = opts?.hint;
     this.attempts = opts?.attempts;
   }
@@ -33,7 +33,7 @@ export type FetchErrorRequest = {
   authHeaderValue?: string | undefined;
 };
 
-export class FetchError extends PnpmError {
+export class FetchError extends OspmError {
   readonly response: FetchErrorResponse;
   readonly request: FetchErrorRequest;
 
@@ -92,13 +92,13 @@ function hideAuthInformation(authHeaderValue: string): string {
   return `${authType} ${token.substring(0, 4)}[hidden]`;
 }
 
-export class LockfileMissingDependencyError extends PnpmError {
+export class LockfileMissingDependencyError extends OspmError {
   constructor(depPath: string) {
     const message = `Broken lockfile: no entry for '${depPath}' in ${WANTED_LOCKFILE}`;
     super('LOCKFILE_MISSING_DEPENDENCY', message, {
       hint:
         'This issue is probably caused by a badly resolved merge conflict.\n' +
-        "To fix the lockfile, run 'pnpm install --no-frozen-lockfile'.",
+        "To fix the lockfile, run 'ospm install --no-frozen-lockfile'.",
     });
   }
 }

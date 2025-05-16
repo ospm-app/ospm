@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import util from 'node:util';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import {
   runLifecycleHook,
   type RunLifecycleHookOptions,
@@ -70,7 +70,7 @@ export async function preparePackage(
 
       let newScriptName: string;
 
-      if (pm !== 'pnpm') {
+      if (pm !== 'ospm') {
         newScriptName = `${pm}-run-${scriptName}`;
         manifest.scripts[newScriptName] = `${pm} run ${scriptName}`;
       } else {
@@ -83,7 +83,7 @@ export async function preparePackage(
     assert(util.types.isNativeError(err));
 
     Object.assign(err, {
-      code: 'ERR_PNPM_PREPARE_PACKAGE',
+      code: 'ERR_OSPM_PREPARE_PACKAGE',
     });
 
     throw err;
@@ -114,13 +114,13 @@ function safeJoinPath(root: string, sub: string): string {
   // prevent the dir traversal attack
   const relative = path.relative(root, joined);
   if (relative.startsWith('..')) {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_PATH',
       `Path "${sub}" should be a sub directory`
     );
   }
   if (!fs.existsSync(joined) || !fs.lstatSync(joined).isDirectory()) {
-    throw new PnpmError('INVALID_PATH', `Path "${sub}" is not a directory`);
+    throw new OspmError('INVALID_PATH', `Path "${sub}" is not a directory`);
   }
   return joined;
 }

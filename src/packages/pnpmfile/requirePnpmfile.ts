@@ -1,56 +1,58 @@
 import assert from 'node:assert';
 import fs from 'node:fs';
 import util from 'node:util';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { logger } from '../logger/index.ts';
 import type { PackageManifest } from '../types/index.ts';
 import chalk from 'chalk';
 import type { Hooks } from './Hooks.ts';
 import process from 'node:process';
 
-export class BadReadPackageHookError extends PnpmError {
-  readonly pnpmfile: string;
+export class BadReadPackageHookError extends OspmError {
+  readonly ospmfile: string;
 
-  constructor(pnpmfile: string, message: string) {
+  constructor(ospmfile: string, message: string) {
     super(
       'BAD_READ_PACKAGE_HOOK_RESULT',
-      `${message} Hook imported via ${pnpmfile}`
+      `${message} Hook imported via ${ospmfile}`
     );
-    this.pnpmfile = pnpmfile;
+
+    this.ospmfile = ospmfile;
   }
 }
 
-class PnpmFileFailError extends PnpmError {
-  readonly pnpmfile: string;
+class OspmFileFailError extends OspmError {
+  readonly ospmfile: string;
   readonly originalError: Error;
 
-  constructor(pnpmfile: string, originalError: Error) {
+  constructor(ospmfile: string, originalError: Error) {
     super(
-      'PNPMFILE_FAIL',
-      `Error during pnpmfile execution. pnpmfile: "${pnpmfile}". Error: "${originalError.message}".`
+      'OSPMFILE_FAIL',
+      `Error during ospmfile execution. ospmfile: "${ospmfile}". Error: "${originalError.message}".`
     );
-    this.pnpmfile = pnpmfile;
+    this.ospmfile = ospmfile;
     this.originalError = originalError;
   }
 }
 
-export type Pnpmfile = {
+export type Ospmfile = {
   hooks?: Hooks | undefined;
   filename: string;
 };
 
-export function requirePnpmfile(
-  pnpmFilePath: string,
+export function requireOspmfile(
+  ospmFilePath: string,
   prefix: string
-): Pnpmfile | undefined {
+): Ospmfile | undefined {
   try {
-    const pnpmfile: {
+    const ospmfile: {
       hooks?: { readPackage?: unknown | undefined } | undefined;
       filename?: unknown | undefined;
-    } = require(pnpmFilePath); // eslint-disable-line
-    if (typeof pnpmfile === 'undefined') {
+    } = require(ospmFilePath); // eslint-disable-line
+
+    if (typeof ospmfile === 'undefined') {
       logger.warn({
-        message: `Ignoring the pnpmfile at "${pnpmFilePath}". It exports "undefined".`,
+        message: `Ignoring the ospmfile at "${ospmFilePath}". It exports "undefined".`,
         prefix,
       });
 
@@ -58,16 +60,16 @@ export function requirePnpmfile(
     }
 
     if (
-      typeof pnpmfile.hooks?.readPackage !== 'undefined' &&
-      typeof pnpmfile.hooks.readPackage !== 'function'
+      typeof ospmfile.hooks?.readPackage !== 'undefined' &&
+      typeof ospmfile.hooks.readPackage !== 'function'
     ) {
       throw new TypeError('hooks.readPackage should be a function');
     }
 
-    if (typeof pnpmfile.hooks?.readPackage === 'function') {
-      const readPackage = pnpmfile.hooks.readPackage;
+    if (typeof ospmfile.hooks?.readPackage === 'function') {
+      const readPackage = ospmfile.hooks.readPackage;
 
-      pnpmfile.hooks.readPackage = async (
+      ospmfile.hooks.readPackage = async (
         pkg: PackageManifest,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...args: any[]
@@ -82,7 +84,7 @@ export function requirePnpmfile(
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!newPkg) {
           throw new BadReadPackageHookError(
-            pnpmFilePath,
+            ospmFilePath,
             'readPackage hook did not return a package manifest object.'
           );
         }
@@ -97,7 +99,7 @@ export function requirePnpmfile(
           // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (newPkg[dep] && typeof newPkg[dep] !== 'object') {
             throw new BadReadPackageHookError(
-              pnpmFilePath,
+              ospmFilePath,
               `readPackage hook returned package manifest object's property '${dep}' must be an object.`
             );
           }
@@ -107,12 +109,12 @@ export function requirePnpmfile(
       };
     }
 
-    pnpmfile.filename = pnpmFilePath;
+    ospmfile.filename = ospmFilePath;
 
-    return pnpmfile as Pnpmfile;
+    return ospmfile as Ospmfile;
   } catch (err: unknown) {
     if (err instanceof SyntaxError) {
-      console.error(chalk.red('A syntax error in the .pnpmfile.cjs\n'));
+      console.error(chalk.red('A syntax error in the .ospmfile.cjs\n'));
       console.error(err);
 
       // eslint-disable-next-line n/no-process-exit
@@ -121,17 +123,16 @@ export function requirePnpmfile(
     assert(util.types.isNativeError(err));
     if (
       !('code' in err && err.code === 'MODULE_NOT_FOUND') ||
-      pnpmFileExistsSync(pnpmFilePath)
+      ospmFileExistsSync(ospmFilePath)
     ) {
-      throw new PnpmFileFailError(pnpmFilePath, err);
+      throw new OspmFileFailError(ospmFilePath, err);
     }
     return undefined;
   }
 }
 
-function pnpmFileExistsSync(pnpmFilePath: string): boolean {
-  const pnpmFileRealName = pnpmFilePath.endsWith('.cjs')
-    ? pnpmFilePath
-    : `${pnpmFilePath}.cjs`;
-  return fs.existsSync(pnpmFileRealName);
+function ospmFileExistsSync(ospmFilePath: string): boolean {
+  return fs.existsSync(
+    ospmFilePath.endsWith('.cjs') ? ospmFilePath : `${ospmFilePath}.cjs`
+  );
 }

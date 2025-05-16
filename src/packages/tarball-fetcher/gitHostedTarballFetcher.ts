@@ -14,7 +14,7 @@ import type { Resolution } from '../resolver-base/index.ts';
 
 export type CreateGitHostedTarballFetcher = {
   ignoreScripts?: boolean | undefined;
-  rawConfig: Record<string, unknown>;
+  rawConfig: Record<string, string>;
   unsafePerm?: boolean | undefined;
 };
 

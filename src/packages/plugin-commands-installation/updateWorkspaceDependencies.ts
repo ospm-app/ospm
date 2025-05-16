@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { parseWantedDependency } from '../parse-wanted-dependency/index.ts';
 import type { WorkspacePackages } from '../resolver-base/index.ts';
 import type { IncludedDependencies, ProjectManifest } from '../types/index.ts';
@@ -27,14 +27,14 @@ export function createWorkspaceSpecs(
     const parsed = parseWantedDependency(spec);
 
     if (typeof parsed.alias === 'undefined' || parsed.alias === '') {
-      throw new PnpmError(
+      throw new OspmError(
         'NO_PKG_NAME_IN_SPEC',
         `Cannot update/install from workspace through "${spec}"`
       );
     }
 
     if (!workspacePackages.has(parsed.alias)) {
-      throw new PnpmError(
+      throw new OspmError(
         'WORKSPACE_PACKAGE_NOT_FOUND',
         `"${parsed.alias}" not found in the workspace`
       );

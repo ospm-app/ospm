@@ -1,7 +1,7 @@
 import renderHelp from 'render-help';
 import { docsUrl } from '../cli-utils/index.ts';
-import { types } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { types } from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import pick from 'ramda/src/pick';
 import * as dlx from './dlx.ts';
 
@@ -13,10 +13,10 @@ export async function handler(
 ): Promise<{ exitCode: number }> {
   const [packageName, ...packageArgs] = params;
   if (packageName === undefined) {
-    throw new PnpmError(
+    throw new OspmError(
       'MISSING_ARGS',
       'Missing the template package name.\n' +
-        'The correct usage is `pnpm create <name>` ' +
+        'The correct usage is `ospm create <name>` ' +
         'with <name> substituted for a package name.'
     );
   }
@@ -56,9 +56,9 @@ export function help(): string {
     ],
     url: docsUrl('create'),
     usages: [
-      'pnpm create <name>',
-      'pnpm create <name-without-create>',
-      'pnpm create <@scope>',
+      'ospm create <name>',
+      'ospm create <name-without-create>',
+      'ospm create <@scope>',
     ],
   });
 }

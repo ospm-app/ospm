@@ -8,4 +8,4 @@ export type ScopeMessage = {
   workspacePrefix?: string | undefined;
 };
 
-export type ScopeLog = { name: 'pnpm:scope' } & LogBase & ScopeMessage;
+export type ScopeLog = { name: 'ospm:scope' } & LogBase & ScopeMessage;

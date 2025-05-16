@@ -8,4 +8,4 @@ export interface ContextMessage {
   virtualStoreDir: string;
 }
 
-export type ContextLog = { name: 'pnpm:context' } & LogBase & ContextMessage;
+export type ContextLog = { name: 'ospm:context' } & LogBase & ContextMessage;

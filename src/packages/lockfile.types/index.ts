@@ -20,7 +20,7 @@ export type LockfileBase = {
   overrides?: Record<string, string> | undefined;
   packageExtensionsChecksum?: string | undefined;
   patchedDependencies?: Record<string, PatchFile> | undefined;
-  pnpmfileChecksum?: string | undefined;
+  ospmfileChecksum?: string | undefined;
   settings?: LockfileSettings | undefined;
   time?: Record<string, string> | undefined;
 };

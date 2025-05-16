@@ -14,7 +14,7 @@ export function help(): string {
   return renderHelp({
     aliases: ['dislink'],
     description:
-      'Removes the link created by `pnpm link` and reinstalls package if it is saved in `package.json`',
+      'Removes the link created by `ospm link` and reinstalls package if it is saved in `package.json`',
     descriptionLists: [
       {
         title: 'Options',
@@ -24,7 +24,7 @@ export function help(): string {
             description:
               'Unlink in every package found in subdirectories \
 or in every workspace package, when executed inside a workspace. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -33,7 +33,7 @@ For options that may be used with `-r`, see "pnpm help recursive"',
       },
     ],
     url: docsUrl('unlink'),
-    usages: ['pnpm unlink (in package dir)', 'pnpm unlink <pkg>...'],
+    usages: ['ospm unlink (in package dir)', 'ospm unlink <pkg>...'],
   });
 }
 
@@ -41,29 +41,29 @@ export async function handler(
   opts: install.InstallCommandOptions,
   params: string[]
 ): Promise<undefined | string> {
-  if (!opts.rootProjectManifest?.pnpm?.overrides) {
+  if (!opts.rootProjectManifest?.ospm?.overrides) {
     return 'Nothing to unlink';
   }
 
   if (params.length === 0) {
-    for (const selector in opts.rootProjectManifest.pnpm.overrides) {
+    for (const selector in opts.rootProjectManifest.ospm.overrides) {
       if (
-        opts.rootProjectManifest.pnpm.overrides[selector]?.startsWith(
+        opts.rootProjectManifest.ospm.overrides[selector]?.startsWith(
           'link:'
         ) === true
       ) {
-        delete opts.rootProjectManifest.pnpm.overrides[selector];
+        delete opts.rootProjectManifest.ospm.overrides[selector];
       }
     }
   } else {
-    for (const selector in opts.rootProjectManifest.pnpm.overrides) {
+    for (const selector in opts.rootProjectManifest.ospm.overrides) {
       if (
-        opts.rootProjectManifest.pnpm.overrides[selector]?.startsWith(
+        opts.rootProjectManifest.ospm.overrides[selector]?.startsWith(
           'link:'
         ) === true &&
         params.includes(selector)
       ) {
-        delete opts.rootProjectManifest.pnpm.overrides[selector];
+        delete opts.rootProjectManifest.ospm.overrides[selector];
       }
     }
   }

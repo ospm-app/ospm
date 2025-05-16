@@ -4,7 +4,7 @@ import {
   type RecursiveSummary,
   throwOnCommandFail,
 } from '../cli-utils/index.ts';
-import { type Config, readLocalConfig } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
 import { logger } from '../logger/index.ts';
 import { sortPackages } from '../sort-packages/index.ts';
 import {
@@ -27,13 +27,14 @@ import {
 } from './implementation/index.ts';
 import { join } from 'node:path';
 import type { ProjectOptions, HookOptions } from '../get-context/index.ts';
+import { readLocalConfig } from '../config/readLocalConfig.ts';
 
 type RecursiveRebuildOpts = CreateStoreControllerOptions &
   Pick<
     Config,
     | 'hoistPattern'
     | 'hooks'
-    | 'ignorePnpmfile'
+    | 'ignoreOspmfile'
     | 'ignoreScripts'
     | 'lockfileDir'
     | 'lockfileOnly'
@@ -75,7 +76,7 @@ export async function recursiveRebuild(
     manifestsByPath[rootDir] = { manifest, writeProjectManifest };
   }
 
-  const throwOnFail = throwOnCommandFail.bind(null, 'pnpm recursive rebuild');
+  const throwOnFail = throwOnCommandFail.bind(null, 'ospm recursive rebuild');
 
   const chunks =
     opts.sort === true

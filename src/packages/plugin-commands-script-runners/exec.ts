@@ -13,7 +13,8 @@ import {
   FILTERING,
   UNIVERSAL_OPTIONS,
 } from '../common-cli-options-help/index.ts';
-import { type Config, types } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
+import { types } from '../config/types.ts';
 import type { CheckDepsStatusOptions } from '../deps.status/index.ts';
 import { makeNodeRequireOption } from '../lifecycle/index.ts';
 import { logger } from '../logger/index.ts';
@@ -39,7 +40,7 @@ import {
   RESUME_FROM_OPTION_HELP,
   shorthands as runShorthands,
 } from './run.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import which from 'which';
 import { writeJsonFile } from 'write-json-file';
 import {
@@ -98,7 +99,7 @@ export function help(): string {
             description:
               'Run the shell command in every package found in subdirectories \
 or every workspace package, when executed inside a workspace. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -118,7 +119,7 @@ The shell should understand the -c switch on UNIX or /d /s /c on Windows.',
       FILTERING,
     ],
     url: docsUrl('exec'),
-    usages: ['pnpm [-r] [-c] exec <command> [args...]'],
+    usages: ['ospm [-r] [-c] exec <command> [args...]'],
   });
 }
 
@@ -139,7 +140,7 @@ export function getResumedPackageChunks({
   );
 
   if (!resumeFromPackagePrefix) {
-    throw new PnpmError(
+    throw new OspmError(
       'RESUME_FROM_NOT_FOUND',
       `Cannot find package ${resumeFrom}. Could not determine where to resume from.`
     );
@@ -155,7 +156,7 @@ export async function writeRecursiveSummary(opts: {
   dir: string;
   summary: RecursiveSummary;
 }): Promise<void> {
-  await writeJsonFile(path.join(opts.dir, 'pnpm-exec-summary.json'), {
+  await writeJsonFile(path.join(opts.dir, 'ospm-exec-summary.json'), {
     executionStatus: opts.summary,
   });
 }
@@ -196,7 +197,7 @@ export type ExecOpts = Required<
     | 'lockfileDir'
     | 'modulesDir'
     | 'nodeOptions'
-    | 'pnpmHomeDir'
+    | 'ospmHomeDir'
     | 'rawConfig'
     | 'recursive'
     | 'reporterHidePrefix'
@@ -217,9 +218,9 @@ export async function handler(
   }
 
   if (typeof firstParam === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'EXEC_MISSING_COMMAND',
-      "'pnpm exec' requires a command to run"
+      "'ospm exec' requires a command to run"
     );
   }
 
@@ -230,7 +231,7 @@ export async function handler(
   }
 
   if (typeof opts.selectedProjectsGraph === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'RECURSIVE_EXEC_NO_PACKAGE',
       'No package found in this workspace'
     );
@@ -271,7 +272,7 @@ export async function handler(
   }
 
   if (typeof opts.selectedProjectsGraph === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'RECURSIVE_EXEC_NO_PACKAGE',
       'No package found in this workspace'
     );
@@ -301,7 +302,7 @@ export async function handler(
       const executionEnv = await prepareExecutionEnv(opts, {
         extraBinPaths: opts.extraBinPaths,
         executionEnv:
-          opts.selectedProjectsGraph?.[prefix]?.package.manifest.pnpm
+          opts.selectedProjectsGraph?.[prefix]?.package.manifest.ospm
             ?.executionEnv,
       });
 
@@ -341,11 +342,11 @@ export async function handler(
             const env = makeEnv({
               extraEnv: {
                 ...extraEnv,
-                PNPM_PACKAGE_NAME:
+                OSPM_PACKAGE_NAME:
                   opts.selectedProjectsGraph?.[prefix]?.package.manifest.name,
-                ...(typeof opts.nodeOptions !== 'undefined'
-                  ? { NODE_OPTIONS: opts.nodeOptions }
-                  : {}),
+                ...(typeof opts.nodeOptions === 'undefined'
+                  ? {}
+                  : { NODE_OPTIONS: opts.nodeOptions }),
               },
               prependPaths,
               userAgent: opts.userAgent,
@@ -455,8 +456,8 @@ export async function handler(
               return;
             }
 
-            if (err.code?.startsWith('ERR_PNPM_') !== true) {
-              err.code = 'ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL';
+            if (err.code?.startsWith('ERR_OSPM_') !== true) {
+              err.code = 'ERR_OSPM_RECURSIVE_EXEC_FIRST_FAIL';
             }
 
             err.prefix = prefix;
@@ -482,7 +483,7 @@ export async function handler(
     });
   }
 
-  throwOnCommandFail('pnpm recursive exec', result);
+  throwOnCommandFail('ospm recursive exec', result);
 
   return { exitCode };
 }
@@ -507,7 +508,7 @@ async function createExecCommandNotFoundHint(
     } catch {}
 
     if (typeof nearestScript === 'string') {
-      return `Did you mean "pnpm ${nearestScript}"?`;
+      return `Did you mean "ospm ${nearestScript}"?`;
     }
 
     const nearestProgram = getNearestProgram({
@@ -518,7 +519,7 @@ async function createExecCommandNotFoundHint(
     });
 
     if (typeof nearestProgram === 'string') {
-      return `Did you mean "pnpm ${nearestProgram}"?`;
+      return `Did you mean "ospm ${nearestProgram}"?`;
     }
 
     return undefined;
@@ -532,7 +533,7 @@ async function createExecCommandNotFoundHint(
   });
 
   if (typeof nearestProgram === 'string') {
-    return `Did you mean "pnpm exec ${nearestProgram}"?`;
+    return `Did you mean "ospm exec ${nearestProgram}"?`;
   }
 
   return undefined;

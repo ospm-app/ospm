@@ -107,6 +107,7 @@ export type BaseManifest = {
         node?: string | undefined;
         npm?: string | undefined;
         pnpm?: string | undefined;
+        ospm?: string | undefined;
       }
     | undefined;
   cpu?: string[] | undefined;
@@ -150,7 +151,7 @@ export type PeerDependencyRules = {
 
 export type AllowedDeprecatedVersions = Record<string, string>;
 
-export type PnpmSettings = {
+export type OspmSettings = {
   configDependencies?: Record<string, string> | undefined;
   neverBuiltDependencies?: string[] | undefined;
   onlyBuiltDependencies?: string[] | undefined;
@@ -182,7 +183,7 @@ export type PnpmSettings = {
 export interface ProjectManifest extends BaseManifest {
   packageManager?: string | undefined;
   workspaces?: string[] | undefined;
-  pnpm?: PnpmSettings | undefined;
+  ospm?: OspmSettings | undefined;
   private?: boolean | undefined;
   resolutions?: Record<string, string> | undefined;
 }

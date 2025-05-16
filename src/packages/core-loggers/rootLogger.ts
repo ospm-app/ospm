@@ -27,4 +27,4 @@ export type RootMessage = {
     }
 );
 
-export type RootLog = { name: 'pnpm:root' } & LogBase & RootMessage;
+export type RootLog = { name: 'ospm:root' } & LogBase & RootMessage;

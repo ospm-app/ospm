@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type {
   FetchFromRegistry,
   RetryTimeoutOptions,
@@ -28,7 +28,7 @@ export async function fetchNode(
   opts: FetchNodeOptions
 ): Promise<void> {
   if (await isNonGlibcLinux()) {
-    throw new PnpmError(
+    throw new OspmError(
       'MUSL',
       'The current system uses the "MUSL" C standard library. Node.js currently has prebuilt artifacts only for the "glibc" libc, so we can install Node.js only for glibc'
     );
@@ -97,7 +97,7 @@ async function downloadAndUnpackZip(
 ): Promise<void> {
   const response = await fetchFromRegistry(zipUrl);
 
-  const tmp = path.join(temporaryDirectory(), 'pnpm.zip');
+  const tmp = path.join(temporaryDirectory(), 'ospm.zip');
 
   const dest = fs.createWriteStream(tmp);
 

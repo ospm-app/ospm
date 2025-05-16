@@ -40,7 +40,7 @@ export type NvmNodeCommandOptions = Pick<
   | 'strictSsl'
   | 'storeDir'
   | 'useNodeVersion'
-  | 'pnpmHomeDir'
+  | 'ospmHomeDir'
 > &
   Partial<Pick<Config, 'configDir' | 'cliOptions' | 'sslConfigs'>> & {
     remote?: boolean | undefined;
@@ -80,7 +80,7 @@ export async function getNodeBinDir(
 ): Promise<string> {
   const fetch = createFetchFromRegistry(opts);
 
-  const nodesDir = getNodeVersionsBaseDir(opts.pnpmHomeDir);
+  const nodesDir = getNodeVersionsBaseDir(opts.ospmHomeDir);
 
   let wantedNodeVersion =
     opts.useNodeVersion ?? (await readNodeVersionsManifest(nodesDir)).default;
@@ -113,8 +113,8 @@ export async function getNodeBinDir(
   return process.platform === 'win32' ? nodeDir : path.join(nodeDir, 'bin');
 }
 
-export function getNodeVersionsBaseDir(pnpmHomeDir: string): string {
-  return path.join(pnpmHomeDir, 'nodejs');
+export function getNodeVersionsBaseDir(ospmHomeDir: string): string {
+  return path.join(ospmHomeDir, 'nodejs');
 }
 
 export async function getNodeDir(
@@ -124,7 +124,7 @@ export async function getNodeDir(
     nodeMirrorBaseUrl: string;
   }
 ): Promise<string> {
-  const nodesDir = getNodeVersionsBaseDir(opts.pnpmHomeDir);
+  const nodesDir = getNodeVersionsBaseDir(opts.ospmHomeDir);
 
   await fs.promises.mkdir(nodesDir, { recursive: true });
 
@@ -134,7 +134,7 @@ export async function getNodeDir(
     const storeDir = await getStorePath({
       pkgRoot: process.cwd(),
       storePath: opts.storeDir,
-      pnpmHomeDir: opts.pnpmHomeDir,
+      ospmHomeDir: opts.ospmHomeDir,
     });
 
     globalInfo(`Fetching Node.js ${opts.useNodeVersion} ...`);

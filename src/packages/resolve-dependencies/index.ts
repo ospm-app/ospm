@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { packageManifestLogger } from '../core-loggers/index.ts';
 import { globalWarn } from '../logger/index.ts';
 import type {
@@ -538,7 +538,7 @@ function verifyPatches({
     return;
   }
 
-  throw new PnpmError('PATCH_NOT_APPLIED', message, {
+  throw new OspmError('PATCH_NOT_APPLIED', message, {
     hint: 'Either remove them from "patchedDependencies" or update them to match packages in your dependencies.',
   });
 }
@@ -658,7 +658,7 @@ function alignDependencyTypes(
 ): void {
   const depTypesOfAliases = getAliasToDependencyTypeMap(manifest);
 
-  // Aligning the dependency types in pnpm-lock.yaml
+  // Aligning the dependency types in ospm-lock.yaml
   for (const depType of DEPENDENCIES_FIELDS) {
     if (projectSnapshot[depType] == null) continue;
 

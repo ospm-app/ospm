@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { downloadNodeVersion } from './downloadNodeVersion.ts';
 import type { NvmNodeCommandOptions } from './node.ts';
 
@@ -7,9 +7,9 @@ export async function envAdd(
   params: string[]
 ): Promise<string> {
   if (opts.global !== true) {
-    throw new PnpmError(
+    throw new OspmError(
       'NOT_IMPLEMENTED_YET',
-      '"pnpm env add <version>" can only be used with the "--global" option currently'
+      '"ospm env add <version>" can only be used with the "--global" option currently'
     );
   }
 
@@ -24,7 +24,7 @@ export async function envAdd(
   }
 
   if (failed.length > 0) {
-    throw new PnpmError(
+    throw new OspmError(
       'COULD_NOT_RESOLVE_NODEJS',
       `Couldn't find Node.js version matching ${failed.join(', ')}`
     );

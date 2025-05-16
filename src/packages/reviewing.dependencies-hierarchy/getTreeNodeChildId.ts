@@ -44,9 +44,9 @@ export function getTreeNodeChildId(
         absoluteLinkedPath
       );
 
-      // A 'link:' reference may refer to a package outside of the pnpm workspace.
+      // A 'link:' reference may refer to a package outside of the ospm workspace.
       // Return undefined in that case since it would be difficult to list/traverse
-      // that package outside of the pnpm workspace.
+      // that package outside of the ospm workspace.
       const isLinkOutsideWorkspace = opts.importers[childImporterId] == null;
 
       return isLinkOutsideWorkspace
@@ -56,7 +56,7 @@ export function getTreeNodeChildId(
 
     case 'package':
       // In theory an external package could be overridden to link to a
-      // dependency in the pnpm workspace. Avoid traversing through this
+      // dependency in the ospm workspace. Avoid traversing through this
       // edge case for now.
       return undefined;
   }

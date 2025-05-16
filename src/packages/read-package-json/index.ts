@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type { PackageManifest } from '../types/index.ts';
 import { loadJsonFile } from 'load-json-file';
 import normalizePackageData from 'normalize-package-data';
@@ -18,7 +18,7 @@ export async function readPackageJson(
       throw err;
     }
 
-    throw new PnpmError(
+    throw new OspmError(
       'BAD_PACKAGE_JSON',
       `${pkgPath}: ${err.message as string}`
     );

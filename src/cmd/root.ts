@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { types as allTypes } from '../packages/config/index.ts';
+import { types as allTypes } from '../packages/config/types.ts';
 import { docsUrl } from '../packages/cli-utils/index.ts';
 import pick from 'ramda/src/pick';
 import renderHelp from 'render-help';
@@ -29,7 +29,7 @@ export function help(): string {
       },
     ],
     url: docsUrl('root'),
-    usages: ['pnpm root [-g]'],
+    usages: ['ospm root [-g]'],
   });
 }
 

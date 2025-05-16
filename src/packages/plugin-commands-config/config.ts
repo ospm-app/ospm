@@ -1,5 +1,5 @@
 import { docsUrl } from '../cli-utils/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import renderHelp from 'render-help';
 import { configGet } from './configGet.ts';
 import { configSet } from './configSet.ts';
@@ -22,7 +22,7 @@ export const commandNames = ['config', 'c'];
 
 export function help(): string {
   return renderHelp({
-    description: 'Manage the pnpm configuration files.',
+    description: 'Manage the ospm configuration files.',
     descriptionLists: [
       {
         title: 'Commands',
@@ -67,11 +67,11 @@ export function help(): string {
     ],
     url: docsUrl('config'),
     usages: [
-      'pnpm config set <key> <value>',
-      'pnpm config get <key>',
-      'pnpm config delete <key>',
-      'pnpm config list',
-      'pnpm config list --json',
+      'ospm config set <key> <value>',
+      'ospm config get <key>',
+      'ospm config delete <key>',
+      'ospm config list',
+      'ospm config list --json',
     ],
   });
 }
@@ -82,7 +82,7 @@ export async function handler(
   // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
 ): Promise<string | void> {
   if (params.length === 0) {
-    throw new PnpmError(
+    throw new OspmError(
       'CONFIG_NO_SUBCOMMAND',
       'Please specify the subcommand',
       {
@@ -101,9 +101,9 @@ export async function handler(
     case 'set':
     case 'delete': {
       if (typeof params[1] === 'undefined') {
-        throw new PnpmError(
+        throw new OspmError(
           'CONFIG_NO_PARAMS',
-          `\`pnpm config ${params[0]}\` requires the config key`
+          `\`ospm config ${params[0]}\` requires the config key`
         );
       }
 
@@ -139,7 +139,7 @@ export async function handler(
     }
 
     default: {
-      throw new PnpmError(
+      throw new OspmError(
         'CONFIG_UNKNOWN_SUBCOMMAND',
         'This subcommand is not known'
       );

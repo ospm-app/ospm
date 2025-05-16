@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import chalk from 'chalk';
 
 import type { Config } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { getStorePath } from '../store-path/index.ts';
 import type { PackageFilesIndex } from '../store.cafs/index.ts';
 
@@ -28,11 +28,11 @@ export function help(): string {
     description:
       'Experimental! Lists the packages that include the file with the specified hash.',
     descriptionLists: [],
-    usages: ['pnpm find-hash <hash>'],
+    usages: ['ospm find-hash <hash>'],
   });
 }
 
-export type FindHashCommandOptions = Pick<Config, 'storeDir' | 'pnpmHomeDir'>;
+export type FindHashCommandOptions = Pick<Config, 'storeDir' | 'ospmHomeDir'>;
 
 export type FindHashResult = {
   name: string;
@@ -45,7 +45,7 @@ export async function handler(
   params: string[]
 ): Promise<string> {
   if (params.length === 0) {
-    throw new PnpmError('MISSING_HASH', '`pnpm find-hash` requires the hash');
+    throw new OspmError('MISSING_HASH', '`ospm find-hash` requires the hash');
   }
 
   const hash = params[0];
@@ -53,7 +53,7 @@ export async function handler(
   const storeDir = await getStorePath({
     pkgRoot: process.cwd(),
     storePath: opts.storeDir,
-    pnpmHomeDir: opts.pnpmHomeDir,
+    ospmHomeDir: opts.ospmHomeDir,
   });
 
   const indexDir = path.join(storeDir, 'index');
@@ -120,7 +120,7 @@ export async function handler(
   }
 
   if (!result.length) {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_FILE_HASH',
       'No package or index file matching this hash was found.'
     );

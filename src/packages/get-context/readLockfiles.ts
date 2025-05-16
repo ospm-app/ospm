@@ -21,7 +21,7 @@ import { isCI } from 'ci-info';
 import clone from 'ramda/src/clone';
 import equals from 'ramda/src/equals';
 
-export type PnpmContext = {
+export type OspmContext = {
   currentLockfile: LockfileObject;
   existsCurrentLockfile: boolean;
   existsWantedLockfile: boolean;
@@ -66,8 +66,9 @@ export async function readLockfiles(opts: {
   lockfileHadConflicts: boolean;
 }> {
   const wantedLockfileVersion = LOCKFILE_VERSION;
-  // ignore `pnpm-lock.yaml` on CI servers
-  // a latest pnpm should not break all the builds
+  // ignore `ospm-lock.yaml` on CI servers
+  // a latest ospm should not break all the builds
+
   const lockfileOpts = {
     ignoreIncompatible: opts.force ?? isCI,
     wantedVersions: [LOCKFILE_VERSION],

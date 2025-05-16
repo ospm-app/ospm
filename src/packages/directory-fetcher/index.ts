@@ -86,7 +86,7 @@ async function fetchAllFilesFromDir(
     readFileStat,
     dir
   );
-  // In a regular pnpm workspace it will probably never happen that a dependency has no package.json file.
+  // In a regular ospm workspace it will probably never happen that a dependency has no package.json file.
   // Safe read was added to support the Bit workspace in which the components have no package.json files.
   // Related PR in Bit: https://github.com/teambit/bit/pull/5251
   const manifest = (await safeReadProjectManifestOnly(dir)) ?? undefined;
@@ -195,7 +195,7 @@ async function fetchPackageFilesFromDir(dir: string): Promise<FetchResult> {
   const filesIndex: Record<string, string> = Object.fromEntries(
     files.map((file) => [file, path.join(dir, file)])
   );
-  // In a regular pnpm workspace it will probably never happen that a dependency has no package.json file.
+  // In a regular ospm workspace it will probably never happen that a dependency has no package.json file.
   // Safe read was added to support the Bit workspace in which the components have no package.json files.
   // Related PR in Bit: https://github.com/teambit/bit/pull/5251
   const manifest = (await safeReadProjectManifestOnly(dir)) ?? undefined;

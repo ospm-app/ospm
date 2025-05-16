@@ -8,6 +8,6 @@ export * from './recursiveSummary.ts';
 export * from './style.ts';
 
 export function docsUrl(cmd: string): string {
-  const [pnpmMajorVersion] = packageManager.version.split('.');
-  return `https://pnpm.io/${pnpmMajorVersion}.x/cli/${cmd}`;
+  const [ospmMajorVersion] = packageManager.version.split('.');
+  return `https://ospm.app/${ospmMajorVersion}.x/cli/${cmd}`;
 }

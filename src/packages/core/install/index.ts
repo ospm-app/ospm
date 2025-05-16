@@ -20,11 +20,11 @@ import {
   createOverridesMapFromParsed,
   getOutdatedLockfileSetting,
 } from '../../lockfile.settings-checker/index.ts';
-import { PnpmError } from '../../error/index.ts';
+import { OspmError } from '../../error/index.ts';
 import {
   getContext,
   type HookOptions,
-  type PnpmContext,
+  type OspmContext,
   type ProjectOptions,
 } from '../../get-context/index.ts';
 import {
@@ -120,24 +120,24 @@ import type {
 } from '../../patching.types/index.ts';
 import { groupPatchedDependencies } from 'src/packages/patching.config/groupPatchedDependencies.ts';
 
-class LockfileConfigMismatchError extends PnpmError {
+class LockfileConfigMismatchError extends OspmError {
   constructor(outdatedLockfileSettingName: string) {
     super(
       'LOCKFILE_CONFIG_MISMATCH',
       `Cannot proceed with the frozen installation. The current "${outdatedLockfileSettingName}" configuration doesn't match the value found in the lockfile`,
       {
-        hint: 'Update your lockfile using "pnpm install --no-frozen-lockfile"',
+        hint: 'Update your lockfile using "ospm install --no-frozen-lockfile"',
       }
     );
   }
 }
 
 const BROKEN_LOCKFILE_INTEGRITY_ERRORS = new Set([
-  'ERR_PNPM_UNEXPECTED_PKG_CONTENT_IN_STORE',
-  'ERR_PNPM_TARBALL_INTEGRITY',
+  'ERR_OSPM_UNEXPECTED_PKG_CONTENT_IN_STORE',
+  'ERR_OSPM_TARBALL_INTEGRITY',
 ]);
 
-const DEV_PREINSTALL = 'pnpm:devPreinstall';
+const DEV_PREINSTALL = 'ospm:devPreinstall';
 
 // type InstallMutationOptions = {
 //   update?: boolean | undefined;
@@ -403,7 +403,7 @@ const installInContext: InstallFunction = async (
       preserveNonSemverVersionSpec?: boolean | undefined;
     }>
   >,
-  ctx: PnpmContext,
+  ctx: OspmContext,
   opts: Omit<StrictInstallOptions, 'patchedDependencies'> & {
     patchedDependencies?: PatchGroupRecord | undefined;
     makePartialCurrentLockfile: boolean;
@@ -525,8 +525,8 @@ const installInContext: InstallFunction = async (
           ...opts,
           currentEngine: {
             nodeVersion: opts.nodeVersion,
-            pnpmVersion:
-              opts.packageManager.name === 'pnpm'
+            ospmVersion:
+              opts.packageManager.name === 'ospm'
                 ? opts.packageManager.version
                 : '',
           },
@@ -576,8 +576,8 @@ const installInContext: InstallFunction = async (
         ...opts,
         currentEngine: {
           nodeVersion: opts.nodeVersion,
-          pnpmVersion:
-            opts.packageManager.name === 'pnpm'
+          ospmVersion:
+            opts.packageManager.name === 'ospm'
               ? opts.packageManager.version
               : '',
         },
@@ -646,7 +646,7 @@ const installInContext: InstallFunction = async (
     });
 
     logger.error(
-      new PnpmError(
+      new OspmError(
         error.code,
         'The lockfile is broken! A full installation will be performed in an attempt to fix it.'
       )
@@ -671,7 +671,7 @@ export async function mutateModules(
   const opts = extendOptions(maybeOpts);
 
   if (!opts.include.dependencies && opts.include.optionalDependencies) {
-    throw new PnpmError(
+    throw new OspmError(
       'OPTIONAL_DEPS_REQUIRE_PROD_DEPS',
       'Optional dependencies cannot be installed without production dependencies'
     );
@@ -810,7 +810,7 @@ export async function mutateModules(
       opts.packageExtensions
     );
 
-    const pnpmfileChecksum = await opts.hooks.calculatePnpmfileChecksum?.();
+    const ospmfileChecksum = await opts.hooks.calculateOspmfileChecksum?.();
 
     const patchedDependencies = opts.ignorePackageManifest
       ? ctx.wantedLockfile.patchedDependencies
@@ -860,7 +860,7 @@ export async function mutateModules(
           ignoredOptionalDependencies: opts.ignoredOptionalDependencies.sort(),
           packageExtensionsChecksum,
           patchedDependencies,
-          pnpmfileChecksum,
+          ospmfileChecksum,
         }
       );
 
@@ -902,7 +902,7 @@ export async function mutateModules(
       ctx.wantedLockfile.ignoredOptionalDependencies =
         opts.ignoredOptionalDependencies;
 
-      ctx.wantedLockfile.pnpmfileChecksum = pnpmfileChecksum;
+      ctx.wantedLockfile.ospmfileChecksum = ospmfileChecksum;
 
       ctx.wantedLockfile.patchedDependencies = patchedDependencies;
     } else if (!frozenLockfile) {
@@ -1164,7 +1164,7 @@ export async function mutateModules(
     }
 
     // Unfortunately, the private lockfile may differ from the public one.
-    // A user might run named installations on a project that has a pnpm-lock.yaml file before running a noop install
+    // A user might run named installations on a project that has a ospm-lock.yaml file before running a noop install
     const makePartialCurrentLockfile =
       !installsOnly &&
       ((ctx.existsNonEmptyWantedLockfile && !ctx.existsCurrentLockfile) ||
@@ -1198,10 +1198,10 @@ export async function mutateModules(
    *   1. The --frozen-lockfile flag was explicitly specified or evaluates to
    *      true based on conditions like running on CI.
    *   2. No workspace modifications have been made that would invalidate the
-   *      pnpm-lock.yaml file. In other words, the pnpm-lock.yaml file is
+   *      ospm-lock.yaml file. In other words, the ospm-lock.yaml file is
    *      known to be "up-to-date".
    *
-   * A frozen install is significantly faster since the pnpm-lock.yaml file
+   * A frozen install is significantly faster since the ospm-lock.yaml file
    * can treated as immutable, skipping expensive lookups to acquire new
    * dependencies. For this reason, a frozen install should be performed even
    * if --frozen-lockfile wasn't explicitly specified. This allows users to
@@ -1210,9 +1210,9 @@ export async function mutateModules(
    * If a frozen install is not possible, this function will return null.
    * This indicates a standard mutable install needs to be performed.
    *
-   * Note this function may update the pnpm-lock.yaml file if the lockfile was
+   * Note this function may update the ospm-lock.yaml file if the lockfile was
    * on a different major version, needs to be merged due to git conflicts,
-   * etc. These changes update the format of the pnpm-lock.yaml file, but do
+   * etc. These changes update the format of the ospm-lock.yaml file, but do
    * not change recorded dependency resolutions.
    */
   async function tryFrozenInstall({
@@ -1272,14 +1272,14 @@ export async function mutateModules(
     }
 
     if (needsFullResolution) {
-      throw new PnpmError(
+      throw new OspmError(
         'FROZEN_LOCKFILE_WITH_OUTDATED_LOCKFILE',
-        'Cannot perform a frozen installation because the version of the lockfile is incompatible with this version of pnpm',
+        'Cannot perform a frozen installation because the version of the lockfile is incompatible with this version of ospm',
         {
           hint: `Try either:
-1. Aligning the version of pnpm that generated the lockfile with the version that installs from it, or
-2. Migrating the lockfile so that it is compatible with the newer version of pnpm, or
-3. Using "pnpm install --no-frozen-lockfile".
+1. Aligning the version of ospm that generated the lockfile with the version that installs from it, or
+2. Migrating the lockfile so that it is compatible with the newer version of ospm, or
+3. Using "ospm install --no-frozen-lockfile".
 Note that in CI environments, this setting is enabled by default.`,
         }
       );
@@ -1303,16 +1303,16 @@ Note that in CI environments, this setting is enabled by default.`,
 
         if (!satisfies) {
           if (!ctx.existsWantedLockfile) {
-            throw new PnpmError(
+            throw new OspmError(
               'NO_LOCKFILE',
               `Cannot install with "frozen-lockfile" because ${WANTED_LOCKFILE} is absent`,
               {
-                hint: 'Note that in CI environments this setting is true by default. If you still need to run install in such cases, use "pnpm install --no-frozen-lockfile"',
+                hint: 'Note that in CI environments this setting is true by default. If you still need to run install in such cases, use "ospm install --no-frozen-lockfile"',
               }
             );
           }
 
-          throw new PnpmError(
+          throw new OspmError(
             'OUTDATED_LOCKFILE',
             `Cannot install with "frozen-lockfile" because ${WANTED_LOCKFILE} is not up to date with ${path.join(
               '<ROOT>',
@@ -1322,7 +1322,7 @@ Note that in CI environments, this setting is enabled by default.`,
               )
             )}`,
             {
-              hint: `Note that in CI environments this setting is true by default. If you still need to run install in such cases, use "pnpm install --no-frozen-lockfile"
+              hint: `Note that in CI environments this setting is true by default. If you still need to run install in such cases, use "ospm install --no-frozen-lockfile"
 
   Failure reason:
   ${detailedReason ?? ''}`,
@@ -1392,8 +1392,8 @@ Note that in CI environments, this setting is enabled by default.`,
         ...opts,
         currentEngine: {
           nodeVersion: opts.nodeVersion,
-          pnpmVersion:
-            opts.packageManager.name === 'pnpm'
+          ospmVersion:
+            opts.packageManager.name === 'ospm'
               ? opts.packageManager.version
               : '',
         },
@@ -1481,7 +1481,7 @@ Note that in CI environments, this setting is enabled by default.`,
     } catch (error: any) {
       if (
         frozenLockfile ||
-        (error.code !== 'ERR_PNPM_LOCKFILE_MISSING_DEPENDENCY' &&
+        (error.code !== 'ERR_OSPM_LOCKFILE_MISSING_DEPENDENCY' &&
           !BROKEN_LOCKFILE_INTEGRITY_ERRORS.has(error.code)) ||
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         (ctx.existsNonEmptyWantedLockfile !== true &&
@@ -1509,7 +1509,7 @@ Note that in CI environments, this setting is enabled by default.`,
       });
 
       logger.error(
-        new PnpmError(
+        new OspmError(
           error.code,
           'The lockfile is broken! Resolution step will be performed to fix it.'
         )
@@ -1642,9 +1642,9 @@ function forgetResolutionsOfAllPrevWantedDeps(
  * Check if a wanted pref is the same.
  *
  * It would be different if the user modified a dependency in package.json or a
- * catalog entry in pnpm-workspace.yaml. This is normally a simple check to see
+ * catalog entry in ospm-workspace.yaml. This is normally a simple check to see
  * if the specifier strings match, but catalogs make this more involved since we
- * also have to check if the catalog config in pnpm-workspace.yaml is the same.
+ * also have to check if the catalog config in ospm-workspace.yaml is the same.
  */
 function isWantedDepPrefSame(
   prevCatalogs: CatalogSnapshots | undefined,
@@ -1657,7 +1657,7 @@ function isWantedDepPrefSame(
     return false;
   }
 
-  // When pnpm catalogs are used, the specifiers can be the same (e.g.
+  // When ospm catalogs are used, the specifiers can be the same (e.g.
   // "catalog:default"), but the wanted versions for the dependency can be
   // different after resolution if the catalog config was just edited.
   const catalogName = parseCatalogProtocol(prevPref);
@@ -1840,7 +1840,7 @@ type InstallFunction = (
     updateSpec?: boolean | undefined;
     preserveNonSemverVersionSpec?: boolean | undefined;
   }>[],
-  ctx: PnpmContext,
+  ctx: OspmContext,
   opts: Omit<StrictInstallOptions, 'patchedDependencies'> & {
     patchedDependencies?: PatchGroupRecord | undefined;
     makePartialCurrentLockfile: boolean;
@@ -1863,7 +1863,7 @@ async function _installInContext(
     updateSpec?: boolean | undefined;
     preserveNonSemverVersionSpec?: boolean | undefined;
   }>[],
-  ctx: PnpmContext,
+  ctx: OspmContext,
   opts: Omit<StrictInstallOptions, 'patchedDependencies'> & {
     patchedDependencies?: PatchGroupRecord | undefined;
     makePartialCurrentLockfile: boolean;
@@ -2091,8 +2091,8 @@ async function _installInContext(
       (opts.saveWorkspaceProtocol === false ? -1 : 0),
     lockfileDir: opts.lockfileDir,
     nodeVersion: opts.nodeVersion,
-    pnpmVersion:
-      opts.packageManager.name === 'pnpm' ? opts.packageManager.version : '',
+    ospmVersion:
+      opts.packageManager.name === 'ospm' ? opts.packageManager.version : '',
     preferWorkspacePackages: opts.preferWorkspacePackages,
     preferredVersions,
     preserveWorkspaceProtocol: opts.preserveWorkspaceProtocol,
@@ -2201,9 +2201,9 @@ async function _installInContext(
   let stats: InstallationResultStats | undefined;
 
   const allowBuild = createAllowBuildFunction({
-    neverBuiltDependencies: opts.neverBuiltDependencies as string[],
-    onlyBuiltDependencies: opts.onlyBuiltDependencies as string[],
-    onlyBuiltDependenciesFile: opts.onlyBuiltDependenciesFile as string,
+    neverBuiltDependencies: opts.neverBuiltDependencies ?? [],
+    onlyBuiltDependencies: opts.onlyBuiltDependencies ?? [],
+    onlyBuiltDependenciesFile: opts.onlyBuiltDependenciesFile ?? '',
   });
 
   let ignoredBuilds: string[] | undefined;
@@ -2497,8 +2497,8 @@ async function _installInContext(
             projectToInstall?.mutation.includes('install') === true
           ) {
             for (const pkg of projectToInstall.wantedDependencies ?? []) {
-              // This warning is never printed currently during "pnpm link --global"
-              // due to the following issue: https://github.com/pnpm/pnpm/issues/4761
+              // This warning is never printed currently during "ospm link --global"
+              // due to the following issue: https://github.com/ospm/ospm/issues/4761
               if (
                 typeof pkg.alias === 'string' &&
                 !linkedPackages.includes(pkg.alias)

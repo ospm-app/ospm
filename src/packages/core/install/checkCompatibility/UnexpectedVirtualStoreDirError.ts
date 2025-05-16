@@ -1,7 +1,7 @@
 import type { ModulesDir } from 'src/packages/types/project.ts';
-import { PnpmError } from '../../../error/index.ts';
+import { OspmError } from '../../../error/index.ts';
 
-export class UnexpectedVirtualStoreDirError extends PnpmError {
+export class UnexpectedVirtualStoreDirError extends OspmError {
   expected: string;
   actual: string;
   modulesDir: ModulesDir;

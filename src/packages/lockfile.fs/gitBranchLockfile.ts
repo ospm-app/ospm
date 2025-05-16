@@ -7,7 +7,7 @@ export async function getGitBranchLockfileNames(
   const files = await fs.readdir(lockfileDir);
 
   const gitBranchLockfileNames: string[] = files.filter((file) => {
-    return file.match(/^pnpm-lock.+.yaml$/);
+    return file.match(/^ospm-lock.+.yaml$/);
   });
 
   return gitBranchLockfileNames;

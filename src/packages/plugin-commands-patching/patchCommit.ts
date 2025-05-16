@@ -2,9 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { docsUrl } from '../cli-utils/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
 import { createShortHash } from '../crypto.hash/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { packlist } from '../fs.packlist/index.ts';
 import { globalWarn } from '../logger/index.ts';
 import { install } from '../plugin-commands-installation/index.ts';
@@ -55,7 +56,7 @@ export function help(): string {
       },
     ],
     url: docsUrl('patch-commit'),
-    usages: ['pnpm patch-commit <patchDir>'],
+    usages: ['ospm patch-commit <patchDir>'],
   });
 }
 
@@ -70,7 +71,7 @@ export async function handler(
   const userDir = params[0];
 
   if (typeof userDir !== 'string') {
-    throw new PnpmError('MISSING_ARG', 'Missing argument <patchDir>');
+    throw new OspmError('MISSING_ARG', 'Missing argument <patchDir>');
   }
 
   const lockfileDir = ((opts.lockfileDir ?? opts.dir) ||
@@ -92,11 +93,11 @@ export async function handler(
   });
 
   if (!stateValue) {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_PATCH_DIR',
       `${userDir} is not a valid patch directory`,
       {
-        hint: 'A valid patch directory should be created by `pnpm patch`',
+        hint: 'A valid patch directory should be created by `ospm patch`',
       }
     );
   }
@@ -166,18 +167,18 @@ export async function handler(
       ? (opts.rootProjectManifest ?? manifest)
       : manifest) ?? ({} as ProjectManifest);
 
-  if (!('pnpm' in rootProjectManifest)) {
-    (rootProjectManifest as ProjectManifest).pnpm = {
+  if (!('ospm' in rootProjectManifest)) {
+    (rootProjectManifest as ProjectManifest).ospm = {
       patchedDependencies: {},
     };
   } else if (
-    typeof rootProjectManifest.pnpm === 'object' &&
-    'patchedDependencies' in rootProjectManifest.pnpm
+    typeof rootProjectManifest.ospm === 'object' &&
+    'patchedDependencies' in rootProjectManifest.ospm
   ) {
-    rootProjectManifest.pnpm.patchedDependencies = {};
+    rootProjectManifest.ospm.patchedDependencies = {};
   }
 
-  const pd = rootProjectManifest.pnpm?.patchedDependencies;
+  const pd = rootProjectManifest.ospm?.patchedDependencies;
 
   if (typeof pd !== 'undefined') {
     pd[patchKey] = `${patchesDirName}/${patchFileName}.patch`;
@@ -196,7 +197,7 @@ export async function handler(
 
   return install.handler({
     ...opts,
-    patchedDependencies: rootProjectManifest.pnpm?.patchedDependencies,
+    patchedDependencies: rootProjectManifest.ospm?.patchedDependencies,
     rootProjectManifest,
     rawLocalConfig: {
       ...opts.rawLocalConfig,
@@ -213,7 +214,7 @@ type GetPatchContentContext = {
 
 type GetPatchContentOptions = Pick<
   PatchCommitCommandOptions,
-  'dir' | 'pnpmHomeDir' | 'storeDir'
+  'dir' | 'ospmHomeDir' | 'storeDir'
 > &
   WritePackageOptions;
 
@@ -224,7 +225,7 @@ async function getPatchContent(
   const storeDir = await getStorePath({
     pkgRoot: opts.dir,
     storePath: opts.storeDir,
-    pnpmHomeDir: opts.pnpmHomeDir,
+    ospmHomeDir: opts.ospmHomeDir,
   });
 
   const srcDir = path.join(storeDir, 'tmp', 'patch-commit', ctx.tmpName);

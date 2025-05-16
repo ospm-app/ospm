@@ -6,4 +6,4 @@ export type SummaryMessage = {
   prefix: string;
 };
 
-export type SummaryLog = { name: 'pnpm:summary' } & LogBase & SummaryMessage;
+export type SummaryLog = { name: 'ospm:summary' } & LogBase & SummaryMessage;

@@ -1,7 +1,7 @@
 import { promises as fs, existsSync } from 'node:fs';
 import Module from 'node:module';
 import path from 'node:path';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { logger, globalWarn } from '../logger/index.ts';
 import { getAllDependenciesFromManifest } from '../manifest-utils/index.ts';
 import {
@@ -298,7 +298,7 @@ async function getPackageBins(
   }
 
   if (typeof manifest.bin === 'string' && !manifest.name) {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_PACKAGE_NAME',
       `Package in ${target} must have a name to get bin linked.`
     );
@@ -314,14 +314,16 @@ async function getPackageBinsFromManifest(
 ): Promise<CommandInfo[]> {
   const cmds = await getBinsFromPackageManifest(manifest, pkgDir);
 
-  return cmds.map((cmd) => ({
-    ...cmd,
-    ownName: cmd.name === manifest.name,
-    pkgName: manifest.name,
-    pkgVersion: manifest.version,
-    makePowerShellShim: POWER_SHELL_IS_SUPPORTED && manifest.name !== 'pnpm',
-    nodeExecPath,
-  }));
+  return cmds.map((cmd: Command): CommandInfo => {
+    return {
+      ...cmd,
+      ownName: cmd.name === manifest.name,
+      pkgName: manifest.name,
+      pkgVersion: manifest.version,
+      makePowerShellShim: POWER_SHELL_IS_SUPPORTED && manifest.name !== 'ospm',
+      nodeExecPath,
+    };
+  });
 }
 
 export interface LinkBinOptions {

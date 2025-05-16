@@ -137,7 +137,7 @@ export function pruneLockfile(
         typeof depAlias === 'undefined' &&
         dep.startsWith('link:') &&
         // If the linked dependency was removed from package.json
-        // then it is removed from pnpm-lock.yaml as well
+        // then it is removed from ospm-lock.yaml as well
         typeof specAlias === 'undefined' &&
         !allDeps.has(alias)
       ) {
@@ -171,8 +171,8 @@ export function pruneLockfile(
     updatedImporter.devDependencies = lockfileDevDependencies;
   }
 
-  if (typeof lockfile.pnpmfileChecksum === 'string') {
-    prunedLockfile.pnpmfileChecksum = lockfile.pnpmfileChecksum;
+  if (typeof lockfile.ospmfileChecksum === 'string') {
+    prunedLockfile.ospmfileChecksum = lockfile.ospmfileChecksum;
   }
 
   if (
@@ -253,7 +253,7 @@ function copyDependencySubGraph(
     ctx.walked.add(key);
 
     if (!ctx.originalPackages[depPath]) {
-      // local dependencies don't need to be resolved in pnpm-lock.yaml
+      // local dependencies don't need to be resolved in ospm-lock.yaml
       // except local tarball dependencies
       if (
         depPath.startsWith('link:') ||

@@ -10,7 +10,7 @@ export type UpdateWorkspaceStateOptions = {
   allProjects: ProjectsList;
   settings: WorkspaceStateSettings;
   workspaceDir: WorkspaceDir;
-  pnpmfileExists?: boolean | undefined;
+  ospmfileExists?: boolean | undefined;
   filteredInstall?: boolean | undefined;
   configDependencies?: Record<string, string> | undefined;
 };

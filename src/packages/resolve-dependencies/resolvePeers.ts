@@ -1218,7 +1218,7 @@ function parentPkgsHaveSingleOccurrence(
 }
 
 // When a package has itself in the subdependencies, so there's a cycle,
-// pnpm will break the cycle, when it first repeats itself.
+// ospm will break the cycle, when it first repeats itself.
 // However, when the cycle is broken up, the last repeated package is removed
 // from the dependencies of the parent package.
 // So we need to merge all the children of all the parent packages with same ID as the resolved package.

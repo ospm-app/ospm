@@ -20,11 +20,11 @@ export async function errorHandler(
   if (
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     error.name != null &&
-    error.name !== 'pnpm' &&
-    !error.name.startsWith('pnpm:')
+    error.name !== 'ospm' &&
+    !error.name.startsWith('ospm:')
   ) {
     try {
-      error.name = 'pnpm';
+      error.name = 'ospm';
     } catch {
       // Sometimes the name property is read-only
     }

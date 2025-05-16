@@ -98,7 +98,7 @@ export async function handler(
     cancel() {
       // By default, canceling the prompt via Ctrl+c throws an empty string.
       // The custom cancel function prevents that behavior.
-      // Otherwise, pnpm CLI would print an error and confuse users.
+      // Otherwise, ospm CLI would print an error and confuse users.
       // See related issue: https://github.com/enquirer/enquirer/issues/225
       // eslint-disable-next-line n/no-process-exit
       process.exit(0);
@@ -162,17 +162,17 @@ Do you approve?`,
 
   if (
     opts.workspaceDir == null ||
-    Array.isArray(manifest.pnpm?.onlyBuiltDependencies) ||
-    typeof manifest.pnpm?.ignoredBuiltDependencies !== 'undefined'
+    Array.isArray(manifest.ospm?.onlyBuiltDependencies) ||
+    typeof manifest.ospm?.ignoredBuiltDependencies !== 'undefined'
   ) {
-    manifest.pnpm ??= {};
+    manifest.ospm ??= {};
 
     if (typeof updatedOnlyBuiltDependencies !== 'undefined') {
-      manifest.pnpm.onlyBuiltDependencies = updatedOnlyBuiltDependencies;
+      manifest.ospm.onlyBuiltDependencies = updatedOnlyBuiltDependencies;
     }
 
     if (updatedIgnoredBuiltDependencies) {
-      manifest.pnpm.ignoredBuiltDependencies = updatedIgnoredBuiltDependencies;
+      manifest.ospm.ignoredBuiltDependencies = updatedIgnoredBuiltDependencies;
     }
 
     await writeProjectManifest(manifest);

@@ -5,7 +5,7 @@ import {
 } from '../catalogs.resolver/index.ts';
 import type { Catalogs } from '../catalogs.types/index.ts';
 import { LOCKFILE_VERSION, WANTED_LOCKFILE } from '../constants/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { getLockfileImporterId } from '../lockfile.fs/index.ts';
 import { nameVerFromPkgSnapshot } from '../lockfile.utils/index.ts';
 import { getAllDependenciesFromManifest } from '../manifest-utils/index.ts';
@@ -27,8 +27,6 @@ import { createReadPackageHook } from '../hooks.read-package-hook/index.ts';
 import { parseOverrides } from '../parse-overrides/index.ts';
 import type { WantedDependency } from '../resolve-dependencies/getWantedDependencies.ts';
 import type { LockfileObject } from '../lockfile.types/index.ts';
-
-export * from './createManifestGetter.ts';
 
 export type GetLatestManifestFunction = (
   packageName: string,
@@ -64,9 +62,9 @@ export async function outdated(opts: {
   }
 
   if (opts.wantedLockfile == null) {
-    throw new PnpmError(
+    throw new OspmError(
       'OUTDATED_NO_LOCKFILE',
-      `No lockfile in directory "${opts.lockfileDir}". Run \`pnpm install\` to generate one.`
+      `No lockfile in directory "${opts.lockfileDir}". Run \`ospm install\` to generate one.`
     );
   }
 
@@ -130,7 +128,7 @@ export async function outdated(opts: {
           replaceCatalogProtocolIfNecessary.bind(null, opts.catalogs ?? {});
 
         await Promise.all(
-          pkgs.map(async (alias) => {
+          pkgs.map(async (alias: string): Promise<void> => {
             if (typeof allDeps[alias] === 'undefined') {
               return;
             }

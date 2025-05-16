@@ -98,7 +98,7 @@ export function getPkgInfo(opts: GetPkgInfoOpts): PackageInfo {
 
   const fullPackagePath = depPath
     ? path.join(
-        opts.virtualStoreDir ?? '.pnpm',
+        opts.virtualStoreDir ?? '.ospm',
         depPathToFilename(depPath, opts.virtualStoreDirMaxLength),
         'node_modules',
         name

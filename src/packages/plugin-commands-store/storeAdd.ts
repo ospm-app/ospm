@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { logger, globalInfo, streamParser } from '../logger/index.ts';
 import {
   parseWantedDependency,
@@ -82,7 +82,7 @@ export async function storeAdd(
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (hasFailures) {
-    throw new PnpmError(
+    throw new OspmError(
       'STORE_ADD_FAILURE',
       'Some packages have not been added correctly'
     );

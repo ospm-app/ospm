@@ -1,6 +1,7 @@
 import type { SpawnSyncReturns } from 'node:child_process';
 import { packageManager } from './packages/cli-meta/index.ts';
-import { getConfig, types as allTypes } from './packages/config/index.ts';
+import { getConfig } from './packages/config/index.ts';
+import { types as allTypes } from './packages/config/types.ts';
 import { runNpm as _runNpm } from './packages/run-npm/index.ts';
 import pick from 'ramda/src/pick';
 

@@ -55,7 +55,7 @@ export function buildCommandNotFoundHint(
   const nearestCommand = getNearestScript(scriptName, scripts);
 
   if (typeof nearestCommand === 'string') {
-    hint += ` Did you mean "pnpm run ${nearestCommand}"?`;
+    hint += ` Did you mean "ospm run ${nearestCommand}"?`;
   }
 
   return hint;

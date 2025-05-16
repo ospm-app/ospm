@@ -2,12 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createGzip } from 'node:zlib';
 import type { Catalogs } from '../catalogs.types/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
+import type {
+  UniversalOptions,
+  Config,
+} from '../config/index.ts';
 import {
   types as allTypes,
-  type UniversalOptions,
-  type Config,
-} from '../config/index.ts';
+} from '../config/types.ts';
 import { readProjectManifest } from '../cli-utils/index.ts';
 import { createExportableManifest } from '../exportable-manifest/index.ts';
 import { packlist } from '../fs.packlist/index.ts';
@@ -44,7 +46,7 @@ export const commandNames = ['pack'];
 export function help(): string {
   return renderHelp({
     description: 'Create a tarball from a package',
-    usages: ['pnpm pack'],
+    usages: ['ospm pack'],
     descriptionLists: [
       {
         title: 'Options',
@@ -52,7 +54,7 @@ export function help(): string {
         list: [
           {
             description:
-              'Directory in which `pnpm pack` will save tarballs. The default is the current working directory.',
+              'Directory in which `ospm pack` will save tarballs. The default is the current working directory.',
             name: '--pack-destination <dir>',
           },
           {
@@ -148,21 +150,21 @@ export async function api(opts: PackOptions): Promise<PackResult> {
   preventBundledDependenciesWithoutHoistedNodeLinker(opts.nodeLinker, manifest);
 
   if (!manifest.name) {
-    throw new PnpmError(
+    throw new OspmError(
       'PACKAGE_NAME_NOT_FOUND',
       `Package name is not defined in the ${manifestFileName}.`
     );
   }
 
   if (!validateNpmPackageName(manifest.name).validForOldPackages) {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_PACKAGE_NAME',
       `Invalid package name "${manifest.name}".`
     );
   }
 
   if (!manifest.version) {
-    throw new PnpmError(
+    throw new OspmError(
       'PACKAGE_VERSION_NOT_FOUND',
       `Package version is not defined in the ${manifestFileName}.`
     );
@@ -176,7 +178,7 @@ export async function api(opts: PackOptions): Promise<PackResult> {
 
   if (typeof opts.out === 'string') {
     if (typeof opts.packDestination === 'string') {
-      throw new PnpmError(
+      throw new OspmError(
         'INVALID_OPTION',
         'Cannot use --pack-destination and --out together'
       );
@@ -298,7 +300,7 @@ function preventBundledDependenciesWithoutHoistedNodeLinker(
     const bundledDependencies = manifest[key];
 
     if (typeof bundledDependencies !== 'undefined') {
-      throw new PnpmError(
+      throw new OspmError(
         'BUNDLED_DEPENDENCIES_WITHOUT_HOISTED',
         `${key} does not work with node-linker=${nodeLinker}`,
         {
