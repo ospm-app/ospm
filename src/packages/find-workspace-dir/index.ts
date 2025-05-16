@@ -1,16 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { findUp } from 'find-up';
 import process from 'node:process';
 import type { WorkspaceDir } from '../types/project.ts';
 
 const WORKSPACE_DIR_ENV_VAR = 'NPM_CONFIG_WORKSPACE_DIR';
-const WORKSPACE_MANIFEST_FILENAME = 'pnpm-workspace.yaml';
+const WORKSPACE_MANIFEST_FILENAME = 'ospm-workspace.yaml';
 const INVALID_WORKSPACE_MANIFEST_FILENAME = [
-  'pnpm-workspaces.yaml',
-  'pnpm-workspaces.yml',
-  'pnpm-workspace.yml',
+  'ospm-workspaces.yaml',
+  'ospm-workspaces.yml',
+  'ospm-workspace.yml',
 ];
 
 export async function findWorkspaceDir(
@@ -32,9 +32,9 @@ export async function findWorkspaceDir(
     typeof workspaceManifestLocation === 'string' &&
     path.basename(workspaceManifestLocation) !== WORKSPACE_MANIFEST_FILENAME
   ) {
-    throw new PnpmError(
+    throw new OspmError(
       'BAD_WORKSPACE_MANIFEST_NAME',
-      `The workspace manifest file should be named "pnpm-workspace.yaml". File found: ${workspaceManifestLocation}`
+      `The workspace manifest file should be named "ospm-workspace.yaml". File found: ${workspaceManifestLocation}`
     );
   }
 

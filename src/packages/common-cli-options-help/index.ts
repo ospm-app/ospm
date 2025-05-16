@@ -24,7 +24,7 @@ export const OPTIONS = {
   },
   virtualStoreDir: {
     description:
-      'The directory with links to the store (default is node_modules/.pnpm). All direct and indirect dependencies of the project are linked into this directory',
+      'The directory with links to the store (default is node_modules/.ospm). All direct and indirect dependencies of the project are linked into this directory',
     name: '--virtual-store-dir <dir>',
   },
 };
@@ -62,7 +62,7 @@ export const UNIVERSAL_OPTIONS = [
   },
   {
     description:
-      'Aggregate output from child processes that are run in parallel, and only print output when child process is finished. It makes reading large logs after running `pnpm recursive` with `--parallel` or with `--workspace-concurrency` much easier (especially on CI). Only `--reporter=append-only` is supported.',
+      'Aggregate output from child processes that are run in parallel, and only print output when child process is finished. It makes reading large logs after running `ospm recursive` with `--parallel` or with `--workspace-concurrency` much easier (especially on CI). Only `--reporter=append-only` is supported.',
     name: '--aggregate-output',
   },
   {
@@ -119,17 +119,17 @@ export const FILTERING = {
     },
     {
       description:
-        'If a selector starts with ! (or \\! in zsh), it means the packages matching the selector must be excluded. E.g., "pnpm --filter !foo" selects all packages except "foo"',
+        'If a selector starts with ! (or \\! in zsh), it means the packages matching the selector must be excluded. E.g., "ospm --filter !foo" selects all packages except "foo"',
       name: '--filter !<selector>',
     },
     {
       description:
-        'Defines files related to tests. Useful with the changed since filter. When selecting only changed packages and their dependent packages, the dependent packages will be ignored in case a package has changes only in tests. Usage example: pnpm --filter="...[origin/master]" --test-pattern="test/*" test',
+        'Defines files related to tests. Useful with the changed since filter. When selecting only changed packages and their dependent packages, the dependent packages will be ignored in case a package has changes only in tests. Usage example: ospm --filter="...[origin/master]" --test-pattern="test/*" test',
       name: '--test-pattern <pattern>',
     },
     {
       description:
-        'Defines files to ignore when filtering for changed projects since the specified commit/branch. Usage example: pnpm --filter="...[origin/master]" --changed-files-ignore-pattern="**/README.md" build',
+        'Defines files to ignore when filtering for changed projects since the specified commit/branch. Usage example: ospm --filter="...[origin/master]" --changed-files-ignore-pattern="**/README.md" build',
       name: '--changed-files-ignore-pattern <pattern>',
     },
     {

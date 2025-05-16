@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type { VersionSelectors } from '../resolver-base/index.ts';
 import semver from 'semver';
 import util from 'node:util';
@@ -26,12 +26,12 @@ export function pickPackageFromMeta(
     // Unfortunately, the npm registry doesn't return the time field in the abbreviated metadata.
     // So we won't always know if the package was unpublished.
     if ((meta.time?.unpublished?.versions.length ?? 0) > 0) {
-      throw new PnpmError(
+      throw new OspmError(
         'UNPUBLISHED_PKG',
         `No versions available for ${spec.name} because it was unpublished`
       );
     }
-    throw new PnpmError(
+    throw new OspmError(
       'NO_VERSIONS',
       `No versions available for ${spec.name}. The package may be unpublished.`
     );
@@ -72,11 +72,11 @@ export function pickPackageFromMeta(
       util.types.isNativeError(err) &&
       'code' in err &&
       typeof err.code === 'string' &&
-      err.code.startsWith('ERR_PNPM_')
+      err.code.startsWith('ERR_OSPM_')
     ) {
       throw err;
     }
-    throw new PnpmError(
+    throw new OspmError(
       'MALFORMED_METADATA',
       `Received malformed metadata for "${spec.name}"`,
       {
@@ -188,7 +188,7 @@ export function pickVersionByVersionRange(
 
   if (publishedBy) {
     if (meta.time == null) {
-      throw new PnpmError(
+      throw new OspmError(
         'MISSING_TIME',
         `The metadata of ${meta.name} is missing the "time" field`
       );

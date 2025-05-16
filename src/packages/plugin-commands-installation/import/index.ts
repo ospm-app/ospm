@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { docsUrl } from '../../cli-utils/index.ts';
 import { WANTED_LOCKFILE } from '../../constants/index.ts';
-import { PnpmError } from '../../error/index.ts';
+import { OspmError } from '../../error/index.ts';
 import { readProjectManifestOnly } from '../../read-project-manifest/index.ts';
 import {
   createOrConnectStoreController,
@@ -10,7 +10,7 @@ import {
 } from '../../store-connection-manager/index.ts';
 import gfs from '../../graceful-fs/index.ts';
 import { install, type InstallOptions } from '../../core/index.ts';
-import { type Config, getOptionsFromRootManifest } from '../../config/index.ts';
+import type { Config } from '../../config/index.ts';
 import { findWorkspacePackages } from '../../workspace.find-packages/index.ts';
 import type { ProjectsGraph, Project } from '../../types/index.ts';
 import { logger } from '../../logger/index.ts';
@@ -24,6 +24,7 @@ import * as yarnCore from '@yarnpkg/core';
 import { parseSyml } from '@yarnpkg/parsers';
 import { recursive } from '../recursive.ts';
 import { yarnLockFileKeyNormalizer } from './yarnUtil.ts';
+import { getOptionsFromRootManifest } from '../../config/getOptionsFromRootManifest.ts';
 
 type NpmPackageLock = {
   dependencies: LockedPackagesMap;
@@ -87,7 +88,7 @@ export function help(): string {
   return renderHelp({
     description: `Generates ${WANTED_LOCKFILE} from an npm package-lock.json (or npm-shrinkwrap.json, yarn.lock) file.`,
     url: docsUrl('import'),
-    usages: ['pnpm import'],
+    usages: ['ospm import'],
   });
 }
 
@@ -116,7 +117,7 @@ export async function handler(
   opts: ImportCommandOptions,
   params: string[]
 ): Promise<void> {
-  // Removing existing pnpm lockfile
+  // Removing existing ospm lockfile
   // it should not influence the new one
   await rimraf(path.join(opts.dir, WANTED_LOCKFILE));
   const versionsByPackageNames = {};
@@ -135,7 +136,7 @@ export async function handler(
       getAllVersionsByPackageNames(npmPackageLock, versionsByPackageNames);
     }
   } else {
-    throw new PnpmError('LOCKFILE_NOT_FOUND', 'No lockfile found');
+    throw new OspmError('LOCKFILE_NOT_FOUND', 'No lockfile found');
   }
   preferredVersions = getPreferredVersions(versionsByPackageNames);
 
@@ -162,7 +163,7 @@ export async function handler(
             : '';
 
         if (opts.disallowWorkspaceCycles === true) {
-          throw new PnpmError(
+          throw new OspmError(
             'DISALLOW_WORKSPACE_CYCLES',
             `There are cyclic workspace dependencies${cyclicDependenciesInfo}`
           );
@@ -180,7 +181,7 @@ export async function handler(
         {
           ...opts,
           lockfileDir: opts.lockfileDir,
-          pnpmfile: opts.pnpmfile ?? '',
+          ospmfile: opts.ospmfile ?? '',
           lockfileOnly: true,
           registries: opts.registries ?? {
             default: 'https://registry.npmjs.org/',
@@ -244,7 +245,7 @@ async function readYarnLockFile(dir: string): Promise<LockFileObject> {
         return lockJsonFile.object;
       }
 
-      throw new PnpmError(
+      throw new OspmError(
         'YARN_LOCKFILE_PARSE_FAILED',
         `Yarn.lock file was ${lockJsonFile.type}`
       );
@@ -266,7 +267,7 @@ async function readYarnLockFile(dir: string): Promise<LockFileObject> {
     }
   }
 
-  throw new PnpmError('YARN_LOCKFILE_NOT_FOUND', 'No yarn.lock found');
+  throw new OspmError('YARN_LOCKFILE_NOT_FOUND', 'No yarn.lock found');
 }
 
 function parseYarn2Lock(lockFileContents: string): YarnLock2Struct {
@@ -320,7 +321,7 @@ async function readNpmLockfile(dir: string): Promise<LockedPackage> {
     }
   }
 
-  throw new PnpmError(
+  throw new OspmError(
     'NPM_LOCKFILE_NOT_FOUND',
     'No package-lock.json or npm-shrinkwrap.json found'
   );

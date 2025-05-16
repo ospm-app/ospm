@@ -6,7 +6,7 @@ import {
 import { prompt } from 'enquirer';
 import { readCurrentLockfile } from '../lockfile.fs/index.ts';
 import { nameVerFromPkgSnapshot } from '../lockfile.utils/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { readModulesManifest } from '../modules-yaml/index.ts';
 import { isGitHostedPkgUrl } from '../pick-fetcher/index.ts';
 import realpathMissing from 'realpath-missing';
@@ -36,7 +36,7 @@ export async function getPatchedDependency(
   );
 
   if (!preferredVersions.length) {
-    throw new PnpmError(
+    throw new OspmError(
       'PATCH_VERSION_NOT_FOUND',
       `Can not find ${rawDependency} in project ${opts.lockfileDir}, ${versions.length ? `you can specify currently installed version: ${versions.map(({ version }) => version).join(', ')}.` : `did you forget to install ${rawDependency}?`}`
     );
@@ -104,14 +104,14 @@ export async function getPatchedDependency(
   };
 }
 
-export interface LockfileVersion {
-  gitTarballUrl?: string;
+export type LockfileVersion = {
+  gitTarballUrl?: string | undefined;
   name: string;
-  peersSuffix?: string;
+  peersSuffix?: string | undefined;
   version: string;
 }
 
-export interface LockfileVersionsList {
+export type LockfileVersionsList = {
   versions: LockfileVersion[];
   preferredVersions: LockfileVersion[];
 }
@@ -135,11 +135,11 @@ export async function getVersionsFromLockfile(
 
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (!lockfile) {
-    throw new PnpmError(
+    throw new OspmError(
       'PATCH_NO_LOCKFILE',
       'The modules directory is not ready for patching',
       {
-        hint: 'Run pnpm install first',
+        hint: 'Run ospm install first',
       }
     );
   }

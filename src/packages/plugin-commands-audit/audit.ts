@@ -9,13 +9,15 @@ import {
 } from '../audit/index.ts';
 import { createGetAuthHeaderByURI } from '../network.auth-header/index.ts';
 import { docsUrl, TABLE_OPTIONS } from '../cli-utils/index.ts';
-import {
-  type Config,
-  types as allTypes,
-  type UniversalOptions,
+import type {
+  Config,
+  UniversalOptions,
 } from '../config/index.ts';
+import {
+  types as allTypes,
+} from '../config/types.ts';
 import { WANTED_LOCKFILE } from '../constants/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { readWantedLockfile } from '../lockfile.fs/index.ts';
 import type { LockFileDir, Registries } from '../types/index.ts';
 import { table } from '@zkochan/table';
@@ -121,7 +123,7 @@ export function help(): string {
       },
     ],
     url: docsUrl('audit'),
-    usages: ['pnpm audit [options]'],
+    usages: ['ospm audit [options]'],
   });
 }
 
@@ -165,7 +167,7 @@ export async function handler(
   });
 
   if (lockfile == null) {
-    throw new PnpmError(
+    throw new OspmError(
       'AUDIT_NO_LOCKFILE',
       `No ${WANTED_LOCKFILE} found: Cannot audit a project without a lockfile`
     );
@@ -235,7 +237,7 @@ export async function handler(
     return {
       exitCode: 0,
       output: `${Object.values(newOverrides).length} overrides were added to package.json to fix vulnerabilities.
-Run "pnpm install" to apply the fixes.
+Run "ospm install" to apply the fixes.
 
 The added overrides:
 ${JSON.stringify(newOverrides, null, 2)}`,
@@ -256,7 +258,7 @@ ${JSON.stringify(newOverrides, null, 2)}`,
     0
   );
 
-  const ignoreGhsas = opts.rootProjectManifest?.pnpm?.auditConfig?.ignoreGhsas;
+  const ignoreGhsas = opts.rootProjectManifest?.ospm?.auditConfig?.ignoreGhsas;
 
   if (ignoreGhsas) {
     auditReport.advisories = pickBy.default(
@@ -273,7 +275,7 @@ ${JSON.stringify(newOverrides, null, 2)}`,
     );
   }
 
-  const ignoreCves = opts.rootProjectManifest?.pnpm?.auditConfig?.ignoreCves;
+  const ignoreCves = opts.rootProjectManifest?.ospm?.auditConfig?.ignoreCves;
 
   if (ignoreCves) {
     auditReport.advisories = pickBy.default(({ cves, severity }): boolean => {
@@ -328,7 +330,7 @@ ${JSON.stringify(newOverrides, null, 2)}`,
             ? paths
                 .slice(0, MAX_PATHS_COUNT)
                 .concat([
-                  `... Found ${paths.length} paths, run \`pnpm why ${advisory.module_name}\` for more information`,
+                  `... Found ${paths.length} paths, run \`ospm why ${advisory.module_name}\` for more information`,
                 ])
             : paths
           ).join('\n\n'),

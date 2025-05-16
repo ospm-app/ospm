@@ -7,5 +7,5 @@ export type UpdateCheckMessage = {
   latestVersion: string;
 };
 
-export type UpdateCheckLog = { name: 'pnpm:update-check' } & LogBase &
+export type UpdateCheckLog = { name: 'ospm:update-check' } & LogBase &
   UpdateCheckMessage;

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { docsUrl } from '../cli-utils/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
+import { type Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
 import {
   FULL_FILTERED_META_DIR,
   ABBREVIATED_META_DIR,
@@ -14,7 +15,7 @@ import {
   cacheDelete,
   cacheListRegistries,
 } from '../cache.api/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 
 export const rcOptionsTypes = cliOptionsTypes;
 
@@ -57,7 +58,7 @@ export function help(): string {
       },
     ],
     url: docsUrl('cache'),
-    usages: ['pnpm cache <command>'],
+    usages: ['ospm cache <command>'],
   });
 }
 
@@ -65,7 +66,7 @@ export type CacheCommandOptions = Pick<
   Config,
   | 'cacheDir'
   | 'storeDir'
-  | 'pnpmHomeDir'
+  | 'ospmHomeDir'
   | 'cliOptions'
   | 'resolutionMode'
   | 'registrySupportsTimeField'
@@ -115,23 +116,23 @@ export async function handler(
 
     case 'view': {
       if (typeof params[1] === 'undefined') {
-        throw new PnpmError(
+        throw new OspmError(
           'MISSING_PACKAGE_NAME',
-          '`pnpm cache view` requires the package name'
+          '`ospm cache view` requires the package name'
         );
       }
 
       if (params.length > 2) {
-        throw new PnpmError(
+        throw new OspmError(
           'TOO_MANY_PARAMS',
-          '`pnpm cache view` only accepts one package name'
+          '`ospm cache view` only accepts one package name'
         );
       }
 
       const storeDir = await getStorePath({
         pkgRoot: process.cwd(),
         storePath: opts.storeDir,
-        pnpmHomeDir: opts.pnpmHomeDir,
+        ospmHomeDir: opts.ospmHomeDir,
       });
 
       return cacheView(

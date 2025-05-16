@@ -10,7 +10,7 @@ export async function fix(
 
   const vulnOverrides = createOverrides(
     Object.values(auditReport.advisories),
-    manifest.pnpm?.auditConfig?.ignoreCves
+    manifest.ospm?.auditConfig?.ignoreCves
   );
 
   if (Object.values(vulnOverrides).length === 0) {
@@ -19,10 +19,10 @@ export async function fix(
 
   await writeProjectManifest({
     ...manifest,
-    pnpm: {
-      ...manifest.pnpm,
+    ospm: {
+      ...manifest.ospm,
       overrides: {
-        ...manifest.pnpm?.overrides,
+        ...manifest.ospm?.overrides,
         ...vulnOverrides,
       },
     },

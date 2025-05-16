@@ -109,7 +109,7 @@ export function initDefaultReporter(opts: {
     let newView = view;
     // A new line should always be appended in case a prompt needs to appear.
     // Without a new line the prompt will be joined with the previous output.
-    // An example of such prompt may be seen by running: pnpm update --interactive
+    // An example of such prompt may be seen by running: ospm update --interactive
     if (!newView.endsWith(EOL)) {
       newView += EOL;
     }
@@ -175,79 +175,80 @@ export function toOutput$(opts: {
   const scopePushStream = new Rx.Subject<logs.ScopeLog>();
   const requestRetryPushStream = new Rx.Subject<logs.RequestRetryLog>();
   const updateCheckPushStream = new Rx.Subject<logs.UpdateCheckLog>();
-  setTimeout(() => {
-    opts.streamParser.on('data', (log: logs.Log) => {
+
+  globalThis.setTimeout((): void => {
+    opts.streamParser.on('data', (log: logs.Log): void => {
       switch (log.name) {
-        case 'pnpm:context':
+        case 'ospm:context':
           contextPushStream.next(log);
           break;
-        case 'pnpm:execution-time':
+        case 'ospm:execution-time':
           executionTimePushStream.next(log);
           break;
-        case 'pnpm:fetching-progress':
+        case 'ospm:fetching-progress':
           fetchingProgressPushStream.next(log);
           break;
-        case 'pnpm:progress':
+        case 'ospm:progress':
           progressPushStream.next(log);
           break;
-        case 'pnpm:stage':
+        case 'ospm:stage':
           stagePushStream.next(log);
           break;
-        case 'pnpm:deprecation':
+        case 'ospm:deprecation':
           deprecationPushStream.next(log);
           break;
-        case 'pnpm:summary':
+        case 'ospm:summary':
           summaryPushStream.next(log);
           break;
-        case 'pnpm:lifecycle':
+        case 'ospm:lifecycle':
           lifecyclePushStream.next(log);
           break;
-        case 'pnpm:stats':
+        case 'ospm:stats':
           statsPushStream.next(log);
           break;
-        case 'pnpm:package-import-method':
+        case 'ospm:package-import-method':
           packageImportMethodPushStream.next(log);
           break;
-        case 'pnpm:peer-dependency-issues':
+        case 'ospm:peer-dependency-issues':
           peerDependencyIssuesPushStream.next(log);
           break;
-        case 'pnpm:install-check':
+        case 'ospm:install-check':
           installCheckPushStream.next(log);
           break;
-        case 'pnpm:ignored-scripts':
+        case 'ospm:ignored-scripts':
           ignoredScriptsPushStream.next(log);
           break;
-        case 'pnpm:registry':
+        case 'ospm:registry':
           registryPushStream.next(log);
           break;
-        case 'pnpm:root':
+        case 'ospm:root':
           rootPushStream.next(log);
           break;
-        case 'pnpm:package-manifest':
+        case 'ospm:package-manifest':
           packageManifestPushStream.next(log);
           break;
-        case 'pnpm:link':
+        case 'ospm:link':
           linkPushStream.next(log);
           break;
-        case 'pnpm:hook':
+        case 'ospm:hook':
           hookPushStream.next(log);
           break;
-        case 'pnpm:skipped-optional-dependency':
+        case 'ospm:skipped-optional-dependency':
           skippedOptionalDependencyPushStream.next(log);
           break;
-        case 'pnpm:scope':
+        case 'ospm:scope':
           scopePushStream.next(log);
           break;
-        case 'pnpm:request-retry':
+        case 'ospm:request-retry':
           requestRetryPushStream.next(log);
           break;
-        case 'pnpm:update-check':
+        case 'ospm:update-check':
           updateCheckPushStream.next(log);
           break;
-        case 'pnpm' as any: // eslint-disable-line
-        case 'pnpm:global' as any: // eslint-disable-line
-        case 'pnpm:store' as any: // eslint-disable-line
-        case 'pnpm:lockfile' as any: // eslint-disable-line
+        case 'ospm' as any: // eslint-disable-line
+        case 'ospm:global' as any: // eslint-disable-line
+        case 'ospm:store' as any: // eslint-disable-line
+        case 'ospm:lockfile' as any: // eslint-disable-line
           otherPushStream.next(log);
           break;
       }
@@ -309,7 +310,7 @@ export function toOutput$(opts: {
       process: opts.context.process ?? process,
       isRecursive: opts.context.config?.['recursive'] === true,
       logLevel: opts.reportingOptions?.logLevel,
-      pnpmConfig: opts.context.config,
+      ospmConfig: opts.context.config,
       streamLifecycleOutput: opts.reportingOptions?.streamLifecycleOutput,
       aggregateOutput: opts.reportingOptions?.aggregateOutput,
       throttleProgress: opts.reportingOptions?.throttleProgress,

@@ -1,10 +1,10 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type { SupportedArchitectures } from '../types/index.ts';
 import { familySync as getLibcFamilySync } from 'detect-libc';
 
 const currentLibc = getLibcFamilySync() ?? 'unknown';
 
-export class UnsupportedPlatformError extends PnpmError {
+export class UnsupportedPlatformError extends OspmError {
   wanted: WantedPlatform;
   current: Platform;
 

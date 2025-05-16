@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { logger as createLogger } from '../logger/index.ts';
 import { readModulesManifest } from '../modules-yaml/index.ts';
 import normalizePath from 'normalize-path';
@@ -35,7 +35,7 @@ export async function syncInjectedDeps(
   }
 
   if (typeof opts.workspaceDir !== 'string') {
-    throw new PnpmError(
+    throw new OspmError(
       'NO_WORKSPACE_DIR',
       'Cannot update injected dependencies without workspace dir'
     );

@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 
 type ActionFailure = {
   status: 'failure';
@@ -43,7 +43,7 @@ export type RecursiveSummary = Record<
   ActionPassed | ActionQueued | ActionRunning | ActionSkipped | ActionFailure
 >;
 
-class RecursiveFailError extends PnpmError {
+class RecursiveFailError extends OspmError {
   readonly failures: ActionFailure[];
   readonly passes: number;
 

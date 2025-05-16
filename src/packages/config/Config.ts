@@ -21,7 +21,7 @@ export type UniversalOptions = Pick<
   'color' | 'dir' | 'rawConfig' | 'rawLocalConfig'
 >;
 
-export interface WantedPackageManager {
+export type WantedPackageManager = {
   name: string;
   version?: string | undefined;
 }
@@ -62,7 +62,7 @@ export interface Config extends OptionsFromRootManifest {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rawLocalConfig: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rawConfig: Record<string, any>;
+  rawConfig: Record<string, string>;
   dryRun?: boolean | undefined; // This option might be not supported ever
   global?: boolean | undefined;
   dir:
@@ -87,8 +87,8 @@ export interface Config extends OptionsFromRootManifest {
   lockfileIncludeTarballUrl?: boolean | undefined;
   scriptShell?: string | undefined;
   stream?: boolean | undefined;
-  pnpmExecPath: string;
-  pnpmHomeDir: string;
+  ospmExecPath: string;
+  ospmHomeDir: string;
   production?: boolean | undefined;
   fetchRetries?: number | undefined;
   fetchRetryFactor?: number | undefined;
@@ -154,7 +154,7 @@ export interface Config extends OptionsFromRootManifest {
   tag?: string | undefined;
   updateNotifier?: boolean | undefined;
 
-  // pnpm specific configs
+  // ospm specific configs
   cacheDir: string;
   configDir: string;
   stateDir: string;
@@ -166,8 +166,8 @@ export interface Config extends OptionsFromRootManifest {
   fetchingConcurrency?: number | undefined;
   lockfileOnly?: boolean | undefined; // like npm's --package-lock-only
   childConcurrency?: number | undefined;
-  ignorePnpmfile?: boolean | undefined;
-  pnpmfile: string;
+  ignoreOspmfile?: boolean | undefined;
+  ospmfile: string;
   hooks?: CookedHooks | undefined;
   packageImportMethod?:
     | 'auto'
@@ -200,7 +200,7 @@ export interface Config extends OptionsFromRootManifest {
   useGitBranchLockfile: boolean;
   mergeGitBranchLockfiles?: boolean | undefined;
   mergeGitBranchLockfilesBranchPattern?: string[] | undefined;
-  globalPnpmfile?: string | undefined;
+  globalOspmfile?: string | undefined;
   npmPath?: string | undefined;
   gitChecks?: boolean | undefined;
   publishBranch?: string | undefined;

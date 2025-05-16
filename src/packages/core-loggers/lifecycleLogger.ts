@@ -34,5 +34,5 @@ export type LifecycleMessage =
   | ExitLifecycleMessage
   | ScriptLifecycleMessage;
 
-export type LifecycleLog = { name: 'pnpm:lifecycle' } & LogBase &
+export type LifecycleLog = { name: 'ospm:lifecycle' } & LogBase &
   LifecycleMessage;

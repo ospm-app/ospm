@@ -1,6 +1,6 @@
 import path from 'node:path';
 import getNpmTarballUrl from 'get-npm-tarball-url';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { pickRegistryForPackage } from '../pick-registry-for-package/index.ts';
 import { readModulesDir } from '../read-modules-dir/index.ts';
 import rimraf from '@zkochan/rimraf';
@@ -31,7 +31,7 @@ export async function installConfigDeps<IP>(
     store: StoreController<PackageResponse, PackageResponse, IP>;
   }
 ): Promise<void> {
-  const configModulesDir = path.join(opts.rootDir, 'node_modules/.pnpm-config');
+  const configModulesDir = path.join(opts.rootDir, 'node_modules/.ospm-config');
 
   const existingConfigDeps: string[] =
     (await readModulesDir(configModulesDir)) ?? [];
@@ -52,20 +52,21 @@ export async function installConfigDeps<IP>(
         const sepIndex = pkgSpec.indexOf('+');
 
         if (sepIndex === -1) {
-          throw new PnpmError(
+          throw new OspmError(
             'CONFIG_DEP_NO_INTEGRITY',
-            `Your config dependency called "${pkgName}" at "pnpm.configDependencies" doesn't have an integrity checksum`,
+            `Your config dependency called "${pkgName}" at "ospm.configDependencies" doesn't have an integrity checksum`,
             {
               hint: `
-  All config dependencies should have their integrity checksum inlined in the version specifier. For example:
+                All config dependencies should have their integrity checksum inlined in the version specifier. For example:
 
-  {
-    "pnpm": {
-      "configDependencies": {
-        "my-config": "1.0.0+sha512-Xg0tn4HcfTijTwfDwYlvVCl43V6h4KyVVX2aEm4qdO/PC6L2YvzLHFdmxhoeSA3eslcE6+ZVXHgWwopXYLNq4Q=="
-      },
-    }
-  }`,
+                {
+                  "ospm": {
+                    "configDependencies": {
+                      "my-config": "1.0.0+sha512-Xg0tn4HcfTijTwfDwYlvVCl43V6h4KyVVX2aEm4qdO/PC6L2YvzLHFdmxhoeSA3eslcE6+ZVXHgWwopXYLNq4Q=="
+                    },
+                  }
+                }
+              `,
             }
           );
         }

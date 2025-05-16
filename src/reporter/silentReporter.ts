@@ -9,7 +9,7 @@ export function silentReporter(streamParser: {
     }
 
     // Known errors are not printed;
-    if (obj.err?.code?.startsWith('ERR_PNPM_') === true) {
+    if (obj.err?.code?.startsWith('ERR_OSPM_') === true) {
       return;
     }
 

@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type {
   FetchFromRegistry,
   GetAuthHeader,
@@ -30,15 +30,15 @@ export type {
 export function createResolver(
   fetchFromRegistry: FetchFromRegistry,
   getAuthHeader: GetAuthHeader,
-  pnpmOpts: ResolverFactoryOptions
+  ospmOpts: ResolverFactoryOptions
 ): { resolve: ResolveFunction; clearCache: () => void } {
   const { resolveFromNpm, clearCache } = createNpmResolver(
     fetchFromRegistry,
     getAuthHeader,
-    pnpmOpts
+    ospmOpts
   );
 
-  const resolveFromGit = createGitResolver(pnpmOpts);
+  const resolveFromGit = createGitResolver(ospmOpts);
 
   return {
     resolve: async (
@@ -60,7 +60,7 @@ export function createResolver(
             ))));
 
       if (resolution === false || resolution === null) {
-        throw new PnpmError(
+        throw new OspmError(
           'SPEC_NOT_SUPPORTED_BY_ANY_RESOLVER',
           `${typeof wantedDependency.alias === 'string' ? `${wantedDependency.alias}@` : ''}${wantedDependency.pref} isn't supported by any available resolver.`
         );

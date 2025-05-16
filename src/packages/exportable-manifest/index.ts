@@ -4,7 +4,7 @@ import {
   resolveFromCatalog,
 } from '../catalogs.resolver/index.ts';
 import type { Catalogs } from '../catalogs.types/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { tryReadProjectManifest } from '../read-project-manifest/index.ts';
 import type { Dependencies, ProjectManifest } from '../types/index.ts';
 import omit from 'ramda/src/omit';
@@ -32,9 +32,10 @@ export async function createExportableManifest(
   opts: MakePublishManifestOptions
 ): Promise<ProjectManifest> {
   const publishManifest: ProjectManifest = omit.default(
-    ['pnpm', 'scripts', 'packageManager'],
+    ['ospm', 'scripts', 'packageManager'],
     originalManifest
   );
+
   if (originalManifest.scripts != null) {
     publishManifest.scripts = omit.default(
       PREPUBLISH_SCRIPTS,
@@ -76,11 +77,13 @@ export async function createExportableManifest(
   );
 
   const peerDependencies = originalManifest.peerDependencies;
-  if (peerDependencies) {
+
+  if (typeof peerDependencies !== 'undefined') {
     const convertPeersForPublish = combineConverters(
       replaceWorkspaceProtocolPeerDependency,
       replaceCatalogProtocol
     );
+
     publishManifest.peerDependencies = await makePublishDependencies(
       dir,
       peerDependencies,
@@ -140,13 +143,12 @@ async function makePublishDependencies(
     return dependencies;
   }
 
-  const publishDependencies = await pMapValues.default(
+  return await pMapValues.default(
     async (depSpec: string, depName: string): Promise<string> => {
       return convertDependencyForPublish(depName, depSpec, dir, modulesDir);
     },
     dependencies
   );
-  return publishDependencies;
 }
 
 async function readAndCheckManifest(
@@ -156,9 +158,9 @@ async function readAndCheckManifest(
   const { manifest } = await tryReadProjectManifest(dependencyDir);
 
   if (typeof manifest?.name === 'undefined' || !manifest.version) {
-    throw new PnpmError(
+    throw new OspmError(
       'CANNOT_RESOLVE_WORKSPACE_PROTOCOL',
-      `Cannot resolve workspace protocol of dependency "${depName}" because this dependency is not installed. Try running "pnpm install".`
+      `Cannot resolve workspace protocol of dependency "${depName}" because this dependency is not installed. Try running "ospm install".`
     );
   }
 

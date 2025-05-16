@@ -12,7 +12,7 @@ export function reporterForServer(
     complete: () => undefined,
     error: () => undefined,
     next(log) {
-      if (log.name === 'pnpm:fetching-progress') {
+      if (log.name === 'ospm:fetching-progress') {
         console.info(
           `${chalk.cyan(`fetching_${log.status}`)} ${log.packageId}`
         );

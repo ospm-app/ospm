@@ -3,9 +3,9 @@ import {
   readProjectManifestOnly,
   tryReadProjectManifest,
 } from '../cli-utils/index.ts';
-import { type Config, getOptionsFromRootManifest } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
 import { checkDepsStatus } from '../deps.status/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { arrayOfWorkspacePackagesToMap } from '../get-context/index.ts';
 import { filterPkgsBySelectorObjects } from '../filter-workspace-packages/index.ts';
 import { filterDependenciesByType } from '../manifest-utils/index.ts';
@@ -60,6 +60,7 @@ import {
 } from './updateWorkspaceDependencies.ts';
 import { installConfigDeps } from './installConfigDeps.ts';
 import type { Catalog } from '../catalogs.types/index.ts';
+import { getOptionsFromRootManifest } from '../config/getOptionsFromRootManifest.ts';
 
 const OVERWRITE_UPDATE_OPTIONS = {
   allowNew: true,
@@ -81,16 +82,16 @@ export type InstallDepsOptions = Pick<
   | 'engineStrict'
   | 'excludeLinksFromLockfile'
   | 'global'
-  | 'globalPnpmfile'
+  | 'globalOspmfile'
   | 'hooks'
   | 'ignoreCurrentPrefs'
-  | 'ignorePnpmfile'
+  | 'ignoreOspmfile'
   | 'ignoreScripts'
   | 'optimisticRepeatInstall'
   | 'linkWorkspacePackages'
   | 'lockfileDir'
   | 'lockfileOnly'
-  | 'pnpmfile'
+  | 'ospmfile'
   | 'production'
   | 'preferWorkspacePackages'
   | 'rawLocalConfig'
@@ -158,7 +159,7 @@ export type InstallDepsOptions = Pick<
     includeOnlyPackageFiles?: boolean | undefined;
     prepareExecutionEnv: PrepareExecutionEnv;
     fetchFullMetadata?: boolean | undefined;
-  } & Partial<Pick<Config, 'pnpmHomeDir' | 'strictDepBuilds'>>;
+  } & Partial<Pick<Config, 'ospmHomeDir' | 'strictDepBuilds'>>;
 
 export async function installDeps(
   opts: InstallDepsOptions,
@@ -184,13 +185,13 @@ export async function installDeps(
   }
   if (opts.workspace === true) {
     if (opts.latest === true) {
-      throw new PnpmError(
+      throw new OspmError(
         'BAD_OPTIONS',
         'Cannot use --latest with --workspace simultaneously'
       );
     }
     if (typeof opts.workspaceDir === 'undefined') {
-      throw new PnpmError(
+      throw new OspmError(
         'WORKSPACE_OPTION_OUTSIDE_WORKSPACE',
         '--workspace can only be used inside a workspace'
       );
@@ -202,7 +203,7 @@ export async function installDeps(
         typeof opts.saveWorkspaceProtocol === 'undefined')
     ) {
       if (opts.rawLocalConfig['save-workspace-protocol'] === false) {
-        throw new PnpmError(
+        throw new OspmError(
           'BAD_OPTIONS',
           "This workspace has link-workspace-packages turned off, \
 so dependencies are linked from the workspace only when the workspace protocol is used. \
@@ -228,7 +229,7 @@ when running add/update with the --workspace option"
     });
   }
 
-  if (opts.ignorePnpmfile !== true && !opts.hooks) {
+  if (opts.ignoreOspmfile !== true && !opts.hooks) {
     opts.hooks = requireHooks(opts.lockfileDir, opts); //  ?? opts.dir
 
     if (opts.hooks.fetchers != null || opts.hooks.importPackage != null) {
@@ -274,7 +275,7 @@ when running add/update with the --workspace option"
             : '';
 
         if (opts.disallowWorkspaceCycles === true) {
-          throw new PnpmError(
+          throw new OspmError(
             'DISALLOW_WORKSPACE_CYCLES',
             `There are cyclic workspace dependencies${cyclicDependenciesInfo}`
           );
@@ -292,7 +293,7 @@ when running add/update with the --workspace option"
         }
       );
 
-      // pnpm catalogs and dedupe-peer-dependents are features that require the
+      // ospm catalogs and dedupe-peer-dependents are features that require the
       // allProjectsGraph to contain all projects to correctly update the wanted
       // lockfile. Otherwise the wanted lockfile would be partially updated for
       // only the selected projects specified for the filtered install.
@@ -348,7 +349,7 @@ when running add/update with the --workspace option"
     }
   }
 
-  // `pnpm install ""` is going to be just `pnpm install`
+  // `ospm install ""` is going to be just `ospm install`
   newParams = newParams.filter(Boolean);
 
   const dir = opts.dir;
@@ -368,7 +369,7 @@ when running add/update with the --workspace option"
 
   if (manifest === null) {
     if (opts.update === true || newParams.length === 0) {
-      throw new PnpmError(
+      throw new OspmError(
         'NO_PKG_MANIFEST',
         `No package.json found in ${opts.dir}`
       );
@@ -390,7 +391,7 @@ when running add/update with the --workspace option"
     nodeVersion: opts.nodeVersion ?? 'system',
     lockfileDir: opts.lockfileDir, // ?? (opts.dir as LockFileDir),
     resolutionMode: opts.resolutionMode ?? 'highest',
-    userAgent: opts.userAgent ?? 'pnpm',
+    userAgent: opts.userAgent ?? 'ospm',
     saveWorkspaceProtocol:
       typeof opts.saveWorkspaceProtocol === 'undefined'
         ? false
@@ -400,7 +401,7 @@ when running add/update with the --workspace option"
     lockfileIncludeTarballUrl: opts.lockfileIncludeTarballUrl ?? false,
     lockfileOnly: opts.lockfileOnly ?? false,
     ignoreCurrentPrefs: opts.ignoreCurrentPrefs ?? false,
-    ignorePnpmfile: opts.ignorePnpmfile ?? false,
+    ignoreOspmfile: opts.ignoreOspmfile ?? false,
     shellEmulator: opts.shellEmulator ?? false,
     ignoreWorkspaceCycles: opts.ignoreWorkspaceCycles ?? false,
     disallowWorkspaceCycles: opts.disallowWorkspaceCycles ?? false,
@@ -459,13 +460,13 @@ when running add/update with the --workspace option"
     // excludeLinksFromLockfile: opts.excludeLinksFromLockfile ?? false,
     global: opts.global ?? false,
     // ignoreCurrentPrefs: opts.ignoreCurrentPrefs ?? false,
-    // ignorePnpmfile: opts.ignorePnpmfile ?? false,
+    // ignoreOspmfile: opts.ignoreOspmfile ?? false,
   } satisfies Omit<MutateModulesOptions, 'allProjects'>;
 
   if (opts.global === true) {
     const nodeExecPath = await getNodeExecPath();
 
-    if (isSubdir(opts.pnpmHomeDir, nodeExecPath)) {
+    if (isSubdir(opts.ospmHomeDir, nodeExecPath)) {
       installOpts.nodeExecPath = nodeExecPath;
     }
   }
@@ -474,7 +475,7 @@ when running add/update with the --workspace option"
 
   if (opts.update === true) {
     if (newParams.length === 0) {
-      const ignoreDeps = manifest.pnpm?.updateConfig?.ignoreDependencies;
+      const ignoreDeps = manifest.ospm?.updateConfig?.ignoreDependencies;
 
       if (typeof ignoreDeps?.length === 'number' && ignoreDeps.length > 0) {
         newParams = makeIgnorePatterns(ignoreDeps);
@@ -495,7 +496,7 @@ when running add/update with the --workspace option"
       }
 
       if (opts.depth === 0) {
-        throw new PnpmError(
+        throw new OspmError(
           'NO_PACKAGE_IN_DEPENDENCIES',
           'None of the specified packages were found in the dependencies.'
         );
@@ -551,7 +552,7 @@ when running add/update with the --workspace option"
           opts.workspaceDir ??
           (opts.lockfileDir as unknown as WorkspaceDir) ??
           (opts.dir as WorkspaceDir),
-        pnpmfileExists: opts.hooks?.calculatePnpmfileChecksum != null,
+        ospmfileExists: opts.hooks?.calculateOspmfileChecksum != null,
         filteredInstall:
           allProjects.length !==
           Object.keys(opts.selectedProjectsGraph ?? {}).length,
@@ -660,7 +661,7 @@ when running add/update with the --workspace option"
           opts.workspaceDir ??
           (opts.lockfileDir as unknown as WorkspaceDir) ??
           (opts.dir as WorkspaceDir),
-        pnpmfileExists: opts.hooks?.calculatePnpmfileChecksum != null,
+        ospmfileExists: opts.hooks?.calculateOspmfileChecksum != null,
         filteredInstall:
           allProjects.length !==
           Object.keys(opts.selectedProjectsGraph ?? {}).length,
@@ -703,7 +704,7 @@ async function recursiveInstallThenUpdateWorkspaceState(
       allProjects,
       settings: opts,
       workspaceDir: opts.workspaceDir,
-      pnpmfileExists: opts.hooks?.calculatePnpmfileChecksum != null,
+      ospmfileExists: opts.hooks?.calculateOspmfileChecksum != null,
       filteredInstall:
         allProjects.length !== Object.keys(opts.selectedProjectsGraph).length,
       configDependencies: opts.configDependencies,

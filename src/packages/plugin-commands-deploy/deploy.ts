@@ -6,7 +6,7 @@ import { createIndexedPkgImporter } from '../fs.indexed-pkg-importer/index.ts';
 import { isEmptyDirOrNothing } from '../fs.is-empty-dir-or-nothing/index.ts';
 import { install } from '../plugin-commands-installation/index.ts';
 import { FILTERING } from '../common-cli-options-help/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import rimraf from '@zkochan/rimraf';
 import renderHelp from 'render-help';
 import { deployHook } from './deployHook.ts';
@@ -29,7 +29,7 @@ export function help(): string {
   return renderHelp({
     description: 'Experimental! Deploy a package from a workspace',
     url: docsUrl('deploy'),
-    usages: ['pnpm --filter=<deployed project name> deploy <target directory>'],
+    usages: ['ospm --filter=<deployed project name> deploy <target directory>'],
     descriptionLists: [
       {
         title: 'Options',
@@ -61,7 +61,7 @@ export async function handler(
   params: string[]
 ): Promise<void> {
   if (typeof opts.workspaceDir === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'CANNOT_DEPLOY',
       'A deploy is only possible from inside a workspace'
     );
@@ -70,21 +70,21 @@ export async function handler(
   const selectedDirs = Object.keys(opts.selectedProjectsGraph ?? {});
 
   if (selectedDirs.length === 0) {
-    throw new PnpmError(
+    throw new OspmError(
       'NOTHING_TO_DEPLOY',
       'No project was selected for deployment'
     );
   }
 
   if (selectedDirs.length > 1) {
-    throw new PnpmError(
+    throw new OspmError(
       'CANNOT_DEPLOY_MANY',
       'Cannot deploy more than 1 project'
     );
   }
 
   if (params.length !== 1) {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_DEPLOY_TARGET',
       'This command requires one parameter'
     );
@@ -93,7 +93,7 @@ export async function handler(
   const deployedDir = selectedDirs[0];
 
   if (typeof deployedDir === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_DEPLOY_TARGET',
       'This command requires one parameter'
     );
@@ -102,7 +102,7 @@ export async function handler(
   const deployDirParam = params[0];
 
   if (typeof deployDirParam === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_DEPLOY_TARGET',
       'This command requires one parameter'
     );
@@ -114,7 +114,7 @@ export async function handler(
 
   if (!isEmptyDirOrNothing(deployDir)) {
     if (opts.force !== true) {
-      throw new PnpmError(
+      throw new OspmError(
         'DEPLOY_DIR_NOT_EMPTY',
         `Deploy path ${deployDir} is not empty`
       );
@@ -150,7 +150,7 @@ export async function handler(
     frozenLockfile: false,
     preferFrozenLockfile: false,
     saveLockfile: false,
-    virtualStoreDir: path.join(deployDir, 'node_modules', '.pnpm'),
+    virtualStoreDir: path.join(deployDir, 'node_modules', '.ospm'),
     modulesDir: path.relative(
       deployedDir,
       path.join(deployDir, 'node_modules')

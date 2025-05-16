@@ -2,7 +2,7 @@ import path from 'node:path';
 import util from 'node:util';
 
 import type { Config } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import gfs from '../graceful-fs/index.ts';
 import { getStorePath } from '../store-path/index.ts';
 
@@ -26,24 +26,24 @@ export function help(): string {
     description:
       'Prints the contents of a file based on the hash value stored in the index file.',
     descriptionLists: [],
-    usages: ['pnpm cat-file <hash>'],
+    usages: ['ospm cat-file <hash>'],
   });
 }
 
-export type CatFileCommandOptions = Pick<Config, 'storeDir' | 'pnpmHomeDir'>;
+export type CatFileCommandOptions = Pick<Config, 'storeDir' | 'ospmHomeDir'>;
 
 export async function handler(
   opts: CatFileCommandOptions,
   params: string[]
 ): Promise<string> {
   if (params.length === 0) {
-    throw new PnpmError('MISSING_HASH', 'Missing file hash', {
+    throw new OspmError('MISSING_HASH', 'Missing file hash', {
       hint: help(),
     });
   }
 
   if (typeof params[0] !== 'string') {
-    throw new PnpmError('INVALID_HASH', 'Invalid file hash', {
+    throw new OspmError('INVALID_HASH', 'Invalid file hash', {
       hint: help(),
     });
   }
@@ -51,7 +51,7 @@ export async function handler(
   const match = params[0].match(INTEGRITY_REGEX);
 
   if (match === null) {
-    throw new PnpmError('INVALID_HASH', 'Invalid file hash', {
+    throw new OspmError('INVALID_HASH', 'Invalid file hash', {
       hint: help(),
     });
   }
@@ -59,7 +59,7 @@ export async function handler(
   const [, , integrityHash] = match;
 
   if (typeof integrityHash !== 'string') {
-    throw new PnpmError('INVALID_HASH', 'Invalid file hash', {
+    throw new OspmError('INVALID_HASH', 'Invalid file hash', {
       hint: help(),
     });
   }
@@ -69,7 +69,7 @@ export async function handler(
   const storeDir = await getStorePath({
     pkgRoot: process.cwd(),
     storePath: opts.storeDir,
-    pnpmHomeDir: opts.pnpmHomeDir,
+    ospmHomeDir: opts.ospmHomeDir,
   });
 
   const cafsDir = path.join(storeDir, 'files');
@@ -84,7 +84,7 @@ export async function handler(
       'code' in err &&
       err.code === 'ENOENT'
     ) {
-      throw new PnpmError('INVALID_HASH', 'Corresponding hash file not found');
+      throw new OspmError('INVALID_HASH', 'Corresponding hash file not found');
     }
 
     throw err;

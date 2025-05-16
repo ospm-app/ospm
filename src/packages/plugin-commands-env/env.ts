@@ -1,5 +1,5 @@
 import { docsUrl } from '../cli-utils/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import renderHelp from 'render-help';
 import { envRemove } from './envRemove.ts';
 import { envUse } from './envUse.ts';
@@ -68,25 +68,25 @@ export function help(): string {
     ],
     url: docsUrl('env'),
     usages: [
-      'pnpm env [command] [options] <version> [<additional-versions>...]',
-      'pnpm env use --global 18',
-      'pnpm env use --global lts',
-      'pnpm env use --global argon',
-      'pnpm env use --global latest',
-      'pnpm env use --global rc/18',
-      'pnpm env add --global 18',
-      'pnpm env add --global 18 19 20.6.0',
-      'pnpm env remove --global 18 lts',
-      'pnpm env remove --global argon',
-      'pnpm env remove --global latest',
-      'pnpm env remove --global rc/18 18 20.6.0',
-      'pnpm env list',
-      'pnpm env list --remote',
-      'pnpm env list --remote 18',
-      'pnpm env list --remote lts',
-      'pnpm env list --remote argon',
-      'pnpm env list --remote latest',
-      'pnpm env list --remote rc/18',
+      'ospm env [command] [options] <version> [<additional-versions>...]',
+      'ospm env use --global 18',
+      'ospm env use --global lts',
+      'ospm env use --global argon',
+      'ospm env use --global latest',
+      'ospm env use --global rc/18',
+      'ospm env add --global 18',
+      'ospm env add --global 18 19 20.6.0',
+      'ospm env remove --global 18 lts',
+      'ospm env remove --global argon',
+      'ospm env remove --global latest',
+      'ospm env remove --global rc/18 18 20.6.0',
+      'ospm env list',
+      'ospm env list --remote',
+      'ospm env list --remote 18',
+      'ospm env list --remote lts',
+      'ospm env list --remote argon',
+      'ospm env list --remote latest',
+      'ospm env list --remote rc/18',
     ],
   });
 }
@@ -96,16 +96,16 @@ export async function handler(
   params: string[]
 ): Promise<string | { exitCode: number }> {
   if (params.length === 0) {
-    throw new PnpmError('ENV_NO_SUBCOMMAND', 'Please specify the subcommand', {
+    throw new OspmError('ENV_NO_SUBCOMMAND', 'Please specify the subcommand', {
       hint: help(),
     });
   }
   if (opts.global === true && !opts.bin) {
-    throw new PnpmError(
+    throw new OspmError(
       'CANNOT_MANAGE_NODE',
-      'Unable to manage Node.js because pnpm was not installed using the standalone installation script',
+      'Unable to manage Node.js because ospm was not installed using the standalone installation script',
       {
-        hint: 'If you want to manage Node.js with pnpm, you need to remove any Node.js that was installed by other tools, then install pnpm using one of the standalone scripts that are provided on the installation page: https://pnpm.io/installation',
+        hint: 'If you want to manage Node.js with ospm, you need to remove any Node.js that was installed by other tools, then install ospm using one of the standalone scripts that are provided on the installation page: https://ospm.app/cli-installation',
       }
     );
   }
@@ -132,7 +132,7 @@ export async function handler(
     }
 
     default: {
-      throw new PnpmError(
+      throw new OspmError(
         'ENV_UNKNOWN_SUBCOMMAND',
         'This subcommand is not known'
       );

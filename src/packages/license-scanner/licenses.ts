@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { detectDepTypes } from '../lockfile.detect-dep-types/index.ts';
 import type { LockfileObject } from '../lockfile.types/index.ts';
 import type {
@@ -89,9 +89,9 @@ export async function findDependencyLicenses(opts: {
   supportedArchitectures?: SupportedArchitectures | undefined;
 }): Promise<LicensePackage[]> {
   if (opts.wantedLockfile == null) {
-    throw new PnpmError(
+    throw new OspmError(
       'LICENSES_NO_LOCKFILE',
-      `No lockfile in directory "${opts.lockfileDir}". Run \`pnpm install\` to generate one.`
+      `No lockfile in directory "${opts.lockfileDir}". Run \`ospm install\` to generate one.`
     );
   }
 

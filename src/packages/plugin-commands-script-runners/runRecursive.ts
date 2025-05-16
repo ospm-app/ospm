@@ -7,7 +7,7 @@ import {
 } from '../cli-utils/index.ts';
 import type { Config } from '../config/index.ts';
 import { prepareExecutionEnv } from '../plugin-commands-env/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import {
   makeNodeRequireOption,
   type RunLifecycleHookOptions,
@@ -38,7 +38,7 @@ export type RecursiveRunOpts = Pick<
   | 'bin'
   | 'enablePrePostScripts'
   | 'unsafePerm'
-  | 'pnpmHomeDir'
+  | 'ospmHomeDir'
   | 'rawConfig'
   | 'rootProjectManifest'
   | 'scriptsPrependNodePath'
@@ -79,7 +79,7 @@ export async function runRecursive(
   const [scriptName, ...passedThruArgs] = params;
 
   if (typeof scriptName === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'SCRIPT_NAME_IS_REQUIRED',
       'You must specify the script you want to run'
     );
@@ -119,7 +119,7 @@ export async function runRecursive(
   const workspacePnpPath =
     typeof opts.workspaceDir === 'string' && existsPnp(opts.workspaceDir);
 
-  const requiredScripts = opts.rootProjectManifest?.pnpm?.requiredScripts ?? [];
+  const requiredScripts = opts.rootProjectManifest?.ospm?.requiredScripts ?? [];
 
   if (requiredScripts.includes(scriptName)) {
     const missingScriptPackages: string[] = packageChunks
@@ -157,7 +157,7 @@ export async function runRecursive(
         }
       );
     if (missingScriptPackages.length) {
-      throw new PnpmError(
+      throw new OspmError(
         'RECURSIVE_RUN_NO_SCRIPT',
         `Missing script "${scriptName}" in packages: ${missingScriptPackages.join(', ')}`
       );
@@ -225,7 +225,7 @@ export async function runRecursive(
               typeof pkg.package.manifest.scripts?.[scriptName] ===
                 'undefined' ||
               (process.env.npm_lifecycle_event === scriptName &&
-                process.env.PNPM_SCRIPT_SRC_DIR === prefix)
+                process.env.OSPM_SCRIPT_SRC_DIR === prefix)
             ) {
               return;
             }
@@ -256,9 +256,9 @@ export async function runRecursive(
                 unsafePerm: true, // when running scripts explicitly, assume that they're trusted.
               };
 
-              const { executionEnv } = pkg.package.manifest.pnpm ?? {};
+              const { executionEnv } = pkg.package.manifest.ospm ?? {};
 
-              if (executionEnv != null) {
+              if (typeof executionEnv !== 'undefined') {
                 lifecycleOpts.extraBinPaths = (
                   await prepareExecutionEnv(opts, { executionEnv })
                 ).extraBinPaths;
@@ -328,7 +328,7 @@ export async function runRecursive(
               }
 
               Object.assign(err, {
-                code: 'ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL',
+                code: 'ERR_OSPM_RECURSIVE_RUN_FIRST_FAIL',
                 prefix,
               });
 
@@ -353,7 +353,7 @@ export async function runRecursive(
       opts.allProjects?.length;
 
     if (allPackagesAreSelected) {
-      throw new PnpmError(
+      throw new OspmError(
         'RECURSIVE_RUN_NO_SCRIPT',
         `None of the packages has a "${scriptName}" script`
       );
@@ -372,7 +372,7 @@ export async function runRecursive(
     });
   }
 
-  throwOnCommandFail('pnpm recursive run', result);
+  throwOnCommandFail('ospm recursive run', result);
 }
 
 function formatSectionName({

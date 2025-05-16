@@ -32,7 +32,7 @@ export function reportUpdateCheck(
         msg: boxen(
           `\
 Update available! ${chalk.red(log.currentVersion)} → ${chalk.green(log.latestVersion)}.
-${chalk.magenta('Changelog:')} https://github.com/pnpm/pnpm/releases/tag/v${log.latestVersion}
+${chalk.magenta('Changelog:')} https://github.com/ospm/ospm/releases/tag/v${log.latestVersion}
 ${updateMessage}`,
           {
             padding: 1,
@@ -60,13 +60,13 @@ function renderUpdateMessage(opts: UpdateMessageOptions): string {
 
 function renderUpdateCommand(opts: UpdateMessageOptions): string {
   if (isExecutedByCorepack(opts.env)) {
-    return `corepack use pnpm@${opts.latestVersion}`;
+    return `corepack use ospm@${opts.latestVersion}`;
   }
 
-  if (typeof opts.env.PNPM_HOME === 'string') {
-    return 'pnpm self-update';
+  if (typeof opts.env.OSPM_HOME === 'string') {
+    return 'ospm self-update';
   }
 
-  const pkgName = opts.currentPkgIsExecutable ? '@pnpm/exe' : 'pnpm';
-  return `pnpm add -g ${pkgName}`;
+  const pkgName = opts.currentPkgIsExecutable ? '@pnpm/exe' : 'ospm';
+  return `ospm add -g ${pkgName}`;
 }

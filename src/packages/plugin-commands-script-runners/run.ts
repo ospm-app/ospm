@@ -11,8 +11,9 @@ import {
   FILTERING,
   UNIVERSAL_OPTIONS,
 } from '../common-cli-options-help/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import type { CheckDepsStatusOptions } from '../deps.status/index.ts';
 import {
   runLifecycleHook,
@@ -75,7 +76,7 @@ export const SEQUENTIAL_OPTION_HELP: DescriptionItem = {
 
 export const REPORT_SUMMARY_OPTION_HELP: DescriptionItem = {
   description:
-    'Save the execution results of every package to "pnpm-exec-summary.json". Useful to inspect the execution time and status of each package.',
+    'Save the execution results of every package to "ospm-exec-summary.json". Useful to inspect the execution time and status of each package.',
   name: '--report-summary',
 };
 
@@ -161,7 +162,7 @@ export function help(): string {
             description:
               'Run the defined package script in every package found in subdirectories \
 or every workspace package, when executed inside a workspace. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -182,7 +183,7 @@ For options that may be used with `-r`, see "pnpm help recursive"',
       FILTERING,
     ],
     url: docsUrl('run'),
-    usages: ['pnpm run <command> [<args>...]'],
+    usages: ['ospm run <command> [<args>...]'],
   });
 }
 
@@ -199,7 +200,7 @@ export type RunOpts = Omit<
     | 'extraBinPaths'
     | 'extraEnv'
     | 'nodeOptions'
-    | 'pnpmHomeDir'
+    | 'ospmHomeDir'
     | 'reporter'
     | 'scriptShell'
     | 'scriptsPrependNodePath'
@@ -303,7 +304,7 @@ export async function handler(
       }
 
       if (params.length === 0) {
-        throw new PnpmError(
+        throw new OspmError(
           'UNEXPECTED_BEHAVIOR',
           'Params should not be an empty array',
           {
@@ -334,14 +335,14 @@ export async function handler(
           0 &&
         specifiedScripts.length < 1
       ) {
-        throw new PnpmError('NO_SCRIPT', `Missing script: ${scriptName}`, {
+        throw new OspmError('NO_SCRIPT', `Missing script: ${scriptName}`, {
           hint: `But script matched with ${scriptName} is present in the root of the workspace,
-so you may run "pnpm -w run ${scriptName}"`,
+so you may run "ospm -w run ${scriptName}"`,
         });
       }
     }
 
-    throw new PnpmError('NO_SCRIPT', `Missing script: ${scriptName}`, {
+    throw new OspmError('NO_SCRIPT', `Missing script: ${scriptName}`, {
       hint: buildCommandNotFoundHint(scriptName, manifest.scripts),
     });
   }
@@ -370,7 +371,7 @@ so you may run "pnpm -w run ${scriptName}"`,
     unsafePerm: true, // when running scripts explicitly, assume that they're trusted.
   };
 
-  const executionEnv = manifest.pnpm?.executionEnv;
+  const executionEnv = manifest.ospm?.executionEnv;
 
   if (executionEnv != null) {
     lifecycleOpts.extraBinPaths = (
@@ -484,7 +485,7 @@ function printProjectCommands(
 
   if (otherScripts.length > 0) {
     if (output !== '') output += '\n\n';
-    output += `Commands available via "pnpm run":\n${renderCommands(otherScripts)}`;
+    output += `Commands available via "ospm run":\n${renderCommands(otherScripts)}`;
   }
 
   if (typeof rootManifest?.scripts === 'undefined') {
@@ -508,7 +509,7 @@ function printProjectCommands(
     output += '\n\n';
   }
 
-  output += `Commands of the root workspace project (to run them, use "pnpm -w run"):
+  output += `Commands of the root workspace project (to run them, use "ospm -w run"):
 ${renderCommands(rootScripts)}`;
   return output;
 }

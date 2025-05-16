@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { HttpProxyAgent, type HttpProxyAgentOptions } from 'http-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
@@ -113,7 +113,7 @@ function getProxyUri(
     return new URL(proxy);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_err: unknown) {
-    throw new PnpmError('INVALID_PROXY', "Couldn't parse proxy URL", {
+    throw new OspmError('INVALID_PROXY', "Couldn't parse proxy URL", {
       hint: 'If your proxy URL contains a username and password, make sure to URL-encode them (you may use the encodeURIComponent function). For instance, https-proxy=https://use%21r:pas%2As@my.proxy:1234/foo. Do not encode the colon (:) between the username and password.',
     });
   }

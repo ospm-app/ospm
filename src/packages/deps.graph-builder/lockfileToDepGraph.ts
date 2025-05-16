@@ -87,7 +87,7 @@ export type LockfileToDepGraphOptions = {
   ignoreScripts: boolean;
   lockfileDir: string;
   nodeVersion?: string | undefined;
-  pnpmVersion?: string | undefined;
+  ospmVersion?: string | undefined;
   patchedDependencies?: PatchGroupRecord | undefined;
   registries: Registries;
   sideEffectsCacheRead: boolean;

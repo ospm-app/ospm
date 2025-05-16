@@ -4,7 +4,7 @@ import {
   FULL_FILTERED_META_DIR,
   ABBREVIATED_META_DIR,
 } from '../constants/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type {
   FetchFromRegistry,
   GetAuthHeader,
@@ -39,7 +39,7 @@ import type { WantedDependency } from '../resolve-dependencies/index.ts';
 import type { PkgResolutionId } from '../types/misc.ts';
 import type { LockFileDir } from '../types/project.ts';
 
-export class NoMatchingVersionError extends PnpmError {
+export class NoMatchingVersionError extends OspmError {
   readonly packageMeta: PackageMeta;
   constructor(opts: {
     wantedDependency: WantedDependency;
@@ -406,7 +406,7 @@ function tryResolveFromWorkspacePackages(
   const workspacePkgsMatchingName = workspacePackages.get(spec.name);
 
   if (typeof workspacePkgsMatchingName === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'WORKSPACE_PKG_NOT_FOUND',
       `In ${path.relative(process.cwd(), opts.projectDir)}: "${spec.name}@${opts.wantedDependency.pref ?? ''}" is in the dependencies but no package named "${spec.name}" is present in the workspace`,
       {
@@ -421,7 +421,7 @@ function tryResolveFromWorkspacePackages(
   );
 
   if (localVersion === null) {
-    throw new PnpmError(
+    throw new OspmError(
       'NO_MATCHING_VERSION_INSIDE_WORKSPACE',
       `In ${path.relative(process.cwd(), opts.projectDir)}: No matching version found for ${opts.wantedDependency.alias ?? ''}@${opts.wantedDependency.pref ?? ''} inside the workspace`
     );
@@ -533,7 +533,7 @@ function getIntegrity(dist: {
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
   if (!integrity) {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_TARBALL_INTEGRITY',
       `Tarball "${dist.tarball}" has invalid shasum specified in its metadata: ${dist.shasum}`
     );

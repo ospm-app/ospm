@@ -125,7 +125,7 @@ Many commands are workspace-aware, allowing operations across multiple packages 
 
 The CLI implements a robust error handling system:
 
-1. Custom `PnpmError` class for structured errors
+1. Custom `OspmError` class for structured errors
 2. Consistent error formatting
 3. Helpful error messages with suggestions when possible
 

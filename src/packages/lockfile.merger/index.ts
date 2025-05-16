@@ -21,10 +21,10 @@ export function mergeLockfileChanges(
       : ours.lockfileVersion,
   };
 
-  const pnpmfileChecksum = ours.pnpmfileChecksum ?? theirs.pnpmfileChecksum; // Install should automatically detect change later
+  const ospmfileChecksum = ours.ospmfileChecksum ?? theirs.ospmfileChecksum; // Install should automatically detect change later
 
-  if (typeof pnpmfileChecksum === 'string') {
-    newLockfile.pnpmfileChecksum = pnpmfileChecksum;
+  if (typeof ospmfileChecksum === 'string') {
+    newLockfile.ospmfileChecksum = ospmfileChecksum;
   }
 
   const ignoredOptionalDependencies = [

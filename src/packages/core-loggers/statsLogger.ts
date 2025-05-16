@@ -20,4 +20,4 @@ export interface StatsMessageRemoved extends StatsMessageBase {
 
 export type StatsMessage = StatsMessageAdded | StatsMessageRemoved;
 
-export type StatsLog = { name: 'pnpm:stats' } & LogBase & StatsMessage;
+export type StatsLog = { name: 'ospm:stats' } & LogBase & StatsMessage;

@@ -1,6 +1,7 @@
 import { docsUrl } from '../cli-utils/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import { logger } from '../logger/index.ts';
 import {
   createOrConnectStoreController,
@@ -30,7 +31,7 @@ export const commandNames = ['store'];
 export function help(): string {
   return renderHelp({
     description:
-      'Reads and performs actions on pnpm store that is on the current filesystem.',
+      'Reads and performs actions on ospm store that is on the current filesystem.',
     descriptionLists: [
       {
         title: 'Commands',
@@ -45,7 +46,7 @@ Returns exit code 0 if the content of the package is the same as it was at the t
           },
           {
             description:
-              'Adds new packages to the store. Example: pnpm store add express@4 typescript@2.1.0',
+              'Adds new packages to the store. Example: ospm store add express@4 typescript@2.1.0',
             name: 'add <pkg>...',
           },
           {
@@ -70,11 +71,11 @@ Alien directories are directories/files that were not created by the package man
       },
     ],
     url: docsUrl('store'),
-    usages: ['pnpm store <command>'],
+    usages: ['ospm store <command>'],
   });
 }
 
-class StoreStatusError extends PnpmError {
+class StoreStatusError extends OspmError {
   modified: string[];
   constructor(modified: string[]) {
     super('MODIFIED_DEPENDENCY', '');
@@ -116,7 +117,7 @@ export async function handler(
       return getStorePath({
         pkgRoot: opts.dir,
         storePath: opts.storeDir,
-        pnpmHomeDir: opts.pnpmHomeDir,
+        ospmHomeDir: opts.ospmHomeDir,
       });
     }
 
@@ -157,7 +158,7 @@ async function statusCmd(opts: StoreCommandOptions): Promise<void> {
       storeDir: await getStorePath({
         pkgRoot: opts.dir,
         storePath: opts.storeDir,
-        pnpmHomeDir: opts.pnpmHomeDir,
+        ospmHomeDir: opts.ospmHomeDir,
       }),
     })
   );

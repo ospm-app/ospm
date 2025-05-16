@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { applyPatch } from '@pnpm/patch-package/dist/applyPatches';
@@ -26,13 +26,13 @@ export function applyPatchToDir(opts: ApplyPatchToDirOpts): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     if (err.code === 'ENOENT') {
-      throw new PnpmError(
+      throw new OspmError(
         'PATCH_NOT_FOUND',
         `Patch file not found: ${opts.patchFilePath}`
       );
     }
 
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_PATCH',
       `Applying patch "${opts.patchFilePath}" failed: ${err.message as string}`
     );
@@ -45,7 +45,7 @@ export function applyPatchToDir(opts: ApplyPatchToDirOpts): boolean {
     if (opts.allowFailure === true) {
       globalWarn(message);
     } else {
-      throw new PnpmError('PATCH_FAILED', message);
+      throw new OspmError('PATCH_FAILED', message);
     }
   }
 

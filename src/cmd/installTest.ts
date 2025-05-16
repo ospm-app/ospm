@@ -2,7 +2,7 @@ import { docsUrl } from '../packages/cli-utils/index.ts';
 import { install } from '../packages/plugin-commands-installation/index.ts';
 import { run } from '../packages/plugin-commands-script-runners/index.ts';
 import renderHelp from 'render-help';
-import type { PnpmOptions } from '../types.ts';
+import type { OspmOptions } from '../types.ts';
 
 export const cliOptionsTypes = install.cliOptionsTypes;
 
@@ -14,14 +14,14 @@ export function help(): string {
   return renderHelp({
     aliases: ['it'],
     description:
-      'Runs a `pnpm install` followed immediately by a `pnpm test`. It takes exactly the same arguments as `pnpm install`.',
+      'Runs a `ospm install` followed immediately by a `ospm test`. It takes exactly the same arguments as `ospm install`.',
     url: docsUrl('install-test'),
-    usages: ['pnpm install-test'],
+    usages: ['ospm install-test'],
   });
 }
 
 export async function handler(
-  opts: PnpmOptions,
+  opts: OspmOptions,
   params: string[]
 ): Promise<void> {
   await install.handler({

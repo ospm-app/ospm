@@ -12,7 +12,7 @@ export function getEditDirPath(
 ): string {
   return path.join(
     opts.modulesDir,
-    '.pnpm_patches',
+    '.ospm_patches',
     getEditDirNameFromParsedDep(patchedDep) ?? param
   );
 }

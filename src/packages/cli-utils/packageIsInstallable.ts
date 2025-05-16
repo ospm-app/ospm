@@ -24,12 +24,12 @@ export async function packageIsInstallable(
     supportedArchitectures?: SupportedArchitectures | undefined;
   }
 ): Promise<void> {
-  const currentPnpmVersion =
-    packageManager.name === 'pnpm' ? packageManager.version : undefined;
+  const currentOspmVersion =
+    packageManager.name === 'ospm' ? packageManager.version : undefined;
 
   const err = await checkPackage(pkgPath, pkg, {
     nodeVersion: opts.nodeVersion,
-    pnpmVersion: currentPnpmVersion,
+    ospmVersion: currentOspmVersion,
     supportedArchitectures: opts.supportedArchitectures ?? {
       os: ['current'],
       cpu: ['current'],
@@ -43,7 +43,7 @@ export async function packageIsInstallable(
 
   if (
     err instanceof UnsupportedEngineError &&
-    typeof err.wanted.pnpm === 'string' &&
+    typeof err.wanted.ospm === 'string' &&
     opts.engineStrict === true
   ) {
     throw err;

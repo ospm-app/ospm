@@ -216,7 +216,6 @@
     "@types/normalize-package-data": "2.4.4",
     "@types/normalize-path": "3.0.2",
     "@types/npm-package-arg": "6.1.4",
-    "@types/npm-packlist": "7.0.3",
     "@types/object-hash": "3.0.6",
     "@types/ramda": "0.30.2",
     "@types/semver": "7.5.8",

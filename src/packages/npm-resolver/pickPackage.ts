@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { createHexHash } from '../crypto.hash/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { logger } from '../logger/index.ts';
 import gfs from '../graceful-fs/index.ts';
 import type { VersionSelectors } from '../resolver-base/index.ts';
@@ -233,7 +233,7 @@ export async function pickPackage(
             ),
           };
 
-        throw new PnpmError(
+        throw new OspmError(
           'NO_OFFLINE_META',
           `Failed to resolve ${toRaw(spec)} in package mirror ${pkgMirror}`
         );
@@ -430,7 +430,7 @@ async function saveMeta(pkgMirror: string, meta: string): Promise<void> {
 
 function validatePackageName(pkgName: string): void {
   if (pkgName.includes('/') && !pkgName.startsWith('@')) {
-    throw new PnpmError(
+    throw new OspmError(
       'INVALID_PACKAGE_NAME',
       `Package name ${pkgName} is invalid, it should have a @scope`
     );

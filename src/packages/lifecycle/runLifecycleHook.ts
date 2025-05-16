@@ -10,7 +10,7 @@ import type {
   PrepareExecutionEnv,
   PackageScripts,
 } from '../types/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { existsSync } from 'node:fs';
 import isWindows from 'is-windows';
 import { quote as shellQuote } from 'shell-quote';
@@ -67,8 +67,8 @@ export async function runLifecycleHook(
   // Note that npm (as of version 10.5.0) doesn't support setting script-shell
   // to a .bat or .cmd file either.
   if (opts.scriptShell != null && isWindowsBatchFile(opts.scriptShell)) {
-    throw new PnpmError(
-      'ERR_PNPM_INVALID_SCRIPT_SHELL_WINDOWS',
+    throw new OspmError(
+      'ERR_OSPM_INVALID_SCRIPT_SHELL_WINDOWS',
       'Cannot spawn .bat or .cmd as a script shell.',
       {
         hint: `\
@@ -87,7 +87,7 @@ Please unset the script-shell option, or configure it to a .exe instead.
     case 'start': {
       if (typeof m.scripts.start === 'undefined') {
         if (!existsSync('server.js')) {
-          throw new PnpmError(
+          throw new OspmError(
             'NO_SCRIPT_OR_SERVER',
             'Missing script start or file server.js'
           );
@@ -125,9 +125,9 @@ Please unset the script-shell option, or configure it to a .exe instead.
   }
 
   // This script is used to prevent the usage of npm or Yarn.
-  // It does nothing, when pnpm is used, so we may skip its execution.
+  // It does nothing, when ospm is used, so we may skip its execution.
   if (
-    m.scripts[stage] === 'npx only-allow pnpm' ||
+    m.scripts[stage] === 'npx only-allow ospm' ||
     typeof m.scripts[stage] === 'undefined'
   ) {
     return false;
@@ -150,7 +150,7 @@ Please unset the script-shell option, or configure it to a .exe instead.
     (
       await opts.prepareExecutionEnv?.({
         extraBinPaths: opts.extraBinPaths,
-        executionEnv: (manifest as ProjectManifest).pnpm?.executionEnv,
+        executionEnv: (manifest as ProjectManifest).ospm?.executionEnv,
       })
     )?.extraBinPaths ?? opts.extraBinPaths;
 
@@ -164,7 +164,7 @@ Please unset the script-shell option, or configure it to a .exe instead.
     extraEnv: {
       ...opts.extraEnv,
       INIT_CWD: opts.initCwd ?? process.cwd(),
-      PNPM_SCRIPT_SRC_DIR: opts.pkgRoot,
+      OSPM_SCRIPT_SRC_DIR: opts.pkgRoot,
     },
     log: {
       clearProgress: noop,
@@ -211,7 +211,7 @@ Please unset the script-shell option, or configure it to a .exe instead.
 
       case 'Returned: code:': {
         if (opts.stdio === 'inherit') {
-          // Preventing the pnpm reporter from overriding the project's script output
+          // Preventing the ospm reporter from overriding the project's script output
           return;
         }
 

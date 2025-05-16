@@ -83,7 +83,7 @@ export type CatalogLookupMetadata = {
 
   /**
    * The catalog protocol pref the user wrote in package.json files or as a
-   * parameter to pnpm add. Ex: pnpm add foo@catalog:
+   * parameter to ospm add. Ex: ospm add foo@catalog:
    *
    * This will usually be 'catalog:<name>', but can simply be 'catalog:' if
    * users wrote the default catalog shorthand. This is different than the
@@ -147,7 +147,7 @@ export interface ResolveDependenciesOptions {
   nodeVersion?: string | undefined;
   registries: Registries;
   patchedDependencies?: PatchGroupRecord | undefined;
-  pnpmVersion: string;
+  ospmVersion: string;
   preferredVersions?: PreferredVersions | undefined;
   preferWorkspacePackages?: boolean | undefined;
   resolutionMode?: 'highest' | 'time-based' | 'lowest-direct' | undefined;
@@ -220,7 +220,7 @@ export async function resolveDependencyTree(
     outdatedDependencies: {} as { [pkgId: string]: string },
     patchedDependencies: opts.patchedDependencies,
     pendingNodes: [] as PendingNode[],
-    pnpmVersion: opts.pnpmVersion,
+    ospmVersion: opts.ospmVersion,
     preferWorkspacePackages: opts.preferWorkspacePackages,
     readPackageHook: opts.hooks.readPackage,
     registries: opts.registries,
@@ -540,7 +540,7 @@ function buildTree(
 /**
  * There may be cases where multiple dependencies have the same alias in the directDeps array.
  * E.g., when there is "is-negative: github:kevva/is-negative#1.0.0" in the package.json dependencies,
- * and then re-execute `pnpm add github:kevva/is-negative#1.0.1`.
+ * and then re-execute `ospm add github:kevva/is-negative#1.0.1`.
  * In order to make sure that the latest 1.0.1 version is installed, we need to remove the duplicate dependency.
  * fix https://github.com/pnpm/pnpm/issues/6966
  */

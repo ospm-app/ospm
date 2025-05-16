@@ -173,11 +173,11 @@ function normalizeLockfile(lockfile: LockfileFile): LockfileFile {
   }
 
   if (
-    typeof lockfileToSave.pnpmfileChecksum === 'undefined' ||
-    lockfileToSave.pnpmfileChecksum === ''
+    typeof lockfileToSave.ospmfileChecksum === 'undefined' ||
+    lockfileToSave.ospmfileChecksum === ''
   ) {
     // biome-ignore lint/performance/noDelete: <explanation>
-    delete lockfileToSave.pnpmfileChecksum;
+    delete lockfileToSave.ospmfileChecksum;
   }
 
   return lockfileToSave;

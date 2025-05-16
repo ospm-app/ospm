@@ -64,7 +64,7 @@ export async function readModulesManifest(
   }
 
   if (!modules.virtualStoreDir) {
-    modules.virtualStoreDir = path.join(modulesDir, '.pnpm');
+    modules.virtualStoreDir = path.join(modulesDir, '.ospm');
   } else if (!path.isAbsolute(modules.virtualStoreDir)) {
     modules.virtualStoreDir = path.join(modulesDir, modules.virtualStoreDir);
   }

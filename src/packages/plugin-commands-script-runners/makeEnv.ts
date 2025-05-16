@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { prependDirsToPath } from '../env.path/index.ts';
 import path from 'node:path';
 import process from 'node:process';
@@ -18,7 +18,7 @@ export function makeEnv(opts: {
     if (prependPath.includes(path.delimiter)) {
       // Unfortunately, there is no way to escape the PATH delimiter,
       // so directories added to the PATH should not contain it.
-      throw new PnpmError(
+      throw new OspmError(
         'BAD_PATH_DIR',
         `Cannot add ${prependPath} to PATH because it contains the path delimiter character (${path.delimiter})`
       );
@@ -30,7 +30,7 @@ export function makeEnv(opts: {
   return {
     ...process.env,
     ...opts.extraEnv,
-    npm_config_user_agent: opts.userAgent ?? 'pnpm',
+    npm_config_user_agent: opts.userAgent ?? 'ospm',
     [pathEnv.name]: pathEnv.value,
   };
 }

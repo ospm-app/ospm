@@ -6,5 +6,5 @@ export interface IgnoredScriptsMessage {
   packageNames: string[];
 }
 
-export type IgnoredScriptsLog = { name: 'pnpm:ignored-scripts' } & LogBase &
+export type IgnoredScriptsLog = { name: 'ospm:ignored-scripts' } & LogBase &
   IgnoredScriptsMessage;

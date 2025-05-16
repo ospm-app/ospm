@@ -1,6 +1,6 @@
-import { PnpmError } from '../../error/index.ts';
+import { OspmError } from '../../error/index.ts';
 
-export class BadTarballError extends PnpmError {
+export class BadTarballError extends OspmError {
   expectedSize: number;
   receivedSize: number;
   constructor(opts: {

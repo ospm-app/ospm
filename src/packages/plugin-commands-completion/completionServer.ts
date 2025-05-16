@@ -31,7 +31,7 @@ export function createCompletionServer(opts: {
 
     const inputArgv = splitCmd(finishedArgv).slice(1);
 
-    // We cannot autocomplete what a user types after "pnpm test --"
+    // We cannot autocomplete what a user types after "ospm test --"
     if (inputArgv.includes('--') === true) {
       return;
     }

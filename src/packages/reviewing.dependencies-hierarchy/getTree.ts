@@ -111,7 +111,7 @@ function getTreeHelper(
   function getPeerDependencies(): Record<string, string> | undefined {
     switch (parentId.type) {
       case 'importer': {
-        // Projects in the pnpm workspace can declare peer dependencies, but pnpm
+        // Projects in the ospm workspace can declare peer dependencies, but ospm
         // doesn't record this block to the importers lockfile object. Returning
         // undefined for now.
         return undefined;
@@ -127,7 +127,7 @@ function getTreeHelper(
 
   // If the "ref" of any dependency is a file system path (e.g. link:../), the
   // base directory of this relative path depends on whether ;the dependent
-  // package is in the pnpm workspace or from node_modules.
+  // package is in the ospm workspace or from node_modules.
   function getLinkedPathBaseDir(): string {
     switch (parentId.type) {
       case 'importer': {

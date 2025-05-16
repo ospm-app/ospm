@@ -11,8 +11,9 @@ import {
   OPTIONS,
   UNIVERSAL_OPTIONS,
 } from '../common-cli-options-help/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import {
   outdatedDepsOfProjects,
   type OutdatedPackage,
@@ -77,9 +78,9 @@ export function help(): string {
     description: `Check for outdated packages. The check can be limited to a subset of the installed packages by providing arguments (patterns are supported).
 
 Examples:
-pnpm outdated
-pnpm outdated --long
-pnpm outdated gulp-* @babel/core`,
+ospm outdated
+ospm outdated --long
+ospm outdated gulp-* @babel/core`,
     descriptionLists: [
       {
         title: 'Options',
@@ -100,7 +101,7 @@ To display the details, pass this option.',
             description:
               'Check for outdated dependencies in every package found in subdirectories \
 or in every workspace package, when executed inside a workspace. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -140,7 +141,7 @@ For options that may be used with `-r`, see "pnpm help recursive"',
       FILTERING,
     ],
     url: docsUrl('outdated'),
-    usages: ['pnpm outdated [<pkg> ...]'],
+    usages: ['ospm outdated [<pkg> ...]'],
   });
 }
 
@@ -233,7 +234,7 @@ export async function handler(
   const [outdatedPackages] = await outdatedDepsOfProjects(packages, params, {
     ...opts,
     fullMetadata: opts.long ?? false,
-    ignoreDependencies: manifest.pnpm?.updateConfig?.ignoreDependencies,
+    ignoreDependencies: manifest.ospm?.updateConfig?.ignoreDependencies,
     include,
     retry: {
       factor: opts.fetchRetryFactor ?? 3,
@@ -272,7 +273,7 @@ export async function handler(
     }
 
     default: {
-      throw new PnpmError(
+      throw new OspmError(
         'BAD_OUTDATED_FORMAT',
         `Unsupported format: ${opts.format?.toString() ?? 'undefined'}`
       );

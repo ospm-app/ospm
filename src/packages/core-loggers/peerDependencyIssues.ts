@@ -10,6 +10,6 @@ export interface PeerDependencyIssuesMessage {
 }
 
 export type PeerDependencyIssuesLog = {
-  name: 'pnpm:peer-dependency-issues';
+  name: 'ospm:peer-dependency-issues';
 } & LogBase &
   PeerDependencyIssuesMessage;

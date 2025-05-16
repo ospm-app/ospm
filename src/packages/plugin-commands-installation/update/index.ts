@@ -9,11 +9,11 @@ import {
   OPTIONS,
   UNIVERSAL_OPTIONS,
 } from '../../common-cli-options-help/index.ts';
-import { types as allTypes } from '../../config/index.ts';
+import { types as allTypes } from '../../config/types.ts';
 import { globalInfo } from '../../logger/index.ts';
 import { createMatcher } from '../../matcher/index.ts';
 import { outdatedDepsOfProjects } from '../../outdated/index.ts';
-import { PnpmError } from '../../error/index.ts';
+import { OspmError } from '../../error/index.ts';
 import { prepareExecutionEnv } from '../../plugin-commands-env/index.ts';
 import type {
   IncludedDependencies,
@@ -45,10 +45,10 @@ export function rcOptionsTypes(): Record<string, unknown> {
       'fetch-timeout',
       'force',
       'global-dir',
-      'global-pnpmfile',
+      'global-ospmfile',
       'global',
       'https-proxy',
-      'ignore-pnpmfile',
+      'ignore-ospmfile',
       'ignore-scripts',
       'lockfile-dir',
       'lockfile-directory',
@@ -62,7 +62,7 @@ export function rcOptionsTypes(): Record<string, unknown> {
       'only',
       'optional',
       'package-import-method',
-      'pnpmfile',
+      'ospmfile',
       'prefer-offline',
       'production',
       'proxy',
@@ -121,7 +121,7 @@ export function help(): string {
             description:
               'Update in every package found in subdirectories \
 or every workspace package, when executed inside a workspace. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -176,7 +176,7 @@ dependencies is not found inside the workspace',
       FILTERING,
     ],
     url: docsUrl('update'),
-    usages: ['pnpm update [-g] [<pkg>...]'],
+    usages: ['ospm update [-g] [<pkg>...]'],
   });
 }
 
@@ -226,7 +226,7 @@ async function interactiveUpdate(
     ...opts,
     compatible: opts.latest !== true,
     ignoreDependencies:
-      rootProject?.manifest.pnpm?.updateConfig?.ignoreDependencies,
+      rootProject?.manifest.ospm?.updateConfig?.ignoreDependencies,
     include,
     retry: {
       factor: opts.fetchRetryFactor ?? 2,
@@ -311,7 +311,7 @@ async function interactiveUpdate(
     cancel() {
       // By default, canceling the prompt via Ctrl+c throws an empty string.
       // The custom cancel function prevents that behavior.
-      // Otherwise, pnpm CLI would print an error and confuse users.
+      // Otherwise, ospm CLI would print an error and confuse users.
       // See related issue: https://github.com/enquirer/enquirer/issues/225
       globalInfo('Update canceled');
 
@@ -338,7 +338,7 @@ async function update(
     );
 
     if (dependenciesWithTags.length) {
-      throw new PnpmError(
+      throw new OspmError(
         'LATEST_WITH_SPEC',
         `Specs are not allowed to be used with --latest (${dependenciesWithTags.join(', ')})`
       );
@@ -348,9 +348,9 @@ async function update(
   const includeDirect = makeIncludeDependenciesFromCLI(opts.cliOptions);
 
   const include = {
-    dependencies: opts.rawConfig.production !== false,
-    devDependencies: opts.rawConfig.dev !== false,
-    optionalDependencies: opts.rawConfig.optional !== false,
+    dependencies: opts.rawConfig.production != null,
+    devDependencies: opts.rawConfig.dev != null,
+    optionalDependencies: opts.rawConfig.optional != null,
   };
 
   const depth = opts.depth ?? Number.POSITIVE_INFINITY;

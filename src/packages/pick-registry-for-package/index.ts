@@ -11,15 +11,29 @@ export function pickRegistryForPackage(
 }
 
 function getScope(pkgName: string, pref?: string | undefined): string | null {
-  if (pref?.startsWith('npm:') === true) {
-    const newPref = pref.slice(4);
+  if (typeof pref === 'string' && pref !== '') {
+    if (pref.startsWith('npm:') === true) {
+      const newPref = pref.slice(4);
 
-    if (newPref.startsWith('@')) {
-      return newPref.substring(0, newPref.indexOf('/'));
+      if (newPref.startsWith('@') === true) {
+        return newPref.substring(0, newPref.indexOf('/'));
+      }
+    }
+
+    if (pref.startsWith('ospm:') === true) {
+      const newPref = pref.slice(4);
+
+      if (newPref.startsWith('$') === true) {
+        return newPref.substring(0, newPref.indexOf('/'));
+      }
     }
   }
 
-  if (pkgName.startsWith('@')) {
+  if (pkgName.startsWith('$') === true) {
+    return pkgName.substring(0, pkgName.indexOf('/'));
+  }
+
+  if (pkgName.startsWith('@') === true) {
     return pkgName.substring(0, pkgName.indexOf('/'));
   }
 

@@ -1,5 +1,5 @@
 import * as dp from '../dependency-path/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type {
   PatchFile,
   PatchGroup,
@@ -47,7 +47,7 @@ export function groupPatchedDependencies(
 
     if (typeof name === 'string' && typeof nonSemverVersion !== 'undefined') {
       if (validRange(nonSemverVersion) === null) {
-        throw new PnpmError(
+        throw new OspmError(
           'PATCH_NON_SEMVER_RANGE',
           `${nonSemverVersion} is not a valid semantic version range.`
         );

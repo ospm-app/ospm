@@ -1,7 +1,7 @@
 import { promises as fs, existsSync } from 'node:fs';
 import path from 'node:path';
 import { createFetchFromRegistry } from '../fetch/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { resolveNodeVersions } from '../node.resolver/index.ts';
 import semver from 'semver';
 import { getNodeMirror } from './getNodeMirror.ts';
@@ -40,14 +40,14 @@ type LocalVersions = {
 async function listLocalVersions(
   opts: NvmNodeCommandOptions
 ): Promise<LocalVersions> {
-  const nodeBaseDir = getNodeVersionsBaseDir(opts.pnpmHomeDir);
+  const nodeBaseDir = getNodeVersionsBaseDir(opts.ospmHomeDir);
   if (!existsSync(nodeBaseDir)) {
-    throw new PnpmError(
+    throw new OspmError(
       'ENV_NO_NODE_DIRECTORY',
       `Couldn't find Node.js directory in ${nodeBaseDir}`
     );
   }
-  const { nodeLink } = await getNodeExecPathAndTargetDir(opts.pnpmHomeDir);
+  const { nodeLink } = await getNodeExecPathAndTargetDir(opts.ospmHomeDir);
   const nodeVersionDirs = await fs.readdir(nodeBaseDir);
   let currentVersion: string | undefined;
   const versions: string[] = [];

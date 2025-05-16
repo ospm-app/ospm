@@ -3,7 +3,7 @@ import path from 'node:path';
 import { docsUrl } from '../cli-utils/index.ts';
 import { packageManager } from '../cli-meta/index.ts';
 import type { Config, UniversalOptions } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { sortKeysByPriority } from '../object.key-sorting/index.ts';
 import type { ProjectManifest } from '../types/index.ts';
 import { writeProjectManifest } from '../write-project-manifest/index.ts';
@@ -23,7 +23,7 @@ export function help(): string {
     description: 'Create a package.json file',
     descriptionLists: [],
     url: docsUrl('init'),
-    usages: ['pnpm init'],
+    usages: ['ospm init'],
   });
 }
 
@@ -34,11 +34,11 @@ export async function handler(
   params?: string[] | undefined
 ): Promise<string> {
   if (typeof params !== 'undefined' && params.length > 0) {
-    throw new PnpmError(
+    throw new OspmError(
       'INIT_ARG',
       'init command does not accept any arguments',
       {
-        hint: `Maybe you wanted to run "pnpm create ${params.join(' ')}"`,
+        hint: `Maybe you wanted to run "ospm create ${params.join(' ')}"`,
       }
     );
   }
@@ -52,7 +52,7 @@ export async function handler(
   );
 
   if (fs.existsSync(manifestPath)) {
-    throw new PnpmError('PACKAGE_JSON_EXISTS', 'package.json already exists');
+    throw new OspmError('PACKAGE_JSON_EXISTS', 'package.json already exists');
   }
 
   const manifest: ProjectManifest = {
@@ -73,7 +73,7 @@ export async function handler(
   const packageJson = { ...manifest, ...config };
 
   if (opts.initPackageManager === true) {
-    packageJson.packageManager = `pnpm@${packageManager.version}`;
+    packageJson.packageManager = `ospm@${packageManager.version}`;
   }
 
   const priority = Object.fromEntries(

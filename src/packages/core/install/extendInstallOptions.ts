@@ -1,6 +1,6 @@
 import { WANTED_LOCKFILE } from '../../constants/index.ts';
 import type { Catalogs } from '../../catalogs.types/index.ts';
-import { PnpmError } from '../../error/index.ts';
+import { OspmError } from '../../error/index.ts';
 import type { HookOptions, ProjectOptions } from '../../get-context/index.ts';
 import type { HoistingLimits } from '../../headless/index.ts';
 import { createReadPackageHook } from '../../hooks.read-package-hook/index.ts';
@@ -32,7 +32,7 @@ import {
   parseOverrides,
   type PackageSelector,
 } from '../../parse-overrides/index.ts';
-import { pnpmPkgJson } from '../pnpmPkgJson.ts';
+import { ospmPkgJson } from '../pnpmPkgJson.ts';
 import type { ReporterFunction } from '../types.ts';
 import type { PreResolutionHookContext } from '../../hooks.types/index.ts';
 import type { LockfileObject } from '../../lockfile.types/index.ts';
@@ -98,8 +98,8 @@ export type StrictInstallOptions = {
   nodeVersion?: string | undefined;
   packageExtensions: Record<string, PackageExtension>;
   ignoredOptionalDependencies: string[];
-  pnpmfile: string;
-  ignorePnpmfile: boolean;
+  ospmfile: string;
+  ignoreOspmfile: boolean;
   packageManager: {
     name: string;
     version: string;
@@ -115,7 +115,7 @@ export type StrictInstallOptions = {
           (lockfile: LockfileObject) => LockfileObject | Promise<LockfileObject>
         >
       | undefined;
-    calculatePnpmfileChecksum?: (() => Promise<string | undefined>) | undefined;
+    calculateOspmfileChecksum?: (() => Promise<string | undefined>) | undefined;
   };
   sideEffectsCacheRead: boolean;
   sideEffectsCacheWrite: boolean;
@@ -177,7 +177,7 @@ export type StrictInstallOptions = {
    * Don't relink local directory dependencies if they are not hard linked from the local directory.
    *
    * This option was added to fix an issue with Bit CLI.
-   * Bit compile adds dist directories to the injected dependencies, so if pnpm were to relink them,
+   * Bit compile adds dist directories to the injected dependencies, so if ospm were to relink them,
    * the dist directories would be deleted.
    *
    * The option might be used in the future to improve performance.
@@ -200,8 +200,8 @@ export type InstallOptions = Partial<
 
 function defaults(opts: InstallOptions): StrictInstallOptions {
   const packageManager = opts.packageManager ?? {
-    name: pnpmPkgJson.name,
-    version: pnpmPkgJson.version,
+    name: ospmPkgJson.name,
+    version: ospmPkgJson.version,
   };
 
   return {
@@ -209,14 +209,14 @@ function defaults(opts: InstallOptions): StrictInstallOptions {
     global: false,
     allProjects: [],
     disableRelinkLocalDirDeps: false,
-    ignorePnpmfile: false,
+    ignoreOspmfile: false,
     dir: '' as LockFileDir,
     preferSymlinkedExecutables: false,
     forceHoistPattern: false,
     reporter: () => {},
     forcePublicHoistPattern: false,
     modulesDir: 'node_modules' as ModulesDir,
-    pnpmfile: '',
+    ospmfile: '',
     hoistingLimits: new Map(),
     linkWorkspacePackagesDepth: 0,
     fixLockfile: false,
@@ -350,7 +350,7 @@ export function extendOptions(opts: InstallOptions): ProcessedInstallOptions {
   }
 
   if (opts.onlyBuiltDependencies && opts.neverBuiltDependencies) {
-    throw new PnpmError(
+    throw new OspmError(
       'CONFIG_CONFLICT_BUILT_DEPENDENCIES',
       'Cannot have both neverBuiltDependencies and onlyBuiltDependencies'
     );
@@ -378,7 +378,7 @@ export function extendOptions(opts: InstallOptions): ProcessedInstallOptions {
     extendedOpts.ignoreScripts = true;
 
     if (!extendedOpts.useLockfile) {
-      throw new PnpmError(
+      throw new OspmError(
         'CONFIG_CONFLICT_LOCKFILE_ONLY_WITH_NO_LOCKFILE',
         `Cannot generate a ${WANTED_LOCKFILE} because lockfile is set to false`
       );

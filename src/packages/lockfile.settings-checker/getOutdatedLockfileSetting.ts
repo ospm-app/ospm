@@ -10,7 +10,7 @@ export type ChangedField =
   | 'settings.excludeLinksFromLockfile'
   | 'settings.peersSuffixMaxLength'
   | 'settings.injectWorkspacePackages'
-  | 'pnpmfileChecksum';
+  | 'ospmfileChecksum';
 
 export function getOutdatedLockfileSetting(
   lockfile: LockfileObject,
@@ -22,7 +22,7 @@ export function getOutdatedLockfileSetting(
     autoInstallPeers,
     excludeLinksFromLockfile,
     peersSuffixMaxLength,
-    pnpmfileChecksum,
+    ospmfileChecksum,
     injectWorkspacePackages,
   }: {
     overrides?: Record<string, string> | undefined;
@@ -32,7 +32,7 @@ export function getOutdatedLockfileSetting(
     autoInstallPeers?: boolean | undefined;
     excludeLinksFromLockfile?: boolean | undefined;
     peersSuffixMaxLength?: number | undefined;
-    pnpmfileChecksum?: string | undefined;
+    ospmfileChecksum?: string | undefined;
     injectWorkspacePackages?: boolean | undefined;
   }
 ): ChangedField | null {
@@ -85,8 +85,8 @@ export function getOutdatedLockfileSetting(
     return 'settings.peersSuffixMaxLength';
   }
 
-  if (lockfile.pnpmfileChecksum !== pnpmfileChecksum) {
-    return 'pnpmfileChecksum';
+  if (lockfile.ospmfileChecksum !== ospmfileChecksum) {
+    return 'ospmfileChecksum';
   }
 
   if (

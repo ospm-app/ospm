@@ -5,7 +5,8 @@ import {
   OUTPUT_OPTIONS,
   UNIVERSAL_OPTIONS,
 } from '../common-cli-options-help/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
+import { type Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
 import { WANTED_LOCKFILE } from '../constants/index.ts';
 import { prepareExecutionEnv } from '../plugin-commands-env/index.ts';
 import type { CreateStoreControllerOptions } from '../store-connection-manager/index.ts';
@@ -28,12 +29,12 @@ export function rcOptionsTypes(): Record<string, unknown> {
       'fetch-timeout',
       'frozen-lockfile',
       'global-dir',
-      'global-pnpmfile',
+      'global-ospmfile',
       'global',
       'hoist',
       'hoist-pattern',
       'https-proxy',
-      'ignore-pnpmfile',
+      'ignore-ospmfile',
       'ignore-scripts',
       'optimistic-repeat-install',
       'link-workspace-packages',
@@ -48,7 +49,7 @@ export function rcOptionsTypes(): Record<string, unknown> {
       'node-linker',
       'noproxy',
       'package-import-method',
-      'pnpmfile',
+      'ospmfile',
       'prefer-frozen-lockfile',
       'prefer-offline',
       'production',
@@ -107,7 +108,7 @@ When executed inside a workspace, installs all dependencies of all projects.',
           {
             description:
               'Run installation recursively in every package found in subdirectories. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -179,7 +180,7 @@ For options that may be used with `-r`, see "pnpm help recursive"',
           },
           {
             description:
-              'Hoist all dependencies matching the pattern to `node_modules/.pnpm/node_modules`. \
+              'Hoist all dependencies matching the pattern to `node_modules/.ospm/node_modules`. \
 The default pattern is * and matches everything. Hoisted packages can be required \
 by any dependencies, so it is an emulation of a flat node_modules',
             name: '--hoist-pattern <pattern>',
@@ -197,16 +198,16 @@ by any dependencies, so it is an emulation of a flat node_modules',
           },
           {
             description:
-              'Controls the number of child processes run parallelly to build node modules',
+              'Controls the number of child processes run parallel to build node modules',
             name: '--child-concurrency <number>',
           },
           {
-            description: 'Disable pnpm hooks defined in .pnpmfile.cjs',
-            name: '--ignore-pnpmfile',
+            description: 'Disable ospm hooks defined in .ospmfile.cjs',
+            name: '--ignore-ospmfile',
           },
           {
             description:
-              'Ignore pnpm-workspace.yaml if exists in the parent directory, and treat the installation as normal non-workspace installation.',
+              'Ignore ospm-workspace.yaml if exists in the parent directory, and treat the installation as normal non-workspace installation.',
             name: '--ignore-workspace',
           },
           {
@@ -220,7 +221,7 @@ by any dependencies, so it is an emulation of a flat node_modules',
           },
           {
             description:
-              'Starts a store server in the background. The store server will keep running after installation is done. To stop the store server, run `pnpm server stop`',
+              'Starts a store server in the background. The store server will keep running after installation is done. To stop the store server, run `ospm server stop`',
             name: '--use-store-server',
           },
           {
@@ -248,7 +249,7 @@ by any dependencies, so it is an emulation of a flat node_modules',
           {
             description:
               "Force reinstall dependencies: refetch packages modified in store, \
-recreate a lockfile and/or modules directory created by a non-compatible version of pnpm. \
+recreate a lockfile and/or modules directory created by a non-compatible version of ospm. \
 Install all optionalDependencies even they don't satisfy the current environment(cpu, os, arch)",
             name: '--force',
           },
@@ -273,7 +274,7 @@ Install all optionalDependencies even they don't satisfy the current environment
       FILTERING,
     ],
     url: docsUrl('install'),
-    usages: ['pnpm install [options]'],
+    usages: ['ospm install [options]'],
   });
 }
 
@@ -296,9 +297,9 @@ export type InstallCommandOptions = Pick<
   | 'excludeLinksFromLockfile'
   | 'frozenLockfile'
   | 'global'
-  | 'globalPnpmfile'
+  | 'globalOspmfile'
   | 'hooks'
-  | 'ignorePnpmfile'
+  | 'ignoreOspmfile'
   | 'ignoreScripts'
   | 'injectWorkspacePackages'
   | 'linkWorkspacePackages'
@@ -308,7 +309,7 @@ export type InstallCommandOptions = Pick<
   | 'modulesDir'
   | 'nodeLinker'
   | 'patchedDependencies'
-  | 'pnpmfile'
+  | 'ospmfile'
   | 'preferFrozenLockfile'
   | 'preferWorkspacePackages'
   | 'production'
@@ -361,7 +362,7 @@ export type InstallCommandOptions = Pick<
     Pick<
       Config,
       | 'modulesCacheMaxAge'
-      | 'pnpmHomeDir'
+      | 'ospmHomeDir'
       | 'preferWorkspacePackages'
       | 'useLockfile'
       | 'symlink'
@@ -378,7 +379,7 @@ export async function handler(opts: InstallCommandOptions): Promise<void> {
   // npm registry's abbreviated metadata currently does not contain libc
   // see <https://github.com/pnpm/pnpm/issues/7362#issuecomment-1971964689>
   const fetchFullMetadata: true | undefined =
-    opts.rootProjectManifest?.pnpm?.supportedArchitectures?.libc && true;
+    opts.rootProjectManifest?.ospm?.supportedArchitectures?.libc && true;
 
   const installDepsOptions: InstallDepsOptions = {
     ...opts,

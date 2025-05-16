@@ -5,7 +5,7 @@ import {
   type FetchFromDirOptions,
   fetchFromDir,
 } from '../directory-fetcher/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 
 export const DIR: unique symbol = Symbol('Path is a directory');
 
@@ -241,7 +241,7 @@ export async function extendFilesMap({
       } else if (stats.isDirectory()) {
         addInodeAndAncestors(relativePath, DIR);
       } else {
-        throw new PnpmError(
+        throw new OspmError(
           'UNSUPPORTED_INODE_TYPE',
           `Filesystem inode at ${realPath} is neither a file, a directory, or a symbolic link`
         );

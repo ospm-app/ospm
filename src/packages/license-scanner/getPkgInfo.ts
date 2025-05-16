@@ -17,7 +17,7 @@ import {
   type PackageFilesIndex,
 } from '../store.cafs/index.ts';
 import { loadJsonFile } from 'load-json-file';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type { LicensePackage } from './licenses.ts';
 import { pkgSnapshotToResolution } from '../lockfile.utils/index.ts';
 import { fetchFromDir } from '../directory-fetcher/index.ts';
@@ -315,7 +315,7 @@ export async function readPackageIndexFile(
       'integrity.json'
     );
   } else {
-    throw new PnpmError(
+    throw new OspmError(
       'UNSUPPORTED_PACKAGE_TYPE',
       `Unsupported package resolution type for ${id}`
     );
@@ -331,9 +331,9 @@ export async function readPackageIndexFile(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     if (err.code === 'ENOENT') {
-      throw new PnpmError(
+      throw new OspmError(
         'MISSING_PACKAGE_INDEX_FILE',
-        `Failed to find package index file for ${id} (at ${pkgIndexFilePath}), please consider running 'pnpm install'`
+        `Failed to find package index file for ${id} (at ${pkgIndexFilePath}), please consider running 'ospm install'`
       );
     }
 
@@ -380,7 +380,7 @@ export async function getPkgInfo(
   );
 
   if (typeof packageResolution === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'MISSING_PACKAGE_RESOLUTION',
       `Failed to find package resolution for ${pkg.id}`
     );
@@ -410,7 +410,7 @@ export async function getPkgInfo(
     const packageManifestFile = packageFileIndex['package.json'];
 
     if (typeof packageManifestFile === 'undefined') {
-      throw new PnpmError(
+      throw new OspmError(
         'MISSING_PACKAGE_MANIFEST',
         `Failed to find package manifest file for ${pkg.id}`
       );
@@ -424,7 +424,7 @@ export async function getPkgInfo(
   }
 
   if (typeof packageManifestDir === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'MISSING_PACKAGE_MANIFEST_DIR',
       `Failed to find package manifest directory for ${pkg.id}`
     );
@@ -437,7 +437,7 @@ export async function getPkgInfo(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     if (err.code === 'ENOENT') {
-      throw new PnpmError(
+      throw new OspmError(
         'MISSING_PACKAGE_MANIFEST',
         `Failed to find package manifest file at ${packageManifestDir}`
       );
@@ -450,7 +450,7 @@ export async function getPkgInfo(
   const modulesDir = opts.modulesDir;
 
   const virtualStoreDir = pathAbsolute(
-    opts.virtualStoreDir || path.join(modulesDir, '.pnpm'),
+    opts.virtualStoreDir || path.join(modulesDir, '.ospm'),
     opts.dir
   );
 

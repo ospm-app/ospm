@@ -1,4 +1,4 @@
-import { types as allTypes } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
 import pick from 'ramda/src/pick';
 import renderHelp from 'render-help';
 import {
@@ -31,7 +31,7 @@ export function help(): string {
         list: [IF_PRESENT_OPTION_HELP],
       },
     ],
-    usages: ['pnpm restart [-- <args>...]'],
+    usages: ['ospm restart [-- <args>...]'],
   });
 }
 

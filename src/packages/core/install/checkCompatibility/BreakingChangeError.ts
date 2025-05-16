@@ -1,4 +1,4 @@
-import { PnpmError } from '../../../error/index.ts';
+import { OspmError } from '../../../error/index.ts';
 import type { ErrorRelatedSources } from './ErrorRelatedSources.ts';
 
 export type BreakingChangeErrorOptions = ErrorRelatedSources & {
@@ -6,7 +6,7 @@ export type BreakingChangeErrorOptions = ErrorRelatedSources & {
   message: string;
 };
 
-export class BreakingChangeError extends PnpmError {
+export class BreakingChangeError extends OspmError {
   relatedIssue?: number | undefined;
   relatedPR?: number | undefined;
   additionalInformation?: string | undefined;

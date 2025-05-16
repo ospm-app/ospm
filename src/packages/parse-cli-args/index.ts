@@ -1,5 +1,5 @@
 import type { CliOptions } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { findWorkspaceDir } from '../find-workspace-dir/index.ts';
 import nopt from '@pnpm/nopt';
 import didYouMean, { ReturnTypeEnums } from 'didyoumean2';
@@ -133,14 +133,14 @@ export async function parseCliArgs(
     }
 
     // We'd like everything after the run script's name to be passed to the
-    // script's argv itself. For example, "pnpm run echo --test" should pass
+    // script's argv itself. For example, "ospm run echo --test" should pass
     // "--test" to the "echo" script. This requires determining the script's
     // name and declaring it as the "escape arg".
     //
-    // The name of the run script is normally the second argument (ex: pnpm
-    // run foo), but can be pushed back by recursive commands (ex: pnpm
+    // The name of the run script is normally the second argument (ex: ospm
+    // run foo), but can be pushed back by recursive commands (ex: ospm
     // recursive run foo) or becomes the first argument when the fallback
-    // command (ex: pnpm foo) is set to 'run'.
+    // command (ex: ospm foo) is set to 'run'.
     const indexOfRunScriptName =
       1 +
       (recursiveCommandUsed ? 1 : 0) +
@@ -166,8 +166,8 @@ export async function parseCliArgs(
   const workspaceDir = await getWorkspaceDir(options);
 
   // For the run command, it's not clear whether --help should be passed to the
-  // underlying script or invoke pnpm's help text until an additional nopt call.
-  if (cmd === 'run' && typeof options['help'] !== 'undefined') {
+  // underlying script or invoke ospm's help text until an additional nopt call.
+  if (cmd === 'run' && typeof options.help !== 'undefined') {
     return {
       ...getParsedArgsForHelp(),
       workspaceDir,
@@ -186,12 +186,12 @@ export async function parseCliArgs(
   const params = argv.remain.slice(1);
 
   if (
-    options['recursive'] !== true &&
-    (typeof options['filter'] !== 'undefined' ||
+    options.recursive !== true &&
+    (typeof options.filter !== 'undefined' ||
       typeof options['filter-prod'] === 'undefined' ||
       recursiveCommandUsed)
   ) {
-    options['recursive'] = true;
+    options.recursive = true;
 
     const subCmd: string | null =
       typeof argv.remain[1] === 'string'
@@ -206,15 +206,15 @@ export async function parseCliArgs(
   }
 
   if (typeof options['workspace-root'] !== 'undefined') {
-    if (typeof options['global'] !== 'undefined') {
-      throw new PnpmError(
+    if (typeof options.global !== 'undefined') {
+      throw new OspmError(
         'OPTIONS_CONFLICT',
         '--workspace-root may not be used with --global'
       );
     }
 
     if (typeof workspaceDir === 'undefined') {
-      throw new PnpmError(
+      throw new OspmError(
         'NOT_IN_WORKSPACE',
         '--workspace-root may only be used inside a workspace'
       );
@@ -225,7 +225,7 @@ export async function parseCliArgs(
 
   if (cmd === 'install' && params.length > 0) {
     cmd = 'add';
-  } else if (cmd === null && typeof options['recursive'] !== 'undefined') {
+  } else if (cmd === null && typeof options.recursive !== 'undefined') {
     cmd = 'recursive';
   }
 
@@ -242,7 +242,7 @@ export async function parseCliArgs(
 
 const CUSTOM_OPTION_PREFIX = 'config.';
 
-interface NormalizeOptionsResult {
+type NormalizeOptionsResult = {
   options: Record<string, unknown>;
   unknownOptions: Map<string, string[]>;
 }
@@ -252,17 +252,24 @@ function normalizeOptions(
   knownOptions: Set<string>
 ): NormalizeOptionsResult {
   const standardOptionNames = [];
+
   const normalizedOptions: Record<string, unknown> = {};
+
   for (const [optionName, optionValue] of Object.entries(options)) {
     if (optionName.startsWith(CUSTOM_OPTION_PREFIX)) {
       normalizedOptions[optionName.substring(CUSTOM_OPTION_PREFIX.length)] =
         optionValue;
-      continue;
+
+        continue;
     }
+
     normalizedOptions[optionName] = optionValue;
+
     standardOptionNames.push(optionName);
   }
+
   const unknownOptions = getUnknownOptions(standardOptionNames, knownOptions);
+
   return { options: normalizedOptions, unknownOptions };
 }
 
@@ -271,17 +278,20 @@ function getUnknownOptions(
   knownOptions: Set<string>
 ): Map<string, string[]> {
   const unknownOptions = new Map<string, string[]>();
+
   const closestMatches = getClosestOptionMatches.bind(
     null,
     Array.from(knownOptions)
   );
+
   for (const usedOption of usedOptions) {
     if (
       knownOptions.has(usedOption) ||
       usedOption.startsWith('//') ||
       isScopeRegistryOption(usedOption)
-    )
+    ) {
       continue;
+    }
 
     unknownOptions.set(usedOption, closestMatches(usedOption));
   }

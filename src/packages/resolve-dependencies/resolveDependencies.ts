@@ -11,7 +11,7 @@ import {
   progressLogger,
   skippedOptionalDependencyLogger,
 } from '../core-loggers/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type {
   LockfileObject,
   PackageSnapshot,
@@ -204,7 +204,7 @@ export type ResolutionContext = {
   readPackageHook?: ReadPackageHook | undefined;
   engineStrict: boolean;
   nodeVersion?: string | undefined;
-  pnpmVersion: string;
+  ospmVersion: string;
   registries: Registries;
   resolutionMode?: 'highest' | 'time-based' | 'lowest-direct' | undefined;
   virtualStoreDir: string;
@@ -926,8 +926,8 @@ async function resolveDependenciesOfImporterDependency(
       parentPkgAliases: importer.parentPkgAliases,
       pickLowestVersion: pickLowestVersion && !importer.updatePackageManifest,
       // Cataloged dependencies cannot be upgraded yet since they require
-      // updating the pnpm-workspace.yaml file. This will be handled in a future
-      // version of pnpm.
+      // updating the ospm-workspace.yaml file. This will be handled in a future
+      // version of ospm.
       updateToLatest:
         catalogLookup != null ? false : importer.options.updateToLatest,
     },
@@ -1578,7 +1578,7 @@ function getDepsToResolve(
         reference = rd;
       } else if (
         // If dependencies that were used by the previous version of the package
-        // satisfy the newer version's requirements, then pnpm tries to keep
+        // satisfy the newer version's requirements, then ospm tries to keep
         // the previous dependency.
         // So for example, if foo@1.0.0 had bar@1.0.0 as a dependency
         // and foo was updated to 1.1.0 which depends on bar ^1.0.0
@@ -1807,7 +1807,7 @@ async function resolveDependency(
     : undefined;
 
   const depIsLinked = Boolean(
-    // if package is not in `node_modules/.pnpm-lock.yaml`
+    // if package is not in `node_modules/.ospm-lock.yaml`
     // we can safely assume that it doesn't exist in `node_modules`
     currentLockfileContainsTheDep === true &&
       currentPkg?.depPath &&
@@ -1987,7 +1987,7 @@ async function resolveDependency(
     if (typeof pkgResponse.body.manifest === 'undefined') {
       // This should actually never happen because the local-resolver returns a manifest
       // even if no real manifest exists in the filesystem.
-      throw new PnpmError(
+      throw new OspmError(
         'MISSING_PACKAGE_JSON',
         `Can't install ${newWantedDependency.pref}: Missing package.json file`
       );
@@ -2049,7 +2049,7 @@ async function resolveDependency(
 
   if (!pkg.name) {
     // TODO: don't fail on optional dependencies
-    throw new PnpmError(
+    throw new OspmError(
       'MISSING_PACKAGE_NAME',
       `Can't install ${newWantedDependency.pref}: Missing package name`
     );

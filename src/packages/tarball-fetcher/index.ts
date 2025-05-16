@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type { FetchFunction, FetchOptions } from '../fetcher-base/index.ts';
 import type { Cafs, PackageFiles } from '../cafs-types/index.ts';
 import type {
@@ -15,6 +15,7 @@ import { createLocalTarballFetcher } from './localTarballFetcher.ts';
 import { createGitHostedTarballFetcher } from './gitHostedTarballFetcher.ts';
 import type { DependencyManifest } from '../types/package.ts';
 import type { Resolution } from '../resolver-base/index.ts';
+import { createOspmTarballFetcher } from './ospmTarballFetcher.ts';
 
 export { BadTarballError } from './errorTypes/index.ts';
 
@@ -32,13 +33,14 @@ export type TarballFetchers = {
       requiresBuild: boolean;
     }
   >;
+  ospmTarball: FetchFunction<Resolution, FetchOptions, AddFilesResult>;
 };
 
 export function createTarballFetcher(
   fetchFromRegistry: FetchFromRegistry,
   getAuthHeader: GetAuthHeader,
   opts: {
-    rawConfig: Record<string, unknown>;
+    rawConfig: Record<string, string>;
     unsafePerm?: boolean | undefined;
     ignoreScripts?: boolean | undefined;
     timeout?: number | undefined;
@@ -61,6 +63,7 @@ export function createTarballFetcher(
     localTarball: createLocalTarballFetcher(),
     remoteTarball: remoteTarballFetcher,
     gitHostedTarball: createGitHostedTarballFetcher(remoteTarballFetcher, opts),
+    ospmTarball: createOspmTarballFetcher(fetchFromRegistry, getAuthHeader),
   };
 }
 
@@ -79,14 +82,14 @@ async function fetchFromTarball(
   opts: FetchOptions
 ): Promise<AddFilesResult> {
   if (ctx.offline === true) {
-    throw new PnpmError(
+    throw new OspmError(
       'NO_OFFLINE_TARBALL',
       `A package is missing from the store but cannot download it in offline mode. The missing package may be downloaded from ${resolution.tarball}.`
     );
   }
 
   if (typeof resolution.tarball !== 'string' || resolution.tarball === '') {
-    throw new PnpmError('NO_TARBALL', 'No tarball found');
+    throw new OspmError('NO_TARBALL', 'No tarball found');
   }
 
   return ctx.download(resolution.tarball, {

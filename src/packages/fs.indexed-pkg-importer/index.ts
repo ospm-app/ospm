@@ -233,7 +233,7 @@ function linkOrCopy(existingPath: string, newPath: string): void {
       return;
     // In some VERY rare cases (1 in a thousand), hard-link creation fails on Windows.
     // In that case, we just fall back to copying.
-    // This issue is reproducible with "pnpm add @material-ui/icons@4.9.1"
+    // This issue is reproducible with "ospm add @material-ui/icons@4.9.1"
     fs.copyFileSync(existingPath, newPath);
   }
 }

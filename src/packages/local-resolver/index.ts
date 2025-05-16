@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { getTarballIntegrity } from '../crypto.hash/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { readProjectManifestOnly } from '../read-project-manifest/index.ts';
 import type {
   DirectoryResolution,
@@ -68,13 +68,13 @@ export async function resolveFromLocal(
     if (existsSync(spec.fetchSpec)) {
       switch (internalErr.code) {
         case 'ENOTDIR': {
-          throw new PnpmError(
+          throw new OspmError(
             'NOT_PACKAGE_DIRECTORY',
             `Could not install from "${spec.fetchSpec}" as it is not a directory.`
           );
         }
 
-        case 'ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND':
+        case 'ERR_OSPM_NO_IMPORTER_MANIFEST_FOUND':
         case 'ENOENT': {
           localDependencyManifest = {
             name: path.basename(spec.fetchSpec),
@@ -90,7 +90,7 @@ export async function resolveFromLocal(
       }
     } else {
       if (spec.id.startsWith('file:') === true) {
-        throw new PnpmError(
+        throw new OspmError(
           'LINKED_PKG_DIR_NOT_FOUND',
           `Could not install from "${spec.fetchSpec}" as it does not exist.`
         );

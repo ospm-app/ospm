@@ -4,7 +4,8 @@ import {
   OPTIONS,
   UNIVERSAL_OPTIONS,
 } from '../common-cli-options-help/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
 import { list, listForPackages } from '../list/index.ts';
 import type {
   GlobalPkgDir,
@@ -57,7 +58,7 @@ export function help(): string {
     description:
       'When run as ll or la, it shows extended information by default. \
 All dependencies are printed by default. Search by patterns is supported. \
-For example: pnpm ls babel-* eslint-*',
+For example: ospm ls babel-* eslint-*',
     descriptionLists: [
       {
         title: 'Options',
@@ -67,7 +68,7 @@ For example: pnpm ls babel-* eslint-*',
             description:
               'Perform command on every package in subdirectories \
 or on every workspace package, when executed inside a workspace. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -99,7 +100,7 @@ For options that may be used with `-r`, see "pnpm help recursive"',
           },
           {
             description:
-              'Display only projects. Useful in a monorepo. `pnpm ls -r --depth -1` lists all projects in a monorepo',
+              'Display only projects. Useful in a monorepo. `ospm ls -r --depth -1` lists all projects in a monorepo',
             name: '--depth -1',
           },
           {
@@ -130,7 +131,7 @@ For options that may be used with `-r`, see "pnpm help recursive"',
       FILTERING,
     ],
     url: docsUrl('list'),
-    usages: ['pnpm ls [<pkg> ...]'],
+    usages: ['ospm ls [<pkg> ...]'],
   });
 }
 

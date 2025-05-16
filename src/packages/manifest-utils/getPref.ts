@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 
 export type PinnedVersion = 'major' | 'minor' | 'patch' | 'none';
 
@@ -49,7 +49,7 @@ export function createVersionSpec(
     }
 
     default: {
-      throw new PnpmError(
+      throw new OspmError(
         'BAD_PINNED_VERSION',
         `Cannot pin '${opts.pinnedVersion ?? 'undefined'}'`
       );

@@ -59,17 +59,17 @@ function getHelpText(): string {
           },
           {
             description:
-              'Unlinks a package. Like yarn unlink but pnpm re-installs the dependency after removing the external link',
+              'Unlinks a package. Like yarn unlink but ospm re-installs the dependency after removing the external link',
             name: 'unlink',
           },
           {
             description:
-              'Generates a pnpm-lock.yaml from an npm package-lock.json (or npm-shrinkwrap.json) file',
+              'Generates a ospm-lock.yaml from an npm package-lock.json (or npm-shrinkwrap.json) file',
             name: 'import',
           },
           {
             description:
-              'Runs a pnpm install followed immediately by a pnpm test',
+              'Runs a ospm install followed immediately by a ospm test',
             name: 'install-test',
             shortAlias: 'it',
           },
@@ -172,7 +172,7 @@ function getHelpText(): string {
         list: [
           {
             description:
-              'Adds new packages to the pnpm store directly. Does not modify any projects or files outside the store',
+              'Adds new packages to the ospm store directly. Does not modify any projects or files outside the store',
             name: 'store add',
           },
           {
@@ -202,6 +202,6 @@ function getHelpText(): string {
         ],
       },
     ],
-    usages: ['pnpm [command] [flags]', 'pnpm [ -h | --help | -v | --version ]'],
+    usages: ['ospm [command] [flags]', 'ospm [ -h | --help | -v | --version ]'],
   });
 }

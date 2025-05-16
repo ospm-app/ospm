@@ -3,8 +3,8 @@ import {
   OPTIONS,
   UNIVERSAL_OPTIONS,
 } from '../common-cli-options-help/index.ts';
-import { types as allTypes } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import { types as allTypes } from '../config/types.ts';
+import { OspmError } from '../error/index.ts';
 import type { CreateStoreControllerOptions } from '../store-connection-manager/index.ts';
 import pick from 'ramda/src/pick';
 import renderHelp from 'render-help';
@@ -84,7 +84,7 @@ Other commands will delegate any store-related tasks to this service',
           },
           {
             description:
-              'Disallows stopping the server using `pnpm server stop`',
+              'Disallows stopping the server using `ospm server stop`',
             name: '--ignore-stop-requests',
           },
           {
@@ -97,7 +97,7 @@ Other commands will delegate any store-related tasks to this service',
       },
     ],
     url: docsUrl('server'),
-    usages: ['pnpm server <command>'],
+    usages: ['ospm server <command>'],
   });
 }
 
@@ -129,9 +129,9 @@ export function handler(
       help();
 
       if (typeof params[0] !== 'undefined') {
-        throw new PnpmError(
+        throw new OspmError(
           'INVALID_SERVER_COMMAND',
-          `"server ${params[0]}" is not a pnpm command. See "pnpm help server".`
+          `"server ${params[0]}" is not a ospm command. See "ospm help server".`
         );
       }
 

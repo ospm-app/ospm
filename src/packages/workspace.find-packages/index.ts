@@ -1,5 +1,5 @@
 import { packageIsInstallable } from '../cli-utils/index.ts';
-import { USEFUL_NON_ROOT_PNPM_FIELDS } from '../constants/index.ts';
+import { USEFUL_NON_ROOT_OSPM_FIELDS } from '../constants/index.ts';
 import type {
   Project,
   ProjectManifest,
@@ -17,7 +17,7 @@ export interface FindWorkspacePackagesOpts {
   /**
    * An array of globs for the packages included in the workspace.
    *
-   * In most cases, callers should read the pnpm-workspace.yml and pass the
+   * In most cases, callers should read the ospm-workspace.yml and pass the
    * "packages" field.
    */
   patterns?: string[] | undefined;
@@ -49,7 +49,7 @@ export async function findWorkspacePackages(
       },
     });
 
-    // When setting shared-workspace-lockfile=false, `pnpm` can be set in sub-project's package.json.
+    // When setting shared-workspace-lockfile=false, `ospm` can be set in sub-project's package.json.
     if (
       opts?.sharedWorkspaceLockfile === true &&
       pkg.rootDir !== workspaceRoot
@@ -82,9 +82,9 @@ const uselessNonRootManifestFields: Array<keyof ProjectManifest> = [
   'resolutions',
 ];
 
-type ProjectManifestPnpm = Required<ProjectManifest>['pnpm'];
-const usefulNonRootPnpmFields: ReadonlyArray<string> =
-  USEFUL_NON_ROOT_PNPM_FIELDS;
+type ProjectManifestOspm = Required<ProjectManifest>['ospm'];
+const usefulNonRootOspmFields: ReadonlyArray<string> =
+  USEFUL_NON_ROOT_OSPM_FIELDS;
 
 function checkNonRootProjectManifest({ manifest, rootDir }: Project): void {
   const warn = printNonRootFieldWarning.bind(null, rootDir);
@@ -95,9 +95,9 @@ function checkNonRootProjectManifest({ manifest, rootDir }: Project): void {
     }
   }
 
-  for (const field in manifest.pnpm) {
-    if (!usefulNonRootPnpmFields.includes(field as keyof ProjectManifestPnpm)) {
-      warn(`pnpm.${field}`);
+  for (const field in manifest.ospm) {
+    if (!usefulNonRootOspmFields.includes(field as keyof ProjectManifestOspm)) {
+      warn(`ospm.${field}`);
     }
   }
 }

@@ -1,13 +1,13 @@
 export const REPORTER_INITIALIZED = Symbol('reporterInitialized');
 
 export type Global = typeof globalThis & {
-  pnpm__startedAt?: number;
+  ospm__startedAt?: number;
   [REPORTER_INITIALIZED]?: ReporterType;
 };
 declare const global: Global;
 
-if (typeof global['pnpm__startedAt'] === 'undefined') {
-  global['pnpm__startedAt'] = Date.now();
+if (typeof global['ospm__startedAt'] === 'undefined') {
+  global['ospm__startedAt'] = Date.now();
 }
 
 import process from 'node:process';
@@ -22,7 +22,7 @@ import {
   executionTimeLogger,
   scopeLogger,
 } from './packages/core-loggers/index.ts';
-import { PnpmError } from './packages/error/index.ts';
+import { OspmError } from './packages/error/index.ts';
 import { filterPackagesFromDir } from './packages/filter-workspace-packages/index.ts';
 import { globalWarn, logger } from './packages/logger/index.ts';
 import type { ParsedCliArgs } from './packages/parse-cli-args/index.ts';
@@ -35,7 +35,7 @@ import isEmpty from 'ramda/src/isEmpty';
 import { stripVTControlCharacters as stripAnsi } from 'node:util';
 import { checkForUpdates } from './checkForUpdates.ts';
 import {
-  pnpmCmds,
+  ospmCmds,
   rcOptionsTypes,
   skipPackageManagerCheckForCommand,
 } from './cmd/index.ts';
@@ -58,7 +58,7 @@ const DEPRECATED_OPTIONS = new Set([
 delete process.env.PKG_EXECPATH;
 
 export async function main(inputArgv: string[]): Promise<void> {
-  let parsedCliArgs!: ParsedCliArgs;
+  let parsedCliArgs: ParsedCliArgs;
 
   try {
     parsedCliArgs = await parseCliArgs(inputArgv);
@@ -80,9 +80,11 @@ export async function main(inputArgv: string[]): Promise<void> {
     workspaceDir,
   } = parsedCliArgs;
 
-  if (cmd !== null && !pnpmCmds[cmd]) {
-    printError(`Unknown command '${cmd}'`, 'For help, run: pnpm help');
+  if (cmd !== null && !ospmCmds[cmd]) {
+    printError(`Unknown command '${cmd}'`, 'For help, run: ospm help');
+
     process.exitCode = 1;
+
     return;
   }
 
@@ -112,7 +114,7 @@ export async function main(inputArgv: string[]): Promise<void> {
     } else {
       printError(
         formatUnknownOptionsError(unknownOptions),
-        `For help, run: pnpm help${typeof cmd === 'string' ? ` ${cmd}` : ''}`
+        `For help, run: ospm help${typeof cmd === 'string' ? ` ${cmd}` : ''}`
       );
 
       process.exitCode = 1;
@@ -157,7 +159,7 @@ export async function main(inputArgv: string[]): Promise<void> {
     ) {
       if (
         typeof config.managePackageManagerVersions !== 'undefined' &&
-        config.wantedPackageManager.name === 'pnpm'
+        config.wantedPackageManager.name === 'ospm'
       ) {
         await switchCliVersion(config);
       } else if (cmd === null || !skipPackageManagerCheckForCommand.has(cmd)) {
@@ -177,8 +179,8 @@ export async function main(inputArgv: string[]): Promise<void> {
     if (typeof cmd === 'string') {
       config.extraEnv = {
         ...config.extraEnv,
-        // Follow the behavior of npm by setting it to 'run-script' when running scripts (e.g. pnpm run dev)
-        // and to the command name otherwise (e.g. pnpm test)
+        // Follow the behavior of npm by setting it to 'run-script' when running scripts (e.g. ospm run dev)
+        // and to the command name otherwise (e.g. ospm test)
         npm_command: cmd === 'run' ? 'run-script' : cmd,
       };
     }
@@ -188,7 +190,7 @@ export async function main(inputArgv: string[]): Promise<void> {
     const hint =
       typeof err['hint'] === 'string'
         ? err['hint']
-        : `For help, run: pnpm help${typeof cmd === 'string' ? ` ${cmd}` : ''}`;
+        : `For help, run: ospm help${typeof cmd === 'string' ? ` ${cmd}` : ''}`;
 
     printError(err.message, hint);
 
@@ -249,7 +251,7 @@ export async function main(inputArgv: string[]): Promise<void> {
   }
 
   if (cmd === 'self-update') {
-    await pnpmCmds.server?.(config, ['stop']);
+    await ospmCmds.server?.(config, ['stop']);
   }
 
   if (
@@ -444,7 +446,7 @@ export async function main(inputArgv: string[]): Promise<void> {
         }
       }
 
-      let result = pnpmCmds[cmd ?? 'help']?.(
+      let result = ospmCmds[cmd ?? 'help']?.(
         // TypeScript doesn't currently infer that the type of config
         // is `Omit<typeof config, 'reporter'>` after the `delete config.reporter` statement
         config,
@@ -456,7 +458,7 @@ export async function main(inputArgv: string[]): Promise<void> {
       }
 
       executionTimeLogger.debug({
-        startedAt: global['pnpm__startedAt'],
+        startedAt: global['ospm__startedAt'],
         endedAt: Date.now(),
       });
 
@@ -471,7 +473,7 @@ export async function main(inputArgv: string[]): Promise<void> {
       return result;
     })();
 
-  // When use-node-version is set and "pnpm run" is executed,
+  // When use-node-version is set and "ospm run" is executed,
   // this will be the only place where the tarball worker pool is finished.
   await finishWorkers();
 
@@ -507,20 +509,20 @@ function printError(message: string, hint?: string): void {
 function checkPackageManager(pm: WantedPackageManager, config: Config): void {
   if (!pm.name) return;
 
-  if (pm.name === 'pnpm') {
-    const currentPnpmVersion =
-      packageManager.name === 'pnpm' ? packageManager.version : undefined;
+  if (pm.name === 'ospm') {
+    const currentOspmVersion =
+      packageManager.name === 'ospm' ? packageManager.version : undefined;
 
     if (
-      typeof currentPnpmVersion === 'string' &&
+      typeof currentOspmVersion === 'string' &&
       config.packageManagerStrictVersion === true &&
       typeof pm.version === 'string' &&
-      pm.version !== currentPnpmVersion
+      pm.version !== currentOspmVersion
     ) {
-      const msg = `This project is configured to use v${pm.version} of pnpm. Your current pnpm is v${currentPnpmVersion}`;
+      const msg = `This project is configured to use v${pm.version} of ospm. Your current ospm is v${currentOspmVersion}`;
 
       if (config.packageManagerStrict === true) {
-        throw new PnpmError('BAD_PM_VERSION', msg, {
+        throw new OspmError('BAD_PM_VERSION', msg, {
           hint: 'If you want to bypass this version check, you can set the "package-manager-strict" configuration to "false" or set the "COREPACK_ENABLE_STRICT" environment variable to "0"',
         });
       }
@@ -533,7 +535,7 @@ function checkPackageManager(pm: WantedPackageManager, config: Config): void {
   const msg = `This project is configured to use ${pm.name}`;
 
   if (config.packageManagerStrict === true) {
-    throw new PnpmError('OTHER_PM_EXPECTED', msg);
+    throw new OspmError('OTHER_PM_EXPECTED', msg);
   }
 
   globalWarn(msg);

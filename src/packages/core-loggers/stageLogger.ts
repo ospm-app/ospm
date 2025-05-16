@@ -11,4 +11,4 @@ export type StageMessage = {
     | 'importing_done';
 };
 
-export type StageLog = { name: 'pnpm:stage' } & LogBase & StageMessage;
+export type StageLog = { name: 'ospm:stage' } & LogBase & StageMessage;

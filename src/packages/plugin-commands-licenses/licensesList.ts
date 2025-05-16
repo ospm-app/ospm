@@ -1,6 +1,6 @@
 import { readProjectManifestOnly } from '../cli-utils/index.ts';
-import { type Config, getOptionsFromRootManifest } from '../config/index.ts';
-import { PnpmError } from '../error/index.ts';
+import type { Config } from '../config/index.ts';
+import { OspmError } from '../error/index.ts';
 import { getStorePath } from '../store-path/index.ts';
 import { WANTED_LOCKFILE } from '../constants/index.ts';
 import {
@@ -10,6 +10,7 @@ import {
 import { findDependencyLicenses } from '../license-scanner/index.ts';
 import type { LicensesCommandResult } from './LicensesCommandResult.ts';
 import { renderLicenses } from './outputRenderer.ts';
+import { getOptionsFromRootManifest } from '../config/getOptionsFromRootManifest.ts';
 
 export type LicensesCommandOptions = {
   compatible?: boolean | undefined;
@@ -27,7 +28,7 @@ export type LicensesCommandOptions = {
   | 'storeDir'
   | 'virtualStoreDir'
   | 'modulesDir'
-  | 'pnpmHomeDir'
+  | 'ospmHomeDir'
   | 'selectedProjectsGraph'
   | 'rootProjectManifest'
   | 'rootProjectManifestDir'
@@ -43,7 +44,7 @@ export async function licensesList(
   });
 
   if (lockfile === null) {
-    throw new PnpmError(
+    throw new OspmError(
       'LICENSES_NO_LOCKFILE',
       `No ${WANTED_LOCKFILE} found: Cannot check a project without a lockfile`
     );
@@ -66,7 +67,7 @@ export async function licensesList(
   const storeDir = await getStorePath({
     pkgRoot: opts.dir,
     storePath: opts.storeDir,
-    pnpmHomeDir: opts.pnpmHomeDir,
+    ospmHomeDir: opts.ospmHomeDir,
   });
 
   const licensePackages = await findDependencyLicenses({

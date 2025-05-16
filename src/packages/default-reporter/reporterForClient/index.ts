@@ -64,7 +64,7 @@ export function reporterForClient(
     process: NodeJS.Process;
     isRecursive: boolean;
     logLevel?: LogLevel | undefined;
-    pnpmConfig?: Config | undefined;
+    ospmConfig?: Config | undefined;
     streamLifecycleOutput?: boolean | undefined;
     aggregateOutput?: boolean | undefined;
     throttleProgress?: number | undefined;
@@ -76,7 +76,7 @@ export function reporterForClient(
   }
 ): Array<Rx.Observable<Rx.Observable<{ msg: string }>>> {
   const width = (opts.width ?? process.stdout.columns) || 80;
-  const cwd = opts.pnpmConfig?.dir ?? process.cwd();
+  const cwd = opts.ospmConfig?.dir ?? process.cwd();
   const throttle =
     typeof opts.throttleProgress === 'number' && opts.throttleProgress > 0
       ? throttleTime(opts.throttleProgress, undefined, {
@@ -164,7 +164,7 @@ export function reporterForClient(
         cwd,
         env: opts.env,
         filterPkgsDiff: opts.filterPkgsDiff,
-        pnpmConfig: opts.pnpmConfig,
+        ospmConfig: opts.ospmConfig,
       })
     );
   }

@@ -125,7 +125,7 @@ export type HeadlessOptions = {
   currentLockfile?: LockfileObject | undefined;
   currentEngine: {
     nodeVersion?: string | undefined;
-    pnpmVersion?: string | undefined;
+    ospmVersion?: string | undefined;
   };
   dedupeDirectDeps?: boolean | undefined;
   enablePnp?: boolean | undefined;
@@ -245,7 +245,7 @@ export async function headlessInstall(
   )) as ModulesDir;
 
   const virtualStoreDir = pathAbsolute(
-    opts.virtualStoreDir ?? path.join(relativeModulesDir, '.pnpm'),
+    opts.virtualStoreDir ?? path.join(relativeModulesDir, '.ospm'),
     lockfileDir
   );
 
@@ -410,7 +410,7 @@ export async function headlessInstall(
   //   skipped,
   //   virtualStoreDir,
   //   nodeVersion: opts.currentEngine.nodeVersion,
-  //   pnpmVersion: opts.currentEngine.pnpmVersion,
+  //   ospmVersion: opts.currentEngine.ospmVersion,
   //   supportedArchitectures: opts.supportedArchitectures,
   // };
 
@@ -433,7 +433,7 @@ export async function headlessInstall(
       skipped,
       virtualStoreDir,
       nodeVersion: opts.currentEngine.nodeVersion,
-      pnpmVersion: opts.currentEngine.pnpmVersion,
+      ospmVersion: opts.currentEngine.ospmVersion,
       supportedArchitectures: opts.supportedArchitectures,
     } satisfies LockfileToHoistedDepGraphOptions;
 
@@ -836,7 +836,7 @@ export async function headlessInstall(
     skipped,
     virtualStoreDir,
     nodeVersion: opts.currentEngine.nodeVersion,
-    pnpmVersion: opts.currentEngine.pnpmVersion,
+    ospmVersion: opts.currentEngine.ospmVersion,
     supportedArchitectures: opts.supportedArchitectures,
   } satisfies LockfileToDepGraphOptions;
 
@@ -934,7 +934,7 @@ export async function headlessInstall(
       (opts.hoistPattern != null || opts.publicHoistPattern != null)
     ) {
       // It is important to keep the skipped packages in the lockfile which will be saved as the "current lockfile".
-      // pnpm is comparing the current lockfile to the wanted one and they should match.
+      // ospm is comparing the current lockfile to the wanted one and they should match.
       // But for hoisting, we need a version of the lockfile w/o the skipped packages, so we're making a copy.
       const hoistLockfile = {
         ...filteredLockfile,
@@ -1494,7 +1494,7 @@ async function getRootPackagesToLink(
                   return await readProjectManifestOnly(packageDir);
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } catch (err: any) {
-                  if (err['code'] !== 'ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND') {
+                  if (err['code'] !== 'ERR_OSPM_NO_IMPORTER_MANIFEST_FOUND') {
                     throw err;
                   }
 

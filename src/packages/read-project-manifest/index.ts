@@ -1,6 +1,6 @@
 import { promises as fs, type Stats } from 'node:fs';
 import path from 'node:path';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import type { ProjectManifest } from '../types/index.ts';
 import {
   extractComments,
@@ -27,7 +27,7 @@ export async function safeReadProjectManifestOnly(
   } catch (err: any) {
     if (
       (err as NodeJS.ErrnoException).code ===
-      'ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND'
+      'ERR_OSPM_NO_IMPORTER_MANIFEST_FOUND'
     ) {
       return null;
     }
@@ -48,7 +48,7 @@ export async function readProjectManifest(projectDir: string): Promise<{
       writeProjectManifest: WriteProjectManifest;
     };
   }
-  throw new PnpmError(
+  throw new OspmError(
     'NO_IMPORTER_MANIFEST_FOUND',
     `No package.json (or package.yaml, or package.json5) was found in "${projectDir}".`
   );
@@ -118,7 +118,7 @@ export async function tryReadProjectManifest(projectDir: string): Promise<{
   }
 
   if (isWindows()) {
-    // ENOTDIR isn't used on Windows, but pnpm expects it.
+    // ENOTDIR isn't used on Windows, but ospm expects it.
     let s: Stats | undefined;
 
     try {
@@ -230,7 +230,7 @@ async function readPackageYaml(filePath: string): Promise<ProjectManifest> {
   } catch (err: any) {
     if (err.name !== 'YAMLException') throw err;
     err.message = `${err.message as string}\nin ${filePath}`;
-    err.code = 'ERR_PNPM_YAML_PARSE';
+    err.code = 'ERR_OSPM_YAML_PARSE';
     throw err;
   }
 }

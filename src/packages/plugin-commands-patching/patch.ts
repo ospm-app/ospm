@@ -2,13 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { applyPatchToDir } from '../patching.apply-patch/index.ts';
 import { docsUrl } from '../cli-utils/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
 import type { CreateStoreControllerOptions } from '../store-connection-manager/index.ts';
 import pick from 'ramda/src/pick';
 import renderHelp from 'render-help';
 import chalk from 'chalk';
 import terminalLink from 'terminal-link';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { writePackage } from './writePackage.ts';
 import { getEditDirPath } from './getEditDirPath.ts';
 import {
@@ -58,7 +59,7 @@ export function help(): string {
       },
     ],
     url: docsUrl('patch'),
-    usages: ['pnpm patch <pkg name>@<version>'],
+    usages: ['ospm patch <pkg name>@<version>'],
   });
 }
 
@@ -89,7 +90,7 @@ export async function handler(
     fs.existsSync(opts.editDir) &&
     fs.readdirSync(opts.editDir).length > 0
   ) {
-    throw new PnpmError(
+    throw new OspmError(
       'PATCH_EDIT_DIR_EXISTS',
       `The target directory already exists: '${opts.editDir}'`
     );
@@ -98,9 +99,9 @@ export async function handler(
   const first = params[0];
 
   if (typeof first === 'undefined') {
-    throw new PnpmError(
+    throw new OspmError(
       'MISSING_PACKAGE_NAME',
-      '`pnpm patch` requires the package name'
+      '`ospm patch` requires the package name'
     );
   }
 
@@ -120,11 +121,11 @@ export async function handler(
       : getEditDirPath(first, patchedDep, { modulesDir });
 
   if (fs.existsSync(editDir) && fs.readdirSync(editDir).length !== 0) {
-    throw new PnpmError(
+    throw new OspmError(
       'EDIT_DIR_NOT_EMPTY',
       `The directory ${editDir} is not empty`,
       {
-        hint: 'Either run `pnpm patch-commit` to commit or delete it then run `pnpm patch` to recreate it',
+        hint: 'Either run `ospm patch-commit` to commit or delete it then run `ospm patch` to recreate it',
       }
     );
   }
@@ -149,12 +150,12 @@ export async function handler(
       }
     }
 
-    if (rootProjectManifest?.pnpm?.patchedDependencies) {
+    if (rootProjectManifest?.ospm?.patchedDependencies) {
       tryPatchWithExistingPatchFile({
         allowFailure: patchedDep.applyToAll,
         patchedDep,
         patchedDir: editDir,
-        patchedDependencies: rootProjectManifest.pnpm.patchedDependencies,
+        patchedDependencies: rootProjectManifest.ospm.patchedDependencies,
         lockfileDir,
       });
     }
@@ -168,7 +169,7 @@ export async function handler(
 
 To commit your changes, run:
 
-  ${chalk.green(`pnpm patch-commit ${quote}${editDir}${quote}`)}
+  ${chalk.green(`ospm patch-commit ${quote}${editDir}${quote}`)}
 
 `;
 }
@@ -205,7 +206,7 @@ function tryPatchWithExistingPatchFile({
   const existingPatchFilePath = path.resolve(lockfileDir, existingPatchFile);
 
   if (fs.existsSync(existingPatchFilePath) !== true) {
-    throw new PnpmError(
+    throw new OspmError(
       'PATCH_FILE_NOT_FOUND',
       `Unable to find patch file ${existingPatchFilePath}`
     );

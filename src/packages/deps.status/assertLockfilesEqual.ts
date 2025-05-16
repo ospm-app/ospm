@@ -1,4 +1,4 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import { equals } from 'ramda';
 import type { LockfileObject } from '../lockfile.types/index.ts';
 
@@ -13,21 +13,21 @@ export function assertLockfilesEqual(
       wantedLockfile.importers ?? {}
     )) {
       if (!equals(snapshot.specifiers, {})) {
-        throw new PnpmError(
+        throw new OspmError(
           'RUN_CHECK_DEPS_NO_DEPS',
           `Project ${name} requires dependencies but none was installed.`,
           {
-            hint: 'Run `pnpm install` to install dependencies',
+            hint: 'Run `ospm install` to install dependencies',
           }
         );
       }
     }
   } else if (!equals(currentLockfile, wantedLockfile)) {
-    throw new PnpmError(
+    throw new OspmError(
       'RUN_CHECK_DEPS_OUTDATED_DEPS',
       `The installed dependencies in the modules directory is not up-to-date with the lockfile in ${wantedLockfileDir}.`,
       {
-        hint: 'Run `pnpm install` to update dependencies.',
+        hint: 'Run `ospm install` to update dependencies.',
       }
     );
   }

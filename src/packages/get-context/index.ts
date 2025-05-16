@@ -27,7 +27,7 @@ import type { LockfileObject } from '../lockfile.types/index.ts';
  * Note that some fields are affected by modules directory state. Such fields should be used for
  * mutating the modules directory only or in a manner that does not influence dependency resolution.
  */
-export type PnpmContext = {
+export type OspmContext = {
   currentLockfile: LockfileObject;
   currentLockfileIsUpToDate: boolean;
   existsCurrentLockfile: boolean;
@@ -118,7 +118,7 @@ export type GetContextOptions = {
 
 export async function getContext(
   opts: GetContextOptions
-): Promise<PnpmContext> {
+): Promise<OspmContext> {
   const modulesDir = opts.modulesDir ?? 'node_modules';
 
   const importersContext = await readProjectsContext(opts.allProjects, {
@@ -127,7 +127,7 @@ export async function getContext(
   });
 
   const virtualStoreDir = pathAbsolute(
-    opts.virtualStoreDir ?? path.join(modulesDir, '.pnpm'),
+    opts.virtualStoreDir ?? path.join(modulesDir, '.ospm'),
     opts.lockfileDir
   );
 
@@ -175,7 +175,7 @@ export async function getContext(
     extraBinPaths.unshift(path.join(hoistedModulesDir, '.bin'));
   }
 
-  const ctx: PnpmContext = {
+  const ctx: OspmContext = {
     extraBinPaths,
     extraNodePaths: getExtraNodePaths({
       extendNodePath: opts.extendNodePath,
@@ -247,7 +247,7 @@ export async function getContext(
   return ctx;
 }
 
-export interface PnpmSingleContext {
+export interface OspmSingleContext {
   currentLockfile: LockfileObject;
   currentLockfileIsUpToDate: boolean;
   existsCurrentLockfile: boolean;
@@ -310,7 +310,7 @@ export async function getContextForSingleImporter(
     publicHoistPattern?: string[] | undefined;
     forcePublicHoistPattern?: boolean | undefined;
   }
-): Promise<PnpmSingleContext> {
+): Promise<OspmSingleContext> {
   const {
     currentHoistPattern,
     hoistedDependencies,
@@ -354,7 +354,7 @@ export async function getContextForSingleImporter(
   }
 
   const virtualStoreDir = pathAbsolute(
-    opts.virtualStoreDir ?? 'node_modules/.pnpm',
+    opts.virtualStoreDir ?? 'node_modules/.ospm',
     opts.lockfileDir
   );
 
@@ -371,7 +371,7 @@ export async function getContextForSingleImporter(
     extraBinPaths.unshift(path.join(hoistedModulesDir, '.bin'));
   }
 
-  const ctx: PnpmSingleContext = {
+  const ctx: OspmSingleContext = {
     extraBinPaths,
     extraNodePaths: getExtraNodePaths({
       extendNodePath: opts.extendNodePath,

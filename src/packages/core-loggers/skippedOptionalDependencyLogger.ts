@@ -4,7 +4,7 @@ export const skippedOptionalDependencyLogger =
   logger<SkippedOptionalDependencyMessage>('skipped-optional-dependency');
 
 export type SkippedOptionalDependencyLog = {
-  name: 'pnpm:skipped-optional-dependency';
+  name: 'ospm:skipped-optional-dependency';
 } & LogBase &
   SkippedOptionalDependencyMessage;
 

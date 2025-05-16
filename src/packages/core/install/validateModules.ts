@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { PnpmError } from '../../error/index.ts';
+import { OspmError } from '../../error/index.ts';
 import { logger } from '../../logger/index.ts';
 import type {
   IncludedDependencies,
@@ -77,10 +77,10 @@ export async function validateModules(
 
       return { purged: true };
     }
-    throw new PnpmError(
+    throw new OspmError(
       'VIRTUAL_STORE_DIR_MAX_LENGTH_DIFF',
       'This modules directory was created using a different virtual-store-dir-max-length value.' +
-        ' Run "pnpm install" to recreate the modules directory.'
+        ' Run "ospm install" to recreate the modules directory.'
     );
   }
 
@@ -94,10 +94,10 @@ export async function validateModules(
       return { purged: true };
     }
 
-    throw new PnpmError(
+    throw new OspmError(
       'PUBLIC_HOIST_PATTERN_DIFF',
       'This modules directory was created using a different public-hoist-pattern value.' +
-        ' Run "pnpm install" to recreate the modules directory.'
+        ' Run "ospm install" to recreate the modules directory.'
     );
   }
 
@@ -111,10 +111,10 @@ export async function validateModules(
           opts.hoistPattern || undefined
         )
       ) {
-        throw new PnpmError(
+        throw new OspmError(
           'HOIST_PATTERN_DIFF',
           'This modules directory was created using a different hoist-pattern value.' +
-            ' Run "pnpm install" to recreate the modules directory.'
+            ' Run "ospm install" to recreate the modules directory.'
         );
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -142,7 +142,7 @@ export async function validateModules(
       ) {
         for (const depsField of DEPENDENCIES_FIELDS) {
           if (opts.include[depsField] !== modules.included[depsField]) {
-            throw new PnpmError(
+            throw new OspmError(
               'INCLUDED_DEPS_CONFLICT',
               `modules directory (at "${opts.lockfileDir}") was installed with ${stringifyIncludedDeps(modules.included)}. ` +
                 `Current install wants ${stringifyIncludedDeps(opts.include)}.`
@@ -205,7 +205,7 @@ async function purgeModulesDirsOfImporters(
     });
 
     if (!confirmed.question) {
-      throw new PnpmError(
+      throw new OspmError(
         'ABORTED_REMOVE_MODULES_DIR',
         'Aborted removal of modules directory'
       );
@@ -222,7 +222,7 @@ async function purgeModulesDirsOfImporters(
       try {
         // We don't remove the actual modules directory, just the contents of it.
         // 1. we will need the directory anyway.
-        // 2. in some setups, pnpm won't even have permission to remove the modules directory.
+        // 2. in some setups, ospm won't even have permission to remove the modules directory.
         await removeContentsOfDir(importer.modulesDir, opts.virtualStoreDir);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
@@ -241,7 +241,7 @@ async function removeContentsOfDir(
   const items = await fs.readdir(dir);
   await Promise.all(
     items.map(async (item) => {
-      // The non-pnpm related hidden files are kept
+      // The non-ospm related hidden files are kept
       if (
         item.startsWith('.') &&
         item !== '.bin' &&

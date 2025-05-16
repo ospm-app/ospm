@@ -1,8 +1,8 @@
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import semver from 'semver';
 import type { PartialUndefined } from '../exec.pkg-requires-build/index.ts';
 
-export class UnsupportedEngineError extends PnpmError {
+export class UnsupportedEngineError extends OspmError {
   wanted: WantedEngine;
   current: Engine;
   packageId: string;
@@ -40,13 +40,13 @@ export function checkEngine(
   }
 
   if (
-    typeof currentEngine.pnpm === 'string' &&
-    typeof wantedEngine.pnpm === 'string' &&
-    !semver.satisfies(currentEngine.pnpm, wantedEngine.pnpm, {
+    typeof currentEngine.ospm === 'string' &&
+    typeof wantedEngine.ospm === 'string' &&
+    !semver.satisfies(currentEngine.ospm, wantedEngine.ospm, {
       includePrerelease: true,
     })
   ) {
-    unsatisfiedWanted.pnpm = wantedEngine.pnpm;
+    unsatisfiedWanted.ospm = wantedEngine.ospm;
   }
 
   if (Object.keys(unsatisfiedWanted).length > 0) {
@@ -62,7 +62,7 @@ export function checkEngine(
 
 export interface Engine {
   node: string;
-  pnpm?: string | undefined;
+  ospm?: string | undefined;
 }
 
 export type WantedEngine = PartialUndefined<Engine>;

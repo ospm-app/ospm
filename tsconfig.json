@@ -26,7 +26,6 @@
       "@types/shell-quote",
       "@types/micromatch",
       "@types/normalize-package-data",
-      "@types/npm-packlist",
       "@types/write-file-atomic",
       "@types/graceful-fs",
       "@types/validate-npm-package-name",
@@ -73,7 +72,8 @@
   "include": [
     "src/**/*.ts",
     "scripts/*.ts",
-    "./*.config.ts"
+    "./*.config.ts",
+    "./*.d.ts"
   ],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "src/**/__tests__/**"]
 }

@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import path from 'node:path';
 import util from 'node:util';
-import { PnpmError } from '../error/index.ts';
+import { OspmError } from '../error/index.ts';
 import {
   type AgentOptions,
   fetchWithAgent,
@@ -67,7 +67,7 @@ export async function audit(
   }
 
   if (res.status !== 200) {
-    throw new PnpmError(
+    throw new OspmError(
       'AUDIT_BAD_RESPONSE',
       `The audit endpoint (at ${auditUrl}) responded with ${res.status}: ${await res.text()}`
     );
@@ -174,7 +174,7 @@ async function searchPackagePaths(
   }).map(({ depPath }) => depPath);
 }
 
-export class AuditEndpointNotExistsError extends PnpmError {
+export class AuditEndpointNotExistsError extends OspmError {
   constructor(endpoint: string) {
     const message = `The audit endpoint (at ${endpoint}) is doesn't exist.`;
 

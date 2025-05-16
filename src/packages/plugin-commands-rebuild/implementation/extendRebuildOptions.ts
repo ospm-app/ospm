@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { type Config, getOptionsFromRootManifest } from '../../config/index.ts';
+import type { Config } from '../../config/index.ts';
 import {
   normalizeRegistries,
   DEFAULT_REGISTRIES,
@@ -18,6 +18,7 @@ import type {
 } from '../../types/index.ts';
 import { loadJsonFile } from 'load-json-file';
 import type { ReporterFunction } from '../../headless/index.ts';
+import { getOptionsFromRootManifest } from '../../config/getOptionsFromRootManifest.ts';
 
 export type StrictRebuildOptions<IP> = {
   autoInstallPeers?: boolean | undefined;
@@ -48,13 +49,13 @@ export type StrictRebuildOptions<IP> = {
     | GlobalPkgDir
     | WorkspaceDir
     | LockFileDir;
-  pnpmHomeDir: string;
+  ospmHomeDir: string;
 
   reporter?: ReporterFunction | undefined;
   production: boolean;
   development: boolean;
   optional: boolean;
-  rawConfig: object;
+  rawConfig: Record<string, string>;
   userConfig?: Record<string, string> | undefined;
   userAgent?: string | undefined;
   packageManager: {

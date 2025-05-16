@@ -7,6 +7,6 @@ export type PackageImportMethodMessage = {
 };
 
 export type PackageImportMethodLog = {
-  name: 'pnpm:package-import-method';
+  name: 'ospm:package-import-method';
 } & LogBase &
   PackageImportMethodMessage;

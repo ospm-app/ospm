@@ -1,7 +1,7 @@
 /**
- * Catalogs parsed from the pnpm-workspace.yaml file.
+ * Catalogs parsed from the ospm-workspace.yaml file.
  *
- * https://github.com/pnpm/rfcs/pull/1
+ * https://github.com/ospm/rfcs/pull/1
  */
 export type Catalogs = {
   /**

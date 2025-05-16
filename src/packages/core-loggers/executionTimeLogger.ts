@@ -7,5 +7,5 @@ export interface ExecutionTimeMessage {
   endedAt: number;
 }
 
-export type ExecutionTimeLog = { name: 'pnpm:execution-time' } & LogBase &
+export type ExecutionTimeLog = { name: 'ospm:execution-time' } & LogBase &
   ExecutionTimeMessage;

@@ -3,7 +3,8 @@ import {
   FILTERING,
   UNIVERSAL_OPTIONS,
 } from '../common-cli-options-help/index.ts';
-import { type Config, types as allTypes } from '../config/index.ts';
+import type { Config } from '../config/index.ts';
+import { types as allTypes } from '../config/types.ts';
 import {
   createOrConnectStoreController,
   type CreateStoreControllerOptions,
@@ -56,7 +57,7 @@ export function help(): string {
             description:
               'Rebuild every package found in subdirectories \
 or every workspace package, when executed inside a workspace. \
-For options that may be used with `-r`, see "pnpm help recursive"',
+For options that may be used with `-r`, see "ospm help recursive"',
             name: '--recursive',
             shortAlias: '-r',
           },
@@ -76,7 +77,7 @@ For options that may be used with `-r`, see "pnpm help recursive"',
       FILTERING,
     ],
     url: docsUrl('rebuild'),
-    usages: ['pnpm rebuild [<pkg> ...]'],
+    usages: ['ospm rebuild [<pkg> ...]'],
   });
 }
 

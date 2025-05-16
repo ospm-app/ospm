@@ -147,7 +147,7 @@ export async function getPeerDependencyIssues(
           : -1),
       lockfileDir,
       nodeVersion: opts.nodeVersion ?? process.version,
-      pnpmVersion: '',
+      ospmVersion: '',
       preferWorkspacePackages: opts.preferWorkspacePackages,
       preferredVersions,
       preserveWorkspaceProtocol: false,

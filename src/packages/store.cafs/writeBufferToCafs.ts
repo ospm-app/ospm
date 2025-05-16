@@ -37,7 +37,7 @@ export function writeBufferToCafs(
   }
 
   // This might be too cautious.
-  // The write is atomic, so in case pnpm crashes, no broken file
+  // The write is atomic, so in case ospm crashes, no broken file
   // will be added to the store.
   // It might be a redundant step though, as we verify the contents of the
   // files before linking
